@@ -8,22 +8,49 @@ An open source platform for web technology discovery and infrastructure mapping.
 Discover technologies, map pages and infrastructure, and explore their connections
 while keeping control of your data and collection infrastructure.
 
-> **Status:** repository foundation. The components below are planned; no runnable
-> application has been implemented yet.
+> **Status:** the first PHP connector and SH/BAT CLI are implemented. The Chrome
+> extension, Graph Explorer, native PowerShell collector, and cross-run correlation
+> are still planned.
 
 ## Architecture
 
 w3bm@p follows a local-first architecture with no required account, database, or
-central backend. Independent collectors will produce a shared JSON format for
+central backend. Independent collectors produce a shared JSON format for future
 consolidation and visualization in the Graph Explorer.
 
-| Planned component | Responsibility | Planned technologies |
+| Component | Responsibility | Technologies and status |
 | --- | --- | --- |
-| Extension | Discover technologies, pages, links, and resources; configure and query the user's connector | JavaScript, Chrome Manifest V3 |
-| PHP Connector / Probe API | Enrich discoveries with DNS, RDAP, certificates, HTTP, and other public sources | PHP 8+, cURL, OpenSSL |
-| CLI | Collect data from the terminal and export JSON in standalone or connected mode | Shell, PowerShell, and a BAT launcher |
-| Graph Explorer | Import, correlate, and visualize entities, relationships, and evidence | SPA, Cytoscape.js |
-| Shared | Define the JSON schema and share technology fingerprints | JSON, JSON Schema |
+| Extension | Discover technologies, pages, links, and resources; configure and query the user's connector | JavaScript, Chrome Manifest V3 — planned |
+| PHP Connector / Probe API | Enrich discoveries with DNS, RDAP, certificates, HTTP, and other public sources | PHP 8.1+, cURL, OpenSSL — implemented |
+| CLI | Collect data from the terminal and export JSON in standalone or connected mode | SH/BAT launchers with PHP classes — implemented; native PowerShell planned |
+| Graph Explorer | Import, correlate, and visualize entities, relationships, and evidence | SPA, Cytoscape.js — planned |
+| Shared | Define the JSON graph contract | JSON Schema — implemented; shared fingerprint catalog planned |
+
+## Quick start
+
+Install PHP 8.1+ with cURL, OpenSSL, DOM, and SimpleXML for all modules. From the
+repository root, run a standalone collection:
+
+```sh
+sh cli/w3bmap.sh --domain example.com --modules dns,headers,ssl,technologies
+```
+
+On Windows Command Prompt:
+
+```bat
+cli\w3bmap.bat --domain example.com --modules dns,headers,ssl,technologies
+```
+
+Or invoke PHP directly on either platform:
+
+```sh
+php cli/w3bmap.php --help
+php cli/w3bmap.php --action capabilities
+```
+
+Read the [CLI guide](docs/cli.md) for exports, connected mode, requirements, and
+exit codes. Read the [connector guide](docs/connector.md) to deploy the authenticated
+single-file PHP API and configure its token and target allowlist.
 
 ### Optional self-hosted PHP connector
 
@@ -41,8 +68,8 @@ The planned workflow is:
 5. Enrich browser discoveries with connector queries.
 6. Explore the combined graph and export the results as JSON.
 
-The CLI will support **standalone** mode using local tools and **connected** mode
-using the same PHP connector protocol.
+The CLI supports **standalone** mode using the local PHP runtime and **connected**
+mode using the same PHP connector protocol.
 
 ### Engineering principles
 
@@ -63,35 +90,37 @@ using the same PHP connector protocol.
 
 The single-file PHP distribution will preserve internal class boundaries.
 
-## Planned repository structure
+## Repository structure
 
 ```text
 w3bmap/
-├── extension/          # Chrome extension and connector settings
-├── cli/                # w3bmap.sh, w3bmap.ps1, and w3bmap.bat
+├── extension/          # Planned Chrome extension and connector settings
+├── cli/                # w3bmap.sh, w3bmap.bat, and the PHP CLI application
 ├── probe/              # w3bmap.php, distributed as a single file
-├── explorer/           # Shared graph interface
-├── shared/             # schema.json and fingerprints.json
-├── docs/assets/        # README artwork and icon license notices
+├── explorer/           # Planned shared graph interface
+├── shared/             # schema.json
+├── tests/              # Offline PHP regression suite
+├── docs/               # CLI/connector guides and artwork
 ├── AGENTS.md           # Repository instructions for coding agents
 ├── CONTRIBUTING.md
 ├── LICENSE
 └── README.md
 ```
 
-Implementation directories will be added as their components are developed.
-Within application components, organize classes into models, views, controllers,
-and services where applicable.
+The `extension/` and `explorer/` directories will be added when developed.
+The PHP applications separate models, views, controllers, and services internally.
+The connector remains deployable as one file; the CLI shares its classes.
 
-## Planned data contract
+## Data contract
 
-Collectors will share versioned JSON containing entities (`nodes`), relationships
-(`edges`), and collection metadata. Each discovery should record its source,
-collection time, evidence, and confidence, distinguishing verified relationships
-from probable associations. The formal schema and correlation rules will be
-specified in `shared/`.
+Collectors share versioned JSON containing entities (`nodes`), relationships
+(`edges`), collection metadata, module results, and errors. Discoveries record
+source, collection time, evidence, and confidence; relationships distinguish
+observed findings from inferred associations. The contract is defined in
+[shared/schema.json](shared/schema.json). Cross-run correlation is still planned.
 
-Minimal illustrative example, subject to the final schema:
+Simplified excerpt (full documents also include metadata, status, evidence,
+confidence, module results, and errors):
 
 ```json
 {
@@ -113,11 +142,12 @@ Minimal illustrative example, subject to the final schema:
 }
 ```
 
-## Planned Connector API
+## Connector API
 
-The PHP connector will be distributed as a single file, without a mandatory
-Composer installation or database. All operations will require authentication.
-These proposed calls are not functional endpoints yet:
+The PHP connector is distributed as a single file, without a mandatory Composer
+installation or database. All operations require bearer-token authentication,
+including capabilities. Configure `W3BMAP_API_KEY` and `W3BMAP_ALLOWED_DOMAINS` on
+the server before use. The following actions are implemented:
 
 ```text
 GET  /w3bmap.php?action=capabilities
@@ -127,15 +157,18 @@ GET  /w3bmap.php?action=ssl&domain=example.com
 GET  /w3bmap.php?action=headers&domain=example.com
 GET  /w3bmap.php?action=technologies&domain=example.com
 GET  /w3bmap.php?action=sitemap&domain=example.com
+GET  /w3bmap.php?action=robots&domain=example.com
+GET  /w3bmap.php?action=links&domain=example.com
 POST /w3bmap.php?action=analyze
 ```
 
-Planned modules cover DNS, RDAP, certificates, HTTP headers, technologies,
-robots.txt, sitemaps, and links. PHP environment diagnostics and local directory
-inspection will be separate features, disabled by default and enabled explicitly
-by the operator. Longer collection tasks will be handled primarily by the CLI.
+Modules cover DNS, RDAP, certificates, HTTP headers, technology indicators,
+robots.txt, sitemaps, and links. Optional PHP environment diagnostics are disabled
+by default. Local directory inspection and recursive crawling are not implemented.
+See [the connector protocol and limits](docs/connector.md) for request bodies,
+deployment settings, security boundaries, and partial-result behavior.
 
-### Implementation security requirements
+### Security boundaries
 
 - Token authentication for every operation, including capabilities, and HTTPS for remote endpoints.
 - Extension origin permissions granted for the hosts in use.
@@ -151,11 +184,34 @@ Queries and diagnostics must remain within the scope authorized by the operator.
 
 - [x] Initialize Git, documentation, licensing, and commit conventions.
 - [x] Establish English-only content, OOP, and MVC guidelines.
-- [ ] Define the JSON schema and build the Graph Explorer with import and export.
+- [x] Define the shared JSON graph schema.
+- [x] Implement standalone and connected PHP CLI with SH/BAT launchers.
+- [x] Implement the authenticated self-hosted PHP connector.
+- [ ] Build the Graph Explorer with import and export.
 - [ ] Implement the Chrome extension with local collection and technology detection.
-- [ ] Implement the cross-platform CLI with standalone and connected modes.
-- [ ] Implement the PHP connector and its optional extension integration.
+- [ ] Add a native PowerShell collector.
+- [ ] Integrate the optional connector into the Chrome extension.
 - [ ] Correlate entities and evidence from multiple sources.
+
+## Verification
+
+Run the offline regression suite:
+
+```sh
+php tests/run.php
+```
+
+The suite uses injected DNS and HTTP fixtures to check authentication, request
+validation, destination policy, rate limiting, graph consistency, XML/HTML parsing,
+and CLI input handling. It does not send external network requests.
+
+Syntax checks:
+
+```sh
+php -l probe/w3bmap.php
+php -l cli/w3bmap.php
+sh -n cli/w3bmap.sh
+```
 
 ## Contributing
 

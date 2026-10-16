@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "w3bm@p graph document",
+  "description": "Shared collection output. Capabilities, diagnostics, and request errors use separate response shapes.",
+  "type": "object",
+  "required": ["schema_version", "tool", "target", "source", "collected_at", "status", "nodes", "edges", "results", "errors"],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "tool": { "const": "w3bm@p" },
+    "target": { "type": "string", "minLength": 1 },
+    "source": { "enum": ["cli", "probe", "extension"] },
+    "collected_at": { "type": "string", "format": "date-time" },
+    "status": { "enum": ["complete", "partial", "failed"] },
+    "nodes": { "type": "array", "items": { "$ref": "#/$defs/node" } },
+    "edges": { "type": "array", "items": { "$ref": "#/$defs/edge" } },
+    "results": { "type": "object", "additionalProperties": { "type": "object" } },
+    "errors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["module", "code", "message"],
+        "properties": {
+          "module": { "type": "string" },
+          "code": { "type": "string" },
+          "message": { "type": "string" }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "node": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "label", "source", "collected_at", "evidence", "confidence"],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "type": { "enum": ["domain", "ip", "page", "technology", "certificate", "sitemap"] },
+        "label": { "type": "string" },
+        "source": { "enum": ["cli", "probe", "extension"] },
+        "collected_at": { "type": "string", "format": "date-time" },
+        "evidence": { "type": "object" },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
+    "edge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source", "target", "type", "source_tool", "collected_at", "evidence", "confidence", "verification"],
+      "properties": {
+        "source": { "type": "string", "minLength": 1 },
+        "target": { "type": "string", "minLength": 1 },
+        "type": { "type": "string", "minLength": 1 },
+        "source_tool": { "enum": ["cli", "probe", "extension"] },
+        "collected_at": { "type": "string", "format": "date-time" },
+        "evidence": { "type": "object" },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+        "verification": { "enum": ["observed", "inferred"] }
+      }
+    }
+  }
+}

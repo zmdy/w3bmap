@@ -1,7 +1,7 @@
 # Contributing
 
-The project is at the foundation stage. Read the [README](README.md) for the
-architecture and roadmap before proposing an implementation.
+Read the [README](README.md) for the architecture, implementation status, and
+roadmap before proposing a change.
 
 ## Language
 
@@ -74,7 +74,9 @@ Automated commit message validation is not included yet.
 - Document how to verify changes and run checks appropriate to the component.
 - Update the README when implementation status or configuration changes.
 
-There are no build commands or automated tests yet. These will be documented as
-application components are implemented.
+Run `php tests/run.php` for the offline regression suite and `php -l` on changed
+PHP files. For launcher changes, also check `sh -n cli/w3bmap.sh` and exercise the
+relevant launcher. See the [CLI](docs/cli.md) and [connector](docs/connector.md)
+guides for manual integration checks. There is no build step or Composer dependency.
 
 Contributions are distributed under the project's [MIT License](LICENSE).
