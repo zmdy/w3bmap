@@ -1,0 +1,26 @@
+# Credenciais e configuração local
+.env
+.env.*
+!.env.example
+*.local.json
+
+# Dependências e artefatos gerados
+node_modules/
+vendor/
+dist/
+build/
+coverage/
+*.log
+
+# Coletas e exportações locais
+/data/
+/exports/
+
+# Arquivos do sistema e editores
+.DS_Store
+Thumbs.db
+Desktop.ini
+.idea/
+.vscode/
+*.swp
+*.swo
