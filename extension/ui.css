@@ -227,6 +227,17 @@ h1 {
   color: #9ba9b1;
   font-size: 10px;
 }
+.detection-panel { margin: 0 0 20px; }
+.detection-heading { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.detection-heading h2 { font-size: 16px; margin: 0 0 10px; }
+.search-label { display: block; font-size: 10px; margin: 12px 0 6px; color: #607c89; }
+#technology-search { width: 100%; border: 1px solid var(--line); border-radius: 6px; padding: 10px; color: var(--ink); background: #f7f9fa; }
+.detected-technologies { max-height: 290px; overflow-y: auto; overflow-wrap: anywhere; font-size: 11px; color: #607c89; margin-top: 12px; }
+.technology-group h3 { font-size: 9px; text-transform: uppercase; letter-spacing: .8px; color: #607c89; margin: 16px 0 5px; }
+.technology-row { border-bottom: 1px solid #edf1f3; padding: 9px 0; }
+.technology-row summary { cursor: pointer; display: flex; justify-content: space-between; gap: 10px; color: var(--ink); font-weight: 600; }
+.technology-version { font-size: 10px; font-weight: 400; color: #607c89; text-align: right; }
+.technology-evidence { font-size: 10px; color: #607c89; line-height: 1.6; margin: 8px 0 0; }
 .technology {
   background: #f6f3ec;
   border: 1px solid #eee6d6;

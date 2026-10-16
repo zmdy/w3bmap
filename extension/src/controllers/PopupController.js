@@ -23,12 +23,26 @@ export class PopupController {
       .get("clear-result")
       .addEventListener("click", () => this.operation("clear"));
     this.view.get("export-json").addEventListener("click", () => this.export());
+    this.view.get("rescan-button").addEventListener("click", () => this.detect());
+    this.view.get("technology-search").addEventListener("input", (event) => this.view.filterTechnologies(event.target.value));
     const [tab] = await this.api.tabs.query({
       active: true,
       currentWindow: true,
     });
     this.view.current(tab);
     await this.refresh();
+    await this.detect();
+  }
+
+  async detect() {
+    this.view.detectionBusy(true);
+    try {
+      this.view.detection(await this.client.send("detect"));
+    } catch (error) {
+      this.view.detectionError(error.message);
+    } finally {
+      this.view.detectionBusy(false);
+    }
   }
 
   async refresh() {

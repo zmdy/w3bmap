@@ -1,6 +1,11 @@
 export class BackgroundController {
   constructor(api, settings, connector, collections, analysis) {
     Object.assign(this, { api, settings, connector, collections, analysis });
+    api.tabs.onUpdated?.addListener((tabId, change) => {
+      if (change.status === "loading" || change.url) {
+        api.action?.setBadgeText({ tabId, text: "" }).catch(() => {});
+      }
+    });
   }
 
   async handle(message, sender) {
@@ -14,6 +19,8 @@ export class BackgroundController {
       );
     }
     switch (message?.action) {
+      case "detect":
+        return this.analysis.detect();
       case "state": {
         const settings = await this.settings.load();
         return {

@@ -1,8 +1,9 @@
 # Chrome extension
 
-The first Manifest V3 extension analyzes the current page after a user action,
-optionally enriches the result with a self-hosted PHP connector, and opens a
-packaged Graph Explorer. It runs without a central backend, account, or CDN.
+The Manifest V3 extension detects technologies when its popup opens, analyzes the
+current page on request, optionally enriches the result with a self-hosted PHP
+connector, and opens a packaged Graph Explorer. It runs without a central backend,
+account, or CDN.
 
 ## Installation
 
@@ -15,7 +16,8 @@ repository. It already includes its runtime, icons, fingerprints, and Explorer.
 4. Pin **w3bm@p — Web Discovery** using Chrome's extensions menu.
 5. Open a normal HTTP or HTTPS page and click the extension.
 
-Use **Analyze current page** to collect it, then **Open graph** to inspect findings
+Technology detection starts automatically when you open the popup. Use **Analyze
+current page** to save a full collection, then **Open graph** to inspect findings
 or **Export JSON** to save the complete shared-schema document. The **Last
 collection** panel always identifies the result's hostname and page; it may refer
 to a different tab analyzed earlier.
@@ -23,6 +25,57 @@ to a different tab analyzed earlier.
 Chrome internal pages, the Chrome Web Store, PDF viewers, and other restricted
 surfaces cannot be inspected. Analysis is limited to the top frame and the current
 DOM; it does not crawl other pages or inspect cross-origin frame contents.
+
+## Technology detection
+
+The **Technologies** panel belongs to the current page. It groups findings by
+category, shows an explicit version when available, and supports filtering by
+name, category, or version. Expand a finding for its signal and confidence.
+**Version unknown** means no usable version was observed; the detector never
+guesses a version from a technology name. **Detect again** reruns inspection,
+which is useful after lazy loading or a client-side route change.
+
+The toolbar badge displays the detected count after inspection and clears when
+the tab navigates. Detection runs on popup opening or explicit rescan, rather
+than continuously monitoring every visited site. No additional permissions are
+required. Quick detection stays local, does not call PHP, and does not overwrite
+the latest saved graph. To keep these technologies in an export, run **Analyze
+current page**, which performs a new snapshot and saves the full collection.
+
+The bundled catalog contains **80 technology definitions**, including CMS,
+ecommerce platforms, frameworks, libraries, analytics, payments, maps, security,
+and support tools. Examples include WordPress, Shopify, Next.js, React, Vue,
+Angular, jQuery, Bootstrap, Google Analytics, Stripe, and Cloudflare Turnstile.
+This is a curated catalog, not Wappalyzer's full database or an equivalent
+coverage guarantee. Minified applications that hide their markers/globals may
+remain undetected. Resource URLs show references, not necessarily executing code.
+
+Detection combines case-insensitive resource patterns, generator metadata, DOM
+markers, approved version attributes, and approved JavaScript property paths.
+The JavaScript probe runs in Chrome's MAIN world because page globals are not
+visible in the extension's isolated world. It reads own data properties, skips
+getters, and does not invoke framework methods. Only presence markers and bounded
+numeric version strings are returned. DOM collection remains in the isolated
+world. The runtime probe also checks property names on the first 400 DOM elements
+for modern React/Vue markers, without reading framework state. If runtime
+inspection fails, DOM findings remain available and the panel
+reports reduced coverage. Navigation during inspection rejects stale results.
+
+Multiple independent signal types slightly increase confidence, always below 1.
+Runtime versions take priority over resource filenames. Next.js/Gatsby imply
+React and Nuxt implies Vue; dependency findings are explicitly marked, have lower
+confidence, and never inherit the parent's version. Technology signals and
+versions are heuristic evidence that a page can spoof, not verified installation
+facts. Category, version, direct/implied status, and individual indicators are
+retained in graph evidence and JSON exports.
+
+The detection approach references the
+[WebAppAnalyzer specification](https://github.com/enthec/webappanalyzer), the
+community continuation of Wappalyzer. Its source and fingerprint database use
+GPL-3.0. This project does not bundle or copy that code/database; the matcher and
+80 definitions are independently authored under this repository's MIT license.
+The catalog is packaged locally and never downloads rules or executable code at
+runtime. See [the catalog format](technology-catalog.md) to add definitions.
 
 ## Optional PHP connector
 
@@ -99,13 +152,15 @@ The browser snapshot contains:
 - Up to 250 unique links from the first 2,000 anchor elements inspected.
 - Up to 250 resources from DOM declarations and existing Performance Resource
   Timing entries, inspecting at most 1,000 entries of each kind.
-- Generator metadata and a small set of DOM framework markers.
+- Generator metadata, approved DOM markers, and bounded technology-version
+  attributes, plus presence/version signals from approved JavaScript globals.
 
 Browser-observed URLs have queries and fragments removed, reject embedded
 credentials and unsupported schemes, and are omitted if longer than 2,048
 characters. Page titles are limited to 240 characters; generator values to 500.
 The collector does not read page text, form values, cookie values, request bodies,
-or resource contents. These omissions do not scrub sensitive values already
+or resource contents. JavaScript property values are limited to presence or
+numeric versions and arbitrary strings/objects are not exported. These omissions do not scrub sensitive values already
 present in URL paths, titles, or generator metadata; review collections before sharing.
 
 DOM resource declarations produce `references_resource` relationships. Existing
@@ -115,7 +170,8 @@ prove a successful response or that a particular framework is executing.
 
 Resources use the existing `page` node type with resource-kind evidence so output
 remains compatible with schema 1.0. Technology matches from
-`shared/fingerprints.json` are heuristic and have confidence below 1. Header-based
+`shared/fingerprints.json` are heuristic and have confidence below 1. Versions
+are recorded only when explicitly observed. Header-based
 signals are available through PHP enrichment; the extension does not intercept
 network headers or reload the page to capture them.
 
@@ -183,6 +239,7 @@ The server must allow `example.com`; this test collects its public DNS records.
 Chrome host permissions are substituted in this Node transport test.
 
 Manual Chrome verification after loading unpacked: analyze a normal page, close
-and reopen the popup during analysis, export JSON, open and filter the packaged
+and reopen the popup during analysis, verify automatic category/version detection
+and filtering, check badge reset on navigation, export JSON, open and filter the packaged
 graph, grant/decline connector-host access, test capabilities, verify a disallowed
 target retains browser findings, clear the result, and forget the connector.

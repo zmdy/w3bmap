@@ -24,8 +24,17 @@
     </header>
     <main id="main" class="popup-main">
       <div class="eyebrow">DISCOVER · ANALYZE · CONNECT</div>
-      <h1>Map this page.</h1>
+      <h1>Explore this stack.</h1>
       <p id="current-target" class="current-target">Your current browser tab</p>
+      <section id="detection-panel" class="detection-panel" aria-label="Current page technologies">
+        <div class="detection-heading"><h2>Technologies <span id="detected-count" class="badge">0</span></h2>
+          <button id="rescan-button" class="quiet-button">Detect again ↻</button></div>
+        <p id="detection-page" class="result-page"></p>
+        <label for="technology-search" class="search-label">Filter technologies</label>
+        <input id="technology-search" type="search" placeholder="Name, category, or version" autocomplete="off" />
+        <div id="detected-technologies" class="detected-technologies"></div>
+        <p id="detection-status" class="subtle" role="status" aria-live="polite">Detecting technologies on this page…</p>
+      </section>
       <button id="analyze-button" class="button primary wide">
         Analyze current page
       </button>
@@ -34,8 +43,7 @@
         ><span id="connector-state">Browser collection only</span>
       </div>
       <p id="notice" class="notice" role="status" aria-live="polite">
-        Collect technologies, links, and loaded resources from the page you
-        choose.
+        Technologies are detected when you open this popup. Analyze the page to save its graph, links, resources, and optional PHP enrichment.
       </p>
       <section
         id="result"

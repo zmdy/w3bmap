@@ -65,8 +65,11 @@ import limits, and development commands.
 
 To use the Chrome extension, open `chrome://extensions/`, enable **Developer mode**,
 choose **Load unpacked**, and select this repository's `extension/` directory.
-Its Explorer and fingerprints are already included. Open an HTTP/HTTPS page,
-click the extension, and choose **Analyze current page**. Read the
+Its Explorer and fingerprints are already included. Open an HTTP/HTTPS page and
+click the extension to detect technologies automatically. The popup groups 80
+supported technologies by category, shows explicit versions and evidence, and
+supports filtering. Choose **Analyze current page** to save a graph with links,
+resources, and optional PHP enrichment. Read the
 [extension guide](docs/extension.md) for installation, optional connector settings,
 privacy, and verification.
 

@@ -11,8 +11,18 @@ local copy of the Graph Explorer and has no CDN or central backend dependency.
 4. Select this `extension/` directory, containing `manifest.json`.
 5. Pin **w3bm@p — Web Discovery** from Chrome's extensions menu.
 
-Open an HTTP or HTTPS page, click the extension, then choose **Analyze current
-page**. Use **Open graph** or **Export JSON** when the collection is ready.
+Open an HTTP or HTTPS page and click the extension. Technology detection starts
+automatically: browse categories, filter by name/category/version, and expand a
+technology to inspect its evidence. **Detect again** refreshes these findings.
+The icon badge shows the detected count after inspection and resets on navigation.
+
+Choose **Analyze current page** to save the complete collection, including links,
+resources, and optional PHP enrichment. Use **Open graph** or **Export JSON** when
+the collection is ready. Quick detection never replaces the last saved graph.
+
+The local catalog includes 80 independently authored technology definitions.
+Versions are shown only when an explicit numeric signal is available; otherwise
+the UI says **Version unknown**. Coverage is smaller than Wappalyzer's catalog.
 
 For optional PHP setup, privacy details, permissions, and verification, read
 [the extension guide](../docs/extension.md).

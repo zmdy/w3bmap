@@ -78,7 +78,7 @@ export class GraphBuilder {
         `technology:${technology.id}`,
         "technology",
         technology.name,
-        technology.evidence,
+        { ...technology.evidence, website: technology.website, category: technology.category, version: technology.version },
         technology.confidence,
       );
       edge(
@@ -105,6 +105,10 @@ export class GraphBuilder {
           links: snapshot.links,
           resources: snapshot.resources,
           technologies,
+          technology_detection: {
+            runtime_available: snapshot.runtimeAvailable ?? false,
+            note: "Technology and version indicators are inferred. Missing versions are unknown; implied dependencies carry no version.",
+          },
           limits: { links: 250, resources: 250 },
           note: "URL queries and fragments are omitted. Resources are represented as page entities with kind evidence.",
         },

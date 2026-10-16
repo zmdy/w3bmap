@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "w3bm@p — Web Discovery",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "minimum_chrome_version": "116",
   "description": "Discover page technologies and relationships, optionally enrich them with your PHP connector, and explore a local graph.",
   "permissions": ["activeTab", "scripting", "storage"],
@@ -12,7 +12,7 @@
   ],
   "background": { "service_worker": "background.js", "type": "module" },
   "action": {
-    "default_title": "Analyze this page with w3bm@p",
+    "default_title": "Detect technologies with w3bm@p",
     "default_popup": "popup/index.html",
     "default_icon": { "16": "assets/icon-16.png", "32": "assets/icon-32.png" }
   },

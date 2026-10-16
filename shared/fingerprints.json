@@ -1,73 +1,1459 @@
 {
-  "version": "1.0",
-  "description": "Browser-visible technology indicators. Matches are evidence of possible use, not proof or version identification.",
+  "version": "2.0",
+  "description": "Independently authored, local browser technology rules. Versions and matches are heuristic indicators, never proof.",
+  "license": "MIT",
+  "reference": "https://github.com/enthec/webappanalyzer",
   "technologies": [
     {
       "id": "wordpress",
       "name": "WordPress",
-      "confidence": 0.8,
+      "category": "CMS",
+      "website": "https://wordpress.org",
+      "confidence": 0.85,
       "patterns": [
-        { "source": "resource", "contains": "/wp-content/" },
-        { "source": "resource", "contains": "/wp-includes/" },
-        { "source": "generator", "contains": "wordpress" }
+        {
+          "source": "resource",
+          "regex": "/wp-(?:content|includes)/"
+        },
+        {
+          "source": "generator",
+          "regex": "^WordPress(?:\\s+([0-9]+(?:\\.[0-9]+){0,3}))?(?:\\s|$)",
+          "versionGroup": 1
+        }
       ]
     },
     {
       "id": "drupal",
       "name": "Drupal",
-      "confidence": 0.8,
+      "category": "CMS",
+      "website": "https://www.drupal.org",
+      "confidence": 0.85,
       "patterns": [
-        { "source": "resource", "contains": "/sites/default/files/" },
-        { "source": "generator", "contains": "drupal" }
+        {
+          "source": "resource",
+          "regex": "/sites/(?:default|all)/(?:files|modules|themes)/"
+        },
+        {
+          "source": "generator",
+          "regex": "^Drupal(?:\\s+([0-9]+(?:\\.[0-9]+){0,3}))?(?:\\s|$)",
+          "versionGroup": 1
+        },
+        {
+          "source": "js",
+          "key": "Drupal",
+          "regex": "^present$"
+        }
       ]
     },
     {
       "id": "nextjs",
       "name": "Next.js",
-      "confidence": 0.8,
+      "category": "Web frameworks",
+      "website": "https://nextjs.org",
+      "confidence": 0.85,
       "patterns": [
-        { "source": "resource", "contains": "/_next/" },
-        { "source": "hint", "contains": "nextjs" }
+        {
+          "source": "resource",
+          "regex": "/_next/"
+        },
+        {
+          "source": "hint",
+          "equals": "nextjs"
+        },
+        {
+          "source": "js",
+          "key": "next.version",
+          "regex": "^([0-9]+(?:\\.[0-9]+){0,3}(?:[-+][a-z0-9.-]+)?)$",
+          "versionGroup": 1
+        }
+      ],
+      "implies": [
+        "react"
       ]
     },
     {
       "id": "nuxt",
       "name": "Nuxt",
-      "confidence": 0.8,
+      "category": "Web frameworks",
+      "website": "https://nuxt.com",
+      "confidence": 0.85,
       "patterns": [
-        { "source": "resource", "contains": "/_nuxt/" },
-        { "source": "hint", "contains": "nuxt" }
+        {
+          "source": "resource",
+          "regex": "/_nuxt/"
+        },
+        {
+          "source": "hint",
+          "equals": "nuxt"
+        },
+        {
+          "source": "js",
+          "key": "__NUXT__",
+          "regex": "^present$"
+        }
+      ],
+      "implies": [
+        "vue"
       ]
     },
     {
       "id": "jquery",
       "name": "jQuery",
-      "confidence": 0.75,
-      "patterns": [{ "source": "resource", "contains": "jquery" }]
+      "category": "JavaScript libraries",
+      "website": "https://jquery.com",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "script",
+          "regex": "/jquery(?:[.-]([0-9]+(?:\\.[0-9]+){1,3}))?(?:[.-](?:min|slim))*\\.js(?:$|[?#])",
+          "versionGroup": 1
+        },
+        {
+          "source": "js",
+          "key": "jQuery.fn.jquery",
+          "regex": "^([0-9]+(?:\\.[0-9]+){0,3}(?:[-+][a-z0-9.-]+)?)$",
+          "versionGroup": 1
+        }
+      ]
     },
     {
       "id": "bootstrap",
       "name": "Bootstrap",
-      "confidence": 0.75,
-      "patterns": [{ "source": "resource", "contains": "bootstrap" }]
+      "category": "UI frameworks",
+      "website": "https://getbootstrap.com",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "resource",
+          "regex": "/bootstrap(?:@|[.-])?([0-9]+(?:\\.[0-9]+){1,3})?(?:/|(?:\\.bundle)?(?:\\.min)?\\.(?:css|js)$)",
+          "versionGroup": 1
+        },
+        {
+          "source": "js",
+          "key": "bootstrap.Tooltip.VERSION",
+          "regex": "^([0-9]+(?:\\.[0-9]+){0,3}(?:[-+][a-z0-9.-]+)?)$",
+          "versionGroup": 1
+        },
+        {
+          "source": "js",
+          "key": "jQuery.fn.tooltip.Constructor.VERSION",
+          "regex": "^([0-9]+(?:\\.[0-9]+){0,3}(?:[-+][a-z0-9.-]+)?)$",
+          "versionGroup": 1
+        }
+      ]
     },
     {
       "id": "react",
       "name": "React",
-      "confidence": 0.7,
-      "patterns": [{ "source": "hint", "contains": "react" }]
+      "category": "JavaScript frameworks",
+      "website": "https://react.dev",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "hint",
+          "equals": "react"
+        },
+        {
+          "source": "js",
+          "key": "React.version",
+          "regex": "^([0-9]+(?:\\.[0-9]+){0,3}(?:[-+][a-z0-9.-]+)?)$",
+          "versionGroup": 1
+        },
+        {
+          "source": "script",
+          "regex": "/react(?:[.-]([0-9]+(?:\\.[0-9]+){1,3}))?(?:\\.production|\\.development)?(?:\\.min)?\\.js$",
+          "versionGroup": 1
+        },
+        {
+          "source": "dom",
+          "key": "react-root",
+          "selector": "[data-reactroot]",
+          "equals": "present"
+        }
+      ]
     },
     {
       "id": "vue",
       "name": "Vue.js",
-      "confidence": 0.7,
-      "patterns": [{ "source": "hint", "contains": "vue" }]
+      "category": "JavaScript frameworks",
+      "website": "https://vuejs.org",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "hint",
+          "equals": "vue"
+        },
+        {
+          "source": "js",
+          "key": "Vue.version",
+          "regex": "^([0-9]+(?:\\.[0-9]+){0,3}(?:[-+][a-z0-9.-]+)?)$",
+          "versionGroup": 1
+        },
+        {
+          "source": "dom",
+          "key": "vue-app",
+          "selector": "[data-v-app]",
+          "equals": "present"
+        }
+      ]
     },
     {
       "id": "angular",
       "name": "Angular",
-      "confidence": 0.8,
-      "patterns": [{ "source": "hint", "contains": "angular" }]
+      "category": "JavaScript frameworks",
+      "website": "https://angular.dev",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "hint",
+          "equals": "angular"
+        },
+        {
+          "source": "dom",
+          "key": "angular-version",
+          "selector": "[ng-version]",
+          "attribute": "ng-version",
+          "regex": "^([0-9]+(?:\\.[0-9]+){0,3})$",
+          "versionGroup": 1
+        }
+      ]
+    },
+    {
+      "id": "joomla",
+      "name": "Joomla",
+      "category": "CMS",
+      "website": "https://www.joomla.org",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "generator",
+          "regex": "^Joomla!?(?:\\s+([0-9]+(?:\\.[0-9]+){0,3}))?(?:\\s|$)",
+          "versionGroup": 1
+        },
+        {
+          "source": "resource",
+          "regex": "/media/system/js/(?:core|joomla)"
+        }
+      ]
+    },
+    {
+      "id": "ghost",
+      "name": "Ghost",
+      "category": "CMS",
+      "website": "https://ghost.org",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "generator",
+          "regex": "^Ghost(?:\\s+([0-9]+(?:\\.[0-9]+){0,3}))?(?:\\s|$)",
+          "versionGroup": 1
+        },
+        {
+          "source": "resource",
+          "regex": "/ghost/api/"
+        }
+      ]
+    },
+    {
+      "id": "wix",
+      "name": "Wix",
+      "category": "Website builders",
+      "website": "https://www.wix.com",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "resource",
+          "regex": "^https://(?:[^/]+\\.)?(?:wixstatic\\.com|parastorage\\.com)/"
+        },
+        {
+          "source": "generator",
+          "regex": "^Wix(?:\\.com)?(?:\\s+([0-9]+(?:\\.[0-9]+){0,3}))?(?:\\s|$)",
+          "versionGroup": 1
+        }
+      ]
+    },
+    {
+      "id": "squarespace",
+      "name": "Squarespace",
+      "category": "Website builders",
+      "website": "https://www.squarespace.com",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "resource",
+          "regex": "^https://(?:[^/]+\\.)?squarespace(?:-cdn)?\\.com/"
+        },
+        {
+          "source": "generator",
+          "regex": "^Squarespace(?:\\s+([0-9]+(?:\\.[0-9]+){0,3}))?(?:\\s|$)",
+          "versionGroup": 1
+        }
+      ]
+    },
+    {
+      "id": "webflow",
+      "name": "Webflow",
+      "category": "Website builders",
+      "website": "https://webflow.com",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "dom",
+          "key": "webflow",
+          "selector": "html[data-wf-site]",
+          "equals": "present"
+        },
+        {
+          "source": "resource",
+          "regex": "/webflow(?:\\.[a-z0-9]+)?\\.js$"
+        }
+      ]
+    },
+    {
+      "id": "framer",
+      "name": "Framer",
+      "category": "Website builders",
+      "website": "https://www.framer.com",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "generator",
+          "regex": "^Framer(?:\\s+([0-9]+(?:\\.[0-9]+){0,3}))?(?:\\s|$)",
+          "versionGroup": 1
+        },
+        {
+          "source": "resource",
+          "regex": "^https://framerusercontent\\.com/"
+        }
+      ]
+    },
+    {
+      "id": "shopify",
+      "name": "Shopify",
+      "category": "Ecommerce",
+      "website": "https://www.shopify.com",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "resource",
+          "regex": "^https://cdn\\.shopify\\.com/"
+        },
+        {
+          "source": "js",
+          "key": "Shopify.shop",
+          "regex": "^present$"
+        }
+      ]
+    },
+    {
+      "id": "woocommerce",
+      "name": "WooCommerce",
+      "category": "Ecommerce",
+      "website": "https://woocommerce.com",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "resource",
+          "regex": "/wp-content/plugins/woocommerce/"
+        },
+        {
+          "source": "generator",
+          "regex": "^WooCommerce(?:\\s+([0-9]+(?:\\.[0-9]+){0,3}))?(?:\\s|$)",
+          "versionGroup": 1
+        }
+      ]
+    },
+    {
+      "id": "prestashop",
+      "name": "PrestaShop",
+      "category": "Ecommerce",
+      "website": "https://prestashop.com",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "generator",
+          "regex": "^PrestaShop(?:\\s+([0-9]+(?:\\.[0-9]+){0,3}))?(?:\\s|$)",
+          "versionGroup": 1
+        },
+        {
+          "source": "js",
+          "key": "prestashop",
+          "regex": "^present$"
+        }
+      ]
+    },
+    {
+      "id": "magento",
+      "name": "Magento",
+      "category": "Ecommerce",
+      "website": "https://business.adobe.com/products/magento/magento-commerce.html",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "script",
+          "regex": "/(?:mage/|Magento_[a-z0-9_]+/)"
+        },
+        {
+          "source": "dom",
+          "key": "magento-init",
+          "selector": "script[type=\"text/x-magento-init\"]",
+          "equals": "present"
+        }
+      ]
+    },
+    {
+      "id": "bigcommerce",
+      "name": "BigCommerce",
+      "category": "Ecommerce",
+      "website": "https://www.bigcommerce.com",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "resource",
+          "regex": "^https://cdn[0-9]*\\.bigcommerce\\.com/"
+        }
+      ]
+    },
+    {
+      "id": "gatsby",
+      "name": "Gatsby",
+      "category": "Web frameworks",
+      "website": "https://www.gatsbyjs.com",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "dom",
+          "key": "gatsby",
+          "selector": "#__gatsby",
+          "equals": "present"
+        },
+        {
+          "source": "generator",
+          "regex": "^Gatsby(?:\\s+([0-9]+(?:\\.[0-9]+){0,3}))?(?:\\s|$)",
+          "versionGroup": 1
+        }
+      ],
+      "implies": [
+        "react"
+      ]
+    },
+    {
+      "id": "astro",
+      "name": "Astro",
+      "category": "Web frameworks",
+      "website": "https://astro.build",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "generator",
+          "regex": "^Astro(?:\\s+([0-9]+(?:\\.[0-9]+){0,3}))?(?:\\s|$)",
+          "versionGroup": 1
+        },
+        {
+          "source": "dom",
+          "key": "astro",
+          "selector": "astro-island",
+          "equals": "present"
+        }
+      ]
+    },
+    {
+      "id": "sveltekit",
+      "name": "SvelteKit",
+      "category": "Web frameworks",
+      "website": "https://svelte.dev",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "resource",
+          "regex": "/_app/immutable/"
+        },
+        {
+          "source": "dom",
+          "key": "sveltekit",
+          "selector": "[data-sveltekit-preload-data]",
+          "equals": "present"
+        }
+      ]
+    },
+    {
+      "id": "angularjs",
+      "name": "AngularJS",
+      "category": "JavaScript frameworks",
+      "website": "https://angularjs.org",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "js",
+          "key": "angular.version.full",
+          "regex": "^([0-9]+(?:\\.[0-9]+){0,3}(?:[-+][a-z0-9.-]+)?)$",
+          "versionGroup": 1
+        },
+        {
+          "source": "dom",
+          "key": "angularjs",
+          "selector": "[ng-app],[data-ng-app]",
+          "equals": "present"
+        }
+      ]
+    },
+    {
+      "id": "alpine",
+      "name": "Alpine.js",
+      "category": "JavaScript frameworks",
+      "website": "https://alpinejs.dev",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "js",
+          "key": "Alpine.version",
+          "regex": "^([0-9]+(?:\\.[0-9]+){0,3}(?:[-+][a-z0-9.-]+)?)$",
+          "versionGroup": 1
+        },
+        {
+          "source": "dom",
+          "key": "alpine",
+          "selector": "[x-data]",
+          "equals": "present"
+        }
+      ]
+    },
+    {
+      "id": "htmx",
+      "name": "htmx",
+      "category": "JavaScript libraries",
+      "website": "https://htmx.org",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "js",
+          "key": "htmx.version",
+          "regex": "^([0-9]+(?:\\.[0-9]+){0,3}(?:[-+][a-z0-9.-]+)?)$",
+          "versionGroup": 1
+        },
+        {
+          "source": "dom",
+          "key": "htmx",
+          "selector": "[hx-get],[hx-post],[data-hx-get]",
+          "equals": "present"
+        }
+      ]
+    },
+    {
+      "id": "ember",
+      "name": "Ember.js",
+      "category": "JavaScript frameworks",
+      "website": "https://emberjs.com",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "js",
+          "key": "Ember.VERSION",
+          "regex": "^([0-9]+(?:\\.[0-9]+){0,3}(?:[-+][a-z0-9.-]+)?)$",
+          "versionGroup": 1
+        },
+        {
+          "source": "generator",
+          "regex": "^Ember(?:\\s+([0-9]+(?:\\.[0-9]+){0,3}))?(?:\\s|$)",
+          "versionGroup": 1
+        }
+      ]
+    },
+    {
+      "id": "backbone",
+      "name": "Backbone.js",
+      "category": "JavaScript frameworks",
+      "website": "https://backbonejs.org",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "js",
+          "key": "Backbone.VERSION",
+          "regex": "^([0-9]+(?:\\.[0-9]+){0,3}(?:[-+][a-z0-9.-]+)?)$",
+          "versionGroup": 1
+        }
+      ]
+    },
+    {
+      "id": "preact",
+      "name": "Preact",
+      "category": "JavaScript frameworks",
+      "website": "https://preactjs.com",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "js",
+          "key": "preact",
+          "regex": "^present$"
+        },
+        {
+          "source": "script",
+          "regex": "/preact(?:[.-](?:min|umd))?\\.js$"
+        }
+      ]
+    },
+    {
+      "id": "lit",
+      "name": "Lit",
+      "category": "JavaScript frameworks",
+      "website": "https://lit.dev",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "js",
+          "key": "litHtmlVersions",
+          "regex": "^present$"
+        },
+        {
+          "source": "js",
+          "key": "litElementVersions",
+          "regex": "^present$"
+        }
+      ]
+    },
+    {
+      "id": "lodash",
+      "name": "Lodash",
+      "category": "JavaScript libraries",
+      "website": "https://lodash.com",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "js",
+          "key": "_.templateSettings.imports._.VERSION",
+          "regex": "^([0-9]+(?:\\.[0-9]+){0,3}(?:[-+][a-z0-9.-]+)?)$",
+          "versionGroup": 1
+        },
+        {
+          "source": "script",
+          "regex": "/lodash(?:[.-]([0-9]+(?:\\.[0-9]+){1,3}))?(?:\\.min)?\\.js$",
+          "versionGroup": 1
+        }
+      ]
+    },
+    {
+      "id": "moment",
+      "name": "Moment.js",
+      "category": "JavaScript libraries",
+      "website": "https://momentjs.com",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "js",
+          "key": "moment.version",
+          "regex": "^([0-9]+(?:\\.[0-9]+){0,3}(?:[-+][a-z0-9.-]+)?)$",
+          "versionGroup": 1
+        },
+        {
+          "source": "script",
+          "regex": "/moment(?:-with-locales)?(?:\\.min)?\\.js$"
+        }
+      ]
+    },
+    {
+      "id": "dayjs",
+      "name": "Day.js",
+      "category": "JavaScript libraries",
+      "website": "https://day.js.org",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "js",
+          "key": "dayjs",
+          "regex": "^present$"
+        },
+        {
+          "source": "script",
+          "regex": "/dayjs(?:\\.min)?\\.js$"
+        }
+      ]
+    },
+    {
+      "id": "axios",
+      "name": "Axios",
+      "category": "JavaScript libraries",
+      "website": "https://axios-http.com",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "js",
+          "key": "axios.VERSION",
+          "regex": "^([0-9]+(?:\\.[0-9]+){0,3}(?:[-+][a-z0-9.-]+)?)$",
+          "versionGroup": 1
+        },
+        {
+          "source": "script",
+          "regex": "/axios(?:\\.min)?\\.js$"
+        }
+      ]
+    },
+    {
+      "id": "d3",
+      "name": "D3",
+      "category": "Visualization",
+      "website": "https://d3js.org",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "js",
+          "key": "d3.version",
+          "regex": "^([0-9]+(?:\\.[0-9]+){0,3}(?:[-+][a-z0-9.-]+)?)$",
+          "versionGroup": 1
+        },
+        {
+          "source": "script",
+          "regex": "/d3(?:\\.v([0-9]+))?(?:\\.min)?\\.js$",
+          "versionGroup": 1
+        }
+      ]
+    },
+    {
+      "id": "chartjs",
+      "name": "Chart.js",
+      "category": "Visualization",
+      "website": "https://www.chartjs.org",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "js",
+          "key": "Chart.version",
+          "regex": "^([0-9]+(?:\\.[0-9]+){0,3}(?:[-+][a-z0-9.-]+)?)$",
+          "versionGroup": 1
+        },
+        {
+          "source": "script",
+          "regex": "/chart(?:\\.umd|\\.bundle)?(?:\\.min)?\\.js$"
+        }
+      ]
+    },
+    {
+      "id": "highcharts",
+      "name": "Highcharts",
+      "category": "Visualization",
+      "website": "https://www.highcharts.com",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "js",
+          "key": "Highcharts.version",
+          "regex": "^([0-9]+(?:\\.[0-9]+){0,3}(?:[-+][a-z0-9.-]+)?)$",
+          "versionGroup": 1
+        },
+        {
+          "source": "script",
+          "regex": "/highcharts(?:\\.min)?\\.js$"
+        }
+      ]
+    },
+    {
+      "id": "threejs",
+      "name": "Three.js",
+      "category": "Visualization",
+      "website": "https://threejs.org",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "js",
+          "key": "THREE.REVISION",
+          "regex": "^([0-9]+(?:\\.[0-9]+){0,3}(?:[-+][a-z0-9.-]+)?)$",
+          "versionGroup": 1
+        },
+        {
+          "source": "script",
+          "regex": "/three(?:\\.module|\\.min)?\\.js$"
+        }
+      ]
+    },
+    {
+      "id": "leaflet",
+      "name": "Leaflet",
+      "category": "Maps",
+      "website": "https://leafletjs.com",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "js",
+          "key": "L.version",
+          "regex": "^([0-9]+(?:\\.[0-9]+){0,3}(?:[-+][a-z0-9.-]+)?)$",
+          "versionGroup": 1
+        },
+        {
+          "source": "resource",
+          "regex": "/leaflet(?:@|[./-])"
+        },
+        {
+          "source": "dom",
+          "key": "leaflet",
+          "selector": ".leaflet-container",
+          "equals": "present"
+        }
+      ]
+    },
+    {
+      "id": "mapbox",
+      "name": "Mapbox GL JS",
+      "category": "Maps",
+      "website": "https://www.mapbox.com",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "js",
+          "key": "mapboxgl.version",
+          "regex": "^([0-9]+(?:\\.[0-9]+){0,3}(?:[-+][a-z0-9.-]+)?)$",
+          "versionGroup": 1
+        },
+        {
+          "source": "resource",
+          "regex": "^https://api\\.mapbox\\.com/mapbox-gl-js/"
+        }
+      ]
+    },
+    {
+      "id": "google-maps",
+      "name": "Google Maps",
+      "category": "Maps",
+      "website": "https://maps.google.com",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "resource",
+          "regex": "^https://maps\\.googleapis\\.com/maps/"
+        },
+        {
+          "source": "js",
+          "key": "google.maps.version",
+          "regex": "^([0-9]+(?:\\.[0-9]+){0,3}(?:[-+][a-z0-9.-]+)?)$",
+          "versionGroup": 1
+        }
+      ]
+    },
+    {
+      "id": "bulma",
+      "name": "Bulma",
+      "category": "UI frameworks",
+      "website": "https://bulma.io",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "resource",
+          "regex": "/bulma(?:@|[./-])"
+        }
+      ]
+    },
+    {
+      "id": "foundation",
+      "name": "Foundation",
+      "category": "UI frameworks",
+      "website": "https://get.foundation",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "js",
+          "key": "Foundation.version",
+          "regex": "^([0-9]+(?:\\.[0-9]+){0,3}(?:[-+][a-z0-9.-]+)?)$",
+          "versionGroup": 1
+        },
+        {
+          "source": "resource",
+          "regex": "/foundation(?:\\.min)?\\.(?:js|css)$"
+        }
+      ]
+    },
+    {
+      "id": "materialize",
+      "name": "Materialize",
+      "category": "UI frameworks",
+      "website": "https://materializecss.com",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "js",
+          "key": "M.version",
+          "regex": "^([0-9]+(?:\\.[0-9]+){0,3}(?:[-+][a-z0-9.-]+)?)$",
+          "versionGroup": 1
+        },
+        {
+          "source": "resource",
+          "regex": "/materialize(?:\\.min)?\\.(?:js|css)$"
+        }
+      ]
+    },
+    {
+      "id": "fontawesome",
+      "name": "Font Awesome",
+      "category": "Fonts and icons",
+      "website": "https://fontawesome.com",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "resource",
+          "regex": "^https://(?:kit|use)\\.fontawesome\\.com/"
+        },
+        {
+          "source": "resource",
+          "regex": "/(?:font-awesome|fontawesome)(?:@|[./-])"
+        }
+      ]
+    },
+    {
+      "id": "google-fonts",
+      "name": "Google Fonts",
+      "category": "Fonts and icons",
+      "website": "https://fonts.google.com",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "resource",
+          "regex": "^https://fonts\\.(?:googleapis|gstatic)\\.com/"
+        }
+      ]
+    },
+    {
+      "id": "boxicons",
+      "name": "Boxicons",
+      "category": "Fonts and icons",
+      "website": "https://boxicons.com",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "resource",
+          "regex": "/boxicons(?:@|[./-])"
+        },
+        {
+          "source": "dom",
+          "key": "boxicons",
+          "selector": "box-icon",
+          "equals": "present"
+        }
+      ]
+    },
+    {
+      "id": "gtm",
+      "name": "Google Tag Manager",
+      "category": "Tag managers",
+      "website": "https://tagmanager.google.com",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "resource",
+          "regex": "^https://www\\.googletagmanager\\.com/(?:gtm\\.js|ns\\.html)$"
+        }
+      ]
+    },
+    {
+      "id": "google-analytics",
+      "name": "Google Analytics",
+      "category": "Analytics",
+      "website": "https://analytics.google.com",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "resource",
+          "regex": "^https://(?:www\\.)?google-analytics\\.com/"
+        },
+        {
+          "source": "resource",
+          "regex": "^https://www\\.googletagmanager\\.com/gtag/js$"
+        }
+      ]
+    },
+    {
+      "id": "matomo",
+      "name": "Matomo",
+      "category": "Analytics",
+      "website": "https://matomo.org",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "js",
+          "key": "Matomo",
+          "regex": "^present$"
+        },
+        {
+          "source": "script",
+          "regex": "/(?:matomo|piwik)\\.js$"
+        }
+      ]
+    },
+    {
+      "id": "plausible",
+      "name": "Plausible",
+      "category": "Analytics",
+      "website": "https://plausible.io",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "resource",
+          "regex": "^https://plausible\\.io/js/"
+        }
+      ]
+    },
+    {
+      "id": "hotjar",
+      "name": "Hotjar",
+      "category": "Analytics",
+      "website": "https://www.hotjar.com",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "resource",
+          "regex": "^https://(?:static|script)\\.hotjar\\.com/"
+        }
+      ]
+    },
+    {
+      "id": "clarity",
+      "name": "Microsoft Clarity",
+      "category": "Analytics",
+      "website": "https://clarity.microsoft.com",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "resource",
+          "regex": "^https://(?:www\\.)?clarity\\.ms/(?:tag|s)/"
+        }
+      ]
+    },
+    {
+      "id": "fathom",
+      "name": "Fathom",
+      "category": "Analytics",
+      "website": "https://usefathom.com",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "resource",
+          "regex": "^https://cdn\\.usefathom\\.com/script\\.js$"
+        }
+      ]
+    },
+    {
+      "id": "segment",
+      "name": "Segment",
+      "category": "Customer data",
+      "website": "https://segment.com",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "resource",
+          "regex": "^https://cdn\\.segment\\.com/analytics\\.js/"
+        }
+      ]
+    },
+    {
+      "id": "sentry",
+      "name": "Sentry",
+      "category": "Monitoring",
+      "website": "https://sentry.io",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "js",
+          "key": "Sentry.SDK_VERSION",
+          "regex": "^([0-9]+(?:\\.[0-9]+){0,3}(?:[-+][a-z0-9.-]+)?)$",
+          "versionGroup": 1
+        },
+        {
+          "source": "resource",
+          "regex": "^https://browser\\.sentry-cdn\\.com/"
+        }
+      ]
+    },
+    {
+      "id": "newrelic",
+      "name": "New Relic",
+      "category": "Monitoring",
+      "website": "https://newrelic.com",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "resource",
+          "regex": "^https://js-agent\\.newrelic\\.com/"
+        },
+        {
+          "source": "js",
+          "key": "NREUM",
+          "regex": "^present$"
+        }
+      ]
+    },
+    {
+      "id": "datadog",
+      "name": "Datadog",
+      "category": "Monitoring",
+      "website": "https://www.datadoghq.com",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "js",
+          "key": "DD_RUM",
+          "regex": "^present$"
+        },
+        {
+          "source": "resource",
+          "regex": "^https://www\\.datadoghq-browser-agent\\.com/"
+        }
+      ]
+    },
+    {
+      "id": "stripe",
+      "name": "Stripe",
+      "category": "Payments",
+      "website": "https://stripe.com",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "resource",
+          "regex": "^https://js\\.stripe\\.com/"
+        }
+      ]
+    },
+    {
+      "id": "paypal",
+      "name": "PayPal",
+      "category": "Payments",
+      "website": "https://www.paypal.com",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "resource",
+          "regex": "^https://www\\.paypal\\.com/sdk/js$"
+        },
+        {
+          "source": "resource",
+          "regex": "^https://www\\.paypalobjects\\.com/"
+        }
+      ]
+    },
+    {
+      "id": "recaptcha",
+      "name": "reCAPTCHA",
+      "category": "Security",
+      "website": "https://www.google.com/recaptcha",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "resource",
+          "regex": "^https://www\\.(?:google\\.com|recaptcha\\.net)/recaptcha/"
+        },
+        {
+          "source": "dom",
+          "key": "recaptcha",
+          "selector": ".g-recaptcha",
+          "equals": "present"
+        }
+      ]
+    },
+    {
+      "id": "hcaptcha",
+      "name": "hCaptcha",
+      "category": "Security",
+      "website": "https://www.hcaptcha.com",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "resource",
+          "regex": "^https://(?:js\\.)?hcaptcha\\.com/"
+        },
+        {
+          "source": "dom",
+          "key": "hcaptcha",
+          "selector": ".h-captcha",
+          "equals": "present"
+        }
+      ]
+    },
+    {
+      "id": "turnstile",
+      "name": "Cloudflare Turnstile",
+      "category": "Security",
+      "website": "https://www.cloudflare.com/products/turnstile",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "resource",
+          "regex": "^https://challenges\\.cloudflare\\.com/turnstile/"
+        },
+        {
+          "source": "dom",
+          "key": "turnstile",
+          "selector": ".cf-turnstile",
+          "equals": "present"
+        }
+      ]
+    },
+    {
+      "id": "intercom",
+      "name": "Intercom",
+      "category": "Customer support",
+      "website": "https://www.intercom.com",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "resource",
+          "regex": "^https://widget\\.intercom\\.io/"
+        }
+      ]
+    },
+    {
+      "id": "crisp",
+      "name": "Crisp",
+      "category": "Customer support",
+      "website": "https://crisp.chat",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "resource",
+          "regex": "^https://client\\.crisp\\.chat/"
+        }
+      ]
+    },
+    {
+      "id": "zendesk",
+      "name": "Zendesk",
+      "category": "Customer support",
+      "website": "https://www.zendesk.com",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "resource",
+          "regex": "^https://static\\.zdassets\\.com/ekr/"
+        }
+      ]
+    },
+    {
+      "id": "tawk",
+      "name": "Tawk.to",
+      "category": "Customer support",
+      "website": "https://www.tawk.to",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "resource",
+          "regex": "^https://embed\\.tawk\\.to/"
+        }
+      ]
+    },
+    {
+      "id": "hubspot",
+      "name": "HubSpot",
+      "category": "Marketing",
+      "website": "https://www.hubspot.com",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "resource",
+          "regex": "^https://js(?:-[a-z0-9]+)?\\.hs-scripts\\.com/"
+        },
+        {
+          "source": "resource",
+          "regex": "^https://js\\.hsforms\\.net/"
+        }
+      ]
+    },
+    {
+      "id": "mailchimp",
+      "name": "Mailchimp",
+      "category": "Marketing",
+      "website": "https://mailchimp.com",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "resource",
+          "regex": "^https://(?:[^/]+\\.)?list-manage\\.com/"
+        },
+        {
+          "source": "resource",
+          "regex": "^https://s3\\.amazonaws\\.com/downloads\\.mailchimp\\.com/"
+        }
+      ]
+    },
+    {
+      "id": "youtube",
+      "name": "YouTube",
+      "category": "Video",
+      "website": "https://www.youtube.com",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "resource",
+          "regex": "^https://www\\.youtube(?:-nocookie)?\\.com/embed/"
+        }
+      ]
+    },
+    {
+      "id": "vimeo",
+      "name": "Vimeo",
+      "category": "Video",
+      "website": "https://vimeo.com",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "resource",
+          "regex": "^https://player\\.vimeo\\.com/video/"
+        }
+      ]
+    },
+    {
+      "id": "videojs",
+      "name": "Video.js",
+      "category": "Video",
+      "website": "https://videojs.com",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "js",
+          "key": "videojs.VERSION",
+          "regex": "^([0-9]+(?:\\.[0-9]+){0,3}(?:[-+][a-z0-9.-]+)?)$",
+          "versionGroup": 1
+        },
+        {
+          "source": "dom",
+          "key": "videojs",
+          "selector": "video.video-js",
+          "equals": "present"
+        }
+      ]
+    },
+    {
+      "id": "swiper",
+      "name": "Swiper",
+      "category": "UI libraries",
+      "website": "https://swiperjs.com",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "resource",
+          "regex": "/swiper(?:@|[./-])"
+        },
+        {
+          "source": "dom",
+          "key": "swiper",
+          "selector": ".swiper-wrapper",
+          "equals": "present"
+        }
+      ]
+    },
+    {
+      "id": "aos",
+      "name": "AOS",
+      "category": "UI libraries",
+      "website": "https://michalsnik.github.io/aos",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "resource",
+          "regex": "/aos(?:@|[./-])"
+        },
+        {
+          "source": "dom",
+          "key": "aos",
+          "selector": "[data-aos]",
+          "equals": "present"
+        }
+      ]
+    },
+    {
+      "id": "gsap",
+      "name": "GSAP",
+      "category": "UI libraries",
+      "website": "https://gsap.com",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "js",
+          "key": "gsap.version",
+          "regex": "^([0-9]+(?:\\.[0-9]+){0,3}(?:[-+][a-z0-9.-]+)?)$",
+          "versionGroup": 1
+        },
+        {
+          "source": "script",
+          "regex": "/gsap(?:\\.min)?\\.js$"
+        }
+      ]
+    },
+    {
+      "id": "requirejs",
+      "name": "RequireJS",
+      "category": "JavaScript libraries",
+      "website": "https://requirejs.org",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "js",
+          "key": "requirejs.version",
+          "regex": "^([0-9]+(?:\\.[0-9]+){0,3}(?:[-+][a-z0-9.-]+)?)$",
+          "versionGroup": 1
+        },
+        {
+          "source": "script",
+          "regex": "/require(?:\\.min)?\\.js$"
+        }
+      ]
+    },
+    {
+      "id": "webpack",
+      "name": "webpack",
+      "category": "Build tools",
+      "website": "https://webpack.js.org",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "js",
+          "key": "webpackChunk",
+          "regex": "^present$"
+        },
+        {
+          "source": "dom",
+          "key": "webpack",
+          "selector": "script[src*=\"/webpack-runtime-\"]",
+          "equals": "present"
+        }
+      ]
+    },
+    {
+      "id": "vite",
+      "name": "Vite",
+      "category": "Build tools",
+      "website": "https://vite.dev",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "script",
+          "regex": "/@vite/client$"
+        }
+      ]
+    },
+    {
+      "id": "onetrust",
+      "name": "OneTrust",
+      "category": "Consent management",
+      "website": "https://www.onetrust.com",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "resource",
+          "regex": "^https://cdn\\.cookielaw\\.org/"
+        }
+      ]
+    },
+    {
+      "id": "cookiebot",
+      "name": "Cookiebot",
+      "category": "Consent management",
+      "website": "https://www.cookiebot.com",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "resource",
+          "regex": "^https://consent\\.cookiebot\\.com/"
+        },
+        {
+          "source": "js",
+          "key": "Cookiebot",
+          "regex": "^present$"
+        }
+      ]
     }
   ]
 }
