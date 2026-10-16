@@ -8,9 +8,9 @@ An open source platform for web technology discovery and infrastructure mapping.
 Discover technologies, map pages and infrastructure, and explore their connections
 while keeping control of your data and collection infrastructure.
 
-> **Status:** the PHP connector, SH/BAT CLI, and Graph Explorer are implemented.
-> The Chrome extension, native PowerShell collector, and cross-run correlation
-> are still planned.
+> **Status:** the unpacked Chrome extension, PHP connector, SH/BAT CLI, and Graph
+> Explorer are implemented. A native PowerShell collector and cross-run correlation
+> are still planned. The extension's native Chrome installation checks are manual.
 
 ## Architecture
 
@@ -20,11 +20,11 @@ imported and visualized in the Graph Explorer.
 
 | Component | Responsibility | Technologies and status |
 | --- | --- | --- |
-| Extension | Discover technologies, pages, links, and resources; configure and query the user's connector | JavaScript, Chrome Manifest V3 — planned |
+| Extension | Analyze the current page, discover technology indicators, optionally query the user's connector, and open the packaged graph | JavaScript, Chrome Manifest V3 — unpacked version implemented |
 | PHP Connector / Probe API | Enrich discoveries with DNS, RDAP, certificates, HTTP, and other public sources | PHP 8.1+, cURL, OpenSSL — implemented |
 | CLI | Collect data from the terminal and export JSON in standalone or connected mode | SH/BAT launchers with PHP classes — implemented; native PowerShell planned |
 | Graph Explorer | Import, filter, inspect, visualize, and export entities, relationships, and evidence | JavaScript SPA, Cytoscape.js — implemented; cross-run correlation planned |
-| Shared | Define the JSON graph contract | JSON Schema — implemented; shared fingerprint catalog planned |
+| Shared | Define the JSON graph contract and browser technology indicators | JSON Schema and browser fingerprint catalog — implemented |
 
 ## Quick start
 
@@ -63,14 +63,21 @@ synthetic sample. No npm installation or build is required to use it. Read the
 [Explorer guide](docs/explorer.md) for filters, evidence inspection, privacy,
 import limits, and development commands.
 
+To use the Chrome extension, open `chrome://extensions/`, enable **Developer mode**,
+choose **Load unpacked**, and select this repository's `extension/` directory.
+Its Explorer and fingerprints are already included. Open an HTTP/HTTPS page,
+click the extension, and choose **Analyze current page**. Read the
+[extension guide](docs/extension.md) for installation, optional connector settings,
+privacy, and verification.
+
 ### Optional self-hosted PHP connector
 
-Each user will install `w3bmap.php` on their own hosting service, VPS, or local
-server and configure its URL and authentication key in the extension.
-**The project will not provide a public or centralized PHP endpoint.** Browser
-collection will remain available without the connector.
+Each user installs `w3bmap.php` on their own hosting service, VPS, or local
+server and configures its URL and authentication key in the extension.
+**The project does not provide a public or centralized PHP endpoint.** Browser
+collection remains available without the connector.
 
-The planned workflow is:
+The workflow is:
 
 1. Install the Chrome extension.
 2. Optionally install the PHP connector on a server you control.
@@ -105,11 +112,11 @@ The single-file PHP distribution will preserve internal class boundaries.
 
 ```text
 w3bmap/
-├── extension/          # Planned Chrome extension and connector settings
+├── extension/          # Unpacked Chrome extension, connector settings, packaged Explorer
 ├── cli/                # w3bmap.sh, w3bmap.bat, and the PHP CLI application
 ├── probe/              # w3bmap.php, distributed as a single file
 ├── explorer/           # Static graph interface, MVC source, and local libraries
-├── shared/             # schema.json
+├── shared/             # schema.json and browser fingerprints.json
 ├── tests/              # Offline PHP regression suite
 ├── docs/               # CLI, connector, and Explorer guides and artwork
 ├── AGENTS.md           # Repository instructions for coding agents
@@ -118,7 +125,6 @@ w3bmap/
 └── README.md
 ```
 
-The `extension/` directory will be added when developed.
 Application code separates models, views, controllers, and services.
 The connector remains deployable as one file; the CLI shares its classes.
 
@@ -199,9 +205,10 @@ Queries and diagnostics must remain within the scope authorized by the operator.
 - [x] Implement standalone and connected PHP CLI with SH/BAT launchers.
 - [x] Implement the authenticated self-hosted PHP connector.
 - [x] Build the Graph Explorer with import, validation, filtering, and export.
-- [ ] Implement the Chrome extension with local collection and technology detection.
+- [x] Implement the Chrome extension with current-page collection and technology indicators.
 - [ ] Add a native PowerShell collector.
-- [ ] Integrate the optional connector into the Chrome extension.
+- [x] Integrate the optional connector and packaged Graph Explorer into the Chrome extension.
+- [ ] Complete manual native Chrome installation and permission-prompt acceptance checks.
 - [ ] Correlate entities and evidence from multiple sources.
 
 ## Verification
@@ -235,6 +242,18 @@ npm test
 After changing the shared schema, run `npm run vendor` in that directory to
 regenerate the committed validator. Browser dependencies are local and pinned;
 see [their credits and license notices](explorer/vendor/README.md).
+
+For extension packaging and automated tests, run from `extension/`:
+
+```sh
+npm run build
+npm test
+```
+
+The extension tests use Chrome API fixtures. An opt-in authenticated PHP transport
+test and the required native Chrome checks are documented in
+[docs/extension.md](docs/extension.md). The build copies the canonical Explorer
+and fingerprint catalog; commit those generated copies after source changes.
 
 ## Contributing
 

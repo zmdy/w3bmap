@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>w3bm@p · Page discovery</title>
+    <link rel="stylesheet" href="../ui.css" />
+    <script type="module" src="app.js"></script>
+  </head>
+  <body class="popup-body">
+    <header class="popup-header">
+      <div class="brand">
+        <img src="../assets/logo.svg" alt="" width="32" height="32" /><span
+          >w3bm<span class="accent">@</span>p</span
+        >
+      </div>
+      <button
+        id="settings-button"
+        class="quiet-button"
+        aria-label="Open connector settings"
+      >
+        Settings ↗
+      </button>
+    </header>
+    <main id="main" class="popup-main">
+      <div class="eyebrow">DISCOVER · ANALYZE · CONNECT</div>
+      <h1>Map this page.</h1>
+      <p id="current-target" class="current-target">Your current browser tab</p>
+      <button id="analyze-button" class="button primary wide">
+        Analyze current page
+      </button>
+      <div class="mode-line">
+        <span class="status-dot"></span
+        ><span id="connector-state">Browser collection only</span>
+      </div>
+      <p id="notice" class="notice" role="status" aria-live="polite">
+        Collect technologies, links, and loaded resources from the page you
+        choose.
+      </p>
+      <section
+        id="result"
+        class="result-card"
+        aria-label="Last collection"
+        hidden
+      >
+        <div class="section-label">
+          LAST COLLECTION <span id="result-status" class="badge"></span>
+        </div>
+        <h2 id="result-target"></h2>
+        <p id="result-page" class="result-page"></p>
+        <div class="result-counts">
+          <div><strong id="node-count">0</strong><span>Entities</span></div>
+          <div>
+            <strong id="edge-count">0</strong><span>Relationships</span>
+          </div>
+        </div>
+        <div id="technologies" class="technologies"></div>
+        <p id="collection-errors" class="subtle"></p>
+      </section>
+      <div class="action-row">
+        <button id="open-graph" class="button secondary" disabled>
+          Open graph ↗</button
+        ><button id="export-json" class="button secondary" disabled>
+          Export JSON ↓
+        </button>
+      </div>
+      <button id="clear-result" class="quiet-button clear-button" disabled>
+        Clear last collection
+      </button>
+    </main>
+    <footer class="popup-footer">
+      Local-first · No account · Your infrastructure
+    </footer>
+  </body>
+</html>

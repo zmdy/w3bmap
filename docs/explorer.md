@@ -78,8 +78,8 @@ Imported content is treated as plain data and rendered with DOM text APIs. URLs
 inside it are displayed without automatically fetching or opening them. Renderer
 IDs are namespaced separately for entities and relationships to prevent collisions.
 
-Collection content remains in browser memory: no uploads, accounts, browser storage,
-or backend persistence are used. Reloading resets the workspace to the sample;
+In the standalone Explorer, collection content remains in browser memory: no
+uploads, accounts, browser storage, or backend persistence are used. Reloading resets the workspace to the sample;
 export data before leaving if you need to keep it. Serving the application still
 causes ordinary local HTTP requests for its own static assets.
 
@@ -136,5 +136,8 @@ switch layouts, export with filters active, and verify desktop and narrow layout
 
 Each import opens one collection. Multiple-file merging, automatic cross-run
 correlation, persistence of graph positions, PNG export, and direct connector
-queries are not implemented. The planned Chrome extension can reuse the models,
-views, services, and graph contract when it is built.
+queries inside the Explorer are not implemented. The Chrome extension packages
+this interface and opens a collection from trusted `chrome.storage.session` using
+a random ID in the URL fragment. It validates and loads the document locally;
+an expired ID shows an error rather than opening a different collection. The
+standalone HTTP version never reads extension storage. See [extension.md](extension.md).

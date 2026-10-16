@@ -1,0 +1,73 @@
+{
+  "version": "1.0",
+  "description": "Browser-visible technology indicators. Matches are evidence of possible use, not proof or version identification.",
+  "technologies": [
+    {
+      "id": "wordpress",
+      "name": "WordPress",
+      "confidence": 0.8,
+      "patterns": [
+        { "source": "resource", "contains": "/wp-content/" },
+        { "source": "resource", "contains": "/wp-includes/" },
+        { "source": "generator", "contains": "wordpress" }
+      ]
+    },
+    {
+      "id": "drupal",
+      "name": "Drupal",
+      "confidence": 0.8,
+      "patterns": [
+        { "source": "resource", "contains": "/sites/default/files/" },
+        { "source": "generator", "contains": "drupal" }
+      ]
+    },
+    {
+      "id": "nextjs",
+      "name": "Next.js",
+      "confidence": 0.8,
+      "patterns": [
+        { "source": "resource", "contains": "/_next/" },
+        { "source": "hint", "contains": "nextjs" }
+      ]
+    },
+    {
+      "id": "nuxt",
+      "name": "Nuxt",
+      "confidence": 0.8,
+      "patterns": [
+        { "source": "resource", "contains": "/_nuxt/" },
+        { "source": "hint", "contains": "nuxt" }
+      ]
+    },
+    {
+      "id": "jquery",
+      "name": "jQuery",
+      "confidence": 0.75,
+      "patterns": [{ "source": "resource", "contains": "jquery" }]
+    },
+    {
+      "id": "bootstrap",
+      "name": "Bootstrap",
+      "confidence": 0.75,
+      "patterns": [{ "source": "resource", "contains": "bootstrap" }]
+    },
+    {
+      "id": "react",
+      "name": "React",
+      "confidence": 0.7,
+      "patterns": [{ "source": "hint", "contains": "react" }]
+    },
+    {
+      "id": "vue",
+      "name": "Vue.js",
+      "confidence": 0.7,
+      "patterns": [{ "source": "hint", "contains": "vue" }]
+    },
+    {
+      "id": "angular",
+      "name": "Angular",
+      "confidence": 0.8,
+      "patterns": [{ "source": "hint", "contains": "angular" }]
+    }
+  ]
+}

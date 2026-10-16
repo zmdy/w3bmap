@@ -10,6 +10,8 @@ vendor/
 # Keep the Explorer's pinned browser runtime available without npm or a CDN.
 !/explorer/vendor/
 !/explorer/vendor/**
+!/extension/explorer/vendor/
+!/extension/explorer/vendor/**
 dist/
 build/
 coverage/

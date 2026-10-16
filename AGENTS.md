@@ -26,3 +26,9 @@ identifiers, comments, interface text, errors, examples, and commit messages.
 - Never commit credentials or private collection exports.
 - Update documentation to reflect actual implementation status.
 - Run checks appropriate to each change and report verification limitations.
+- The unpacked Chrome extension includes generated copies of the canonical
+  `explorer/` runtime and `shared/fingerprints.json`. Edit canonical sources, run
+  `npm run build` from `extension/`, and commit the refreshed packaged copies.
+- Run extension and Explorer Node tests plus the PHP suite when shared contracts
+  or integration behavior change. Native Chrome permission prompts, installation,
+  and popup lifecycle require separate manual browser verification.

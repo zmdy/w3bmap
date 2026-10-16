@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Connector settings · w3bm@p</title>
+    <link rel="icon" href="../assets/logo.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="../ui.css" />
+    <script type="module" src="app.js"></script>
+  </head>
+  <body class="settings-body">
+    <header class="settings-header">
+      <div class="brand">
+        <img src="../assets/logo.svg" alt="" width="34" height="34" /><span
+          >w3bm<span class="accent">@</span>p</span
+        >
+      </div>
+      <span class="subtle">EXTENSION SETTINGS</span>
+    </header>
+    <main class="settings-main">
+      <div class="eyebrow">YOUR SERVER. YOUR DISCOVERIES.</div>
+      <h1>A little more perspective.</h1>
+      <p class="intro">
+        Connect your own PHP server to complement browser discoveries with DNS,
+        certificates, HTTP headers, and registration data.
+      </p>
+      <form id="settings-form">
+        <section class="settings-card">
+          <div class="card-heading">
+            <div>
+              <h2>Self-hosted connector</h2>
+              <p>Optional enrichment, powered by infrastructure you control.</p>
+            </div>
+            <span class="badge">PHP API 1.0</span>
+          </div>
+          <label class="check-row enable-row"
+            ><input id="enabled" type="checkbox" /><span
+              >Enable remote enrichment when analyzing a page</span
+            ></label
+          >
+          <label class="field-label" for="endpoint">PHP connector URL</label>
+          <input
+            id="endpoint"
+            type="url"
+            placeholder="https://your-host.example/w3bmap.php"
+            autocomplete="off"
+            spellcheck="false"
+          />
+          <p class="field-help">
+            Use the final PHP file URL, without query parameters. Chrome will
+            request access only to this connector host.
+          </p>
+          <label class="field-label" for="api-key">API key</label>
+          <input
+            id="api-key"
+            type="password"
+            placeholder="Your connector's bearer token"
+            autocomplete="off"
+            spellcheck="false"
+            maxlength="256"
+          />
+          <label class="check-row"
+            ><input id="remember-key" type="checkbox" /><span
+              >Remember the API key on this device</span
+            ></label
+          >
+          <p class="field-help">
+            By default, the key lasts for the current browser session.
+            Remembered keys are stored locally without encryption; they are
+            never synced or included in collection exports.
+          </p>
+          <label class="check-row local-http"
+            ><input id="local-http" type="checkbox" /><span
+              >Allow development HTTP on localhost or 127.0.0.1</span
+            ></label
+          >
+          <p class="field-help">
+            For a local PHP server, also set
+            <code>W3BMAP_ALLOW_LOCAL_HTTP=1</code> on the server. Remote
+            connectors always require HTTPS.
+          </p>
+        </section>
+        <section class="settings-card">
+          <div class="card-heading">
+            <div>
+              <h2>Enrichment modules</h2>
+              <p>
+                Choose the information to request for the current page's
+                hostname.
+              </p>
+            </div>
+          </div>
+          <div id="module-list" class="module-list"></div>
+          <p class="field-help">
+            The connector's own domain allowlist and network policy apply. Web
+            modules query the hostname's HTTPS homepage, not the current page's
+            path.
+          </p>
+          <div id="capabilities" class="capabilities" hidden>
+            <h3>Available on your server</h3>
+            <p id="capability-list"></p>
+            <p id="capability-note" class="field-help"></p>
+          </div>
+        </section>
+        <p id="notice" class="notice" role="status" aria-live="polite">
+          Browser collection works without a PHP connector.
+        </p>
+        <div class="settings-actions">
+          <button id="save-button" type="submit" class="button primary">
+            Save settings</button
+          ><button id="test-button" type="button" class="button secondary">
+            Save &amp; test connection</button
+          ><button id="forget-button" type="button" class="quiet-button">
+            Forget connector
+          </button>
+        </div>
+      </form>
+      <footer class="settings-footer">
+        Discover · Analyze · Connect · Visualize
+        <span>Local-first. No central w3bm@p server.</span>
+      </footer>
+    </main>
+  </body>
+</html>

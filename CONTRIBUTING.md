@@ -87,4 +87,11 @@ run `npm run vendor` and commit the regenerated assets as well. Read the
 Vendored upstream code and generated validator output preserve their upstream
 structure; project OOP/MVC conventions apply to the application source.
 
+For extension changes, run `npm run build` and `npm test` from `extension/`. The
+build copies the canonical Explorer runtime and shared browser fingerprints;
+commit these generated copies rather than editing them directly. No npm install
+is required for extension packaging or its Node tests. Follow the native Chrome
+checklist in [docs/extension.md](docs/extension.md) for installation, permission
+prompts, popup lifecycle, and real tab injection; automated tests use API fixtures.
+
 Contributions are distributed under the project's [MIT License](LICENSE).
