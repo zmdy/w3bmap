@@ -1,71 +1,97 @@
+<p align="center">
+  <img src="docs/assets/architecture.svg" width="880" alt="w3bm@p — Discover · Analyze · Connect · Visualize. Extension, CLI, and an optional self-hosted Probe API feed a Unified Data Schema and the Graph Explorer.">
+</p>
+
 # w3bm@p
 
-**Discover · Analyze · Connect · Visualize**
+An open source platform for web technology discovery and infrastructure mapping.
+Discover technologies, map pages and infrastructure, and explore their connections
+while keeping control of your data and collection infrastructure.
 
-Plataforma open source para descoberta de tecnologias web e mapeamento de páginas,
-infraestrutura e relacionamentos, com dados sob o controle do usuário.
+> **Status:** repository foundation. The components below are planned; no runnable
+> application has been implemented yet.
 
-> **Status:** repositório inicializado. Os componentes abaixo estão planejados e
-> ainda não foram implementados. Não há aplicação executável nesta etapa.
+## Architecture
 
-## Arquitetura
+w3bm@p follows a local-first architecture with no required account, database, or
+central backend. Independent collectors will produce a shared JSON format for
+consolidation and visualization in the Graph Explorer.
 
-O w3bm@p adota uma arquitetura local-first: sem conta obrigatória, banco de dados
-ou backend centralizado. Coletores independentes produzirão um formato JSON comum,
-que poderá ser consolidado no Graph Explorer.
-
-| Componente planejado | Responsabilidade | Tecnologias previstas |
+| Planned component | Responsibility | Planned technologies |
 | --- | --- | --- |
-| Extension | Identificar tecnologias, páginas, links e recursos no navegador; configurar e consultar o conector do usuário | JavaScript, Chrome Manifest V3 |
-| PHP Connector | Enriquecer descobertas com DNS, RDAP, certificados, HTTP e outras fontes públicas | PHP 8+, cURL, OpenSSL |
-| CLI | Coletar dados pelo terminal e exportar JSON, em modo independente ou conectado ao PHP | Shell, PowerShell e lançador BAT |
-| Graph Explorer | Importar, correlacionar e visualizar entidades, relações e evidências | SPA, Cytoscape.js |
-| Shared | Definir o esquema JSON e compartilhar assinaturas de tecnologias | JSON, JSON Schema |
+| Extension | Discover technologies, pages, links, and resources; configure and query the user's connector | JavaScript, Chrome Manifest V3 |
+| PHP Connector / Probe API | Enrich discoveries with DNS, RDAP, certificates, HTTP, and other public sources | PHP 8+, cURL, OpenSSL |
+| CLI | Collect data from the terminal and export JSON in standalone or connected mode | Shell, PowerShell, and a BAT launcher |
+| Graph Explorer | Import, correlate, and visualize entities, relationships, and evidence | SPA, Cytoscape.js |
+| Shared | Define the JSON schema and share technology fingerprints | JSON, JSON Schema |
 
-### Conector PHP autogerenciado e opcional
+### Optional self-hosted PHP connector
 
-Cada usuário instalará o arquivo `w3bmap.php` em sua própria hospedagem, VPS ou
-servidor local e configurará o endereço e a chave de autenticação na extensão.
-**O projeto não oferecerá um endpoint PHP público ou central.** A extensão poderá
-coletar dados pelo navegador sem instalar o conector.
+Each user will install `w3bmap.php` on their own hosting service, VPS, or local
+server and configure its URL and authentication key in the extension.
+**The project will not provide a public or centralized PHP endpoint.** Browser
+collection will remain available without the connector.
 
-O fluxo previsto é:
+The planned workflow is:
 
-1. Instalar a extensão Chrome.
-2. Opcionalmente, instalar o conector PHP em um servidor controlado pelo usuário.
-3. Informar o endpoint e a chave nas configurações da extensão.
-4. Testar a conexão e consultar os módulos disponíveis.
-5. Complementar as descobertas do navegador com consultas ao conector.
-6. Explorar os resultados em um grafo e exportar os dados em JSON.
+1. Install the Chrome extension.
+2. Optionally install the PHP connector on a server you control.
+3. Enter the connector URL and authentication key in the extension settings.
+4. Test the connection and discover the server's available modules.
+5. Enrich browser discoveries with connector queries.
+6. Explore the combined graph and export the results as JSON.
 
-A CLI terá dois modos: **standalone**, com ferramentas locais, e **connected**,
-usando o mesmo protocolo do conector PHP.
+The CLI will support **standalone** mode using local tools and **connected** mode
+using the same PHP connector protocol.
 
-## Estrutura planejada
+### Engineering principles
+
+- **English throughout:** documentation, source code, identifiers, comments,
+  interface text, errors, examples, and commit messages must be in English.
+- **Object-oriented programming:** implement application behavior through classes
+  with clear responsibilities, encapsulation, and composition. Keep entry points
+  thin and delegate behavior to objects.
+- **Model–View–Controller wherever applicable:** models represent entities and
+  application state; views render interfaces or serialize responses; controllers
+  coordinate input and application services. Keep collection, networking, and
+  correlation logic in dedicated service classes.
+- **Language-appropriate launchers:** Shell and BAT scripts remain thin launchers
+  for object-oriented application code, since those languages do not provide
+  native class-based OOP. PowerShell application behavior should use classes.
+- **Independent components, shared contracts:** preserve a common versioned data
+  format while allowing each collector to operate independently.
+
+The single-file PHP distribution will preserve internal class boundaries.
+
+## Planned repository structure
 
 ```text
 w3bmap/
-├── extension/          # Extensão Chrome e configurações do conector
-├── cli/                # w3bmap.sh, w3bmap.ps1 e w3bmap.bat
-├── probe/              # w3bmap.php, distribuído como arquivo único
-├── explorer/           # Interface compartilhada de grafos
-├── shared/             # schema.json e fingerprints.json
+├── extension/          # Chrome extension and connector settings
+├── cli/                # w3bmap.sh, w3bmap.ps1, and w3bmap.bat
+├── probe/              # w3bmap.php, distributed as a single file
+├── explorer/           # Shared graph interface
+├── shared/             # schema.json and fingerprints.json
+├── docs/assets/        # README artwork and icon license notices
+├── AGENTS.md           # Repository instructions for coding agents
 ├── CONTRIBUTING.md
 ├── LICENSE
 └── README.md
 ```
 
-Os diretórios de implementação serão adicionados conforme cada componente for
-desenvolvido.
+Implementation directories will be added as their components are developed.
+Within application components, organize classes into models, views, controllers,
+and services where applicable.
 
-## Contrato de dados planejado
+## Planned data contract
 
-Os coletores compartilharão um JSON versionado com entidades (`nodes`), relações
-(`edges`) e metadados de coleta. Cada descoberta deverá registrar origem, data,
-evidência e confiança, distinguindo relações verificadas de associações prováveis.
-O esquema formal e suas regras de correlação serão definidos em `shared/`.
+Collectors will share versioned JSON containing entities (`nodes`), relationships
+(`edges`), and collection metadata. Each discovery should record its source,
+collection time, evidence, and confidence, distinguishing verified relationships
+from probable associations. The formal schema and correlation rules will be
+specified in `shared/`.
 
-Exemplo ilustrativo mínimo, ainda sujeito à definição do esquema:
+Minimal illustrative example, subject to the final schema:
 
 ```json
 {
@@ -87,11 +113,11 @@ Exemplo ilustrativo mínimo, ainda sujeito à definição do esquema:
 }
 ```
 
-## Connector API planejada
+## Planned Connector API
 
-O PHP será um arquivo único, sem Composer obrigatório ou banco de dados.
-Todas as operações exigirão autenticação. As chamadas abaixo descrevem a proposta
-do protocolo; ainda não são endpoints funcionais:
+The PHP connector will be distributed as a single file, without a mandatory
+Composer installation or database. All operations will require authentication.
+These proposed calls are not functional endpoints yet:
 
 ```text
 GET  /w3bmap.php?action=capabilities
@@ -104,38 +130,44 @@ GET  /w3bmap.php?action=sitemap&domain=example.com
 POST /w3bmap.php?action=analyze
 ```
 
-Os módulos previstos incluem DNS, RDAP, certificados, cabeçalhos HTTP, tecnologias,
-robots.txt, sitemaps e links. Diagnósticos do ambiente PHP e inspeção de diretórios
-locais serão recursos separados, desabilitados por padrão e habilitados apenas
-explicitamente pelo operador. Consultas extensas serão priorizadas na CLI.
+Planned modules cover DNS, RDAP, certificates, HTTP headers, technologies,
+robots.txt, sitemaps, and links. PHP environment diagnostics and local directory
+inspection will be separate features, disabled by default and enabled explicitly
+by the operator. Longer collection tasks will be handled primarily by the CLI.
 
-### Requisitos de segurança para implementação
+### Implementation security requirements
 
-- Autenticação por token, inclusive na consulta de capacidades, e HTTPS para endpoints remotos.
-- Permissões de origem na extensão concedidas para os hosts utilizados.
-- Limitação de requisições, tempo de execução e tamanho das respostas.
-- Validação e autorização dos destinos consultados pelo conector.
-- Bloqueio de destinos privados, loopback e metadados de nuvem por padrão, com validação de resolução DNS e redirecionamentos.
-- Credenciais fora do código versionado e dos arquivos JSON exportados.
-- Descoberta de rotas por links e sitemaps; sem força bruta de diretórios na API.
+- Token authentication for every operation, including capabilities, and HTTPS for remote endpoints.
+- Extension origin permissions granted for the hosts in use.
+- Limits on request rates, execution time, and response sizes.
+- Validation and authorization of connector query destinations.
+- Blocking of private, loopback, and cloud metadata destinations by default, including DNS resolution and redirect validation.
+- Credentials excluded from versioned source and exported JSON.
+- Route discovery through links and sitemaps; no directory brute force in the API.
 
-As consultas e os diagnósticos devem respeitar o escopo autorizado pelo operador.
+Queries and diagnostics must remain within the scope authorized by the operator.
 
 ## Roadmap
 
-- [x] Inicializar Git, documentação, licença e convenção de commits.
-- [ ] Definir o esquema JSON e criar o Graph Explorer com importação e exportação.
-- [ ] Implementar a extensão Chrome com coleta local e identificação de tecnologias.
-- [ ] Implementar a CLI multiplataforma e os modos standalone e connected.
-- [ ] Implementar o conector PHP e sua integração opcional com a extensão.
-- [ ] Correlacionar entidades e evidências de múltiplas fontes.
+- [x] Initialize Git, documentation, licensing, and commit conventions.
+- [x] Establish English-only content, OOP, and MVC guidelines.
+- [ ] Define the JSON schema and build the Graph Explorer with import and export.
+- [ ] Implement the Chrome extension with local collection and technology detection.
+- [ ] Implement the cross-platform CLI with standalone and connected modes.
+- [ ] Implement the PHP connector and its optional extension integration.
+- [ ] Correlate entities and evidence from multiple sources.
 
-## Contribuições
+## Contributing
 
-Leia [CONTRIBUTING.md](CONTRIBUTING.md). Os commits seguem
+Read [CONTRIBUTING.md](CONTRIBUTING.md). Commits follow
 [Conventional Commits 1.0.0](https://www.conventionalcommits.org/en/v1.0.0/),
-por exemplo: `feat(extension): add connector settings`.
+for example: `feat(extension): add connector settings`.
 
-## Licença
+## License
 
-Distribuído sob a [licença MIT](LICENSE). Copyright (c) 2026 Hudson.
+Project code and documentation are distributed under the [MIT License](LICENSE).
+Copyright (c) 2026 Hudson.
+
+The architecture illustration uses BoxIcons v2 icons by Aniket Suvarna, obtained
+through [Iconify](https://icon-sets.iconify.design/bx/). See the
+[asset credits and license notices](docs/assets/README.md).

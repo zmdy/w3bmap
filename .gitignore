@@ -1,10 +1,10 @@
-# Credenciais e configuração local
+# Credentials and local configuration
 .env
 .env.*
 !.env.example
 *.local.json
 
-# Dependências e artefatos gerados
+# Dependencies and generated artifacts
 node_modules/
 vendor/
 dist/
@@ -12,11 +12,11 @@ build/
 coverage/
 *.log
 
-# Coletas e exportações locais
+# Local collection data and exports
 /data/
 /exports/
 
-# Arquivos do sistema e editores
+# Operating system and editor files
 .DS_Store
 Thumbs.db
 Desktop.ini

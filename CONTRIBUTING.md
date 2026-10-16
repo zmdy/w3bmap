@@ -1,41 +1,56 @@
-# Como contribuir
+# Contributing
 
-O projeto está na fase inicial. Consulte o [README](README.md) para conhecer a
-arquitetura e o roadmap antes de propor uma implementação.
+The project is at the foundation stage. Read the [README](README.md) for the
+architecture and roadmap before proposing an implementation.
+
+## Language
+
+Use English for all project content: documentation, source code, identifiers,
+comments, interface text, errors, examples, and commit messages.
+
+## Code architecture
+
+- Use object-oriented programming for all application code. Encapsulate behavior
+  in classes with focused responsibilities and prefer composition.
+- Apply Model–View–Controller wherever applicable. Models own entities and state;
+  views render output, including JSON responses; controllers coordinate input and
+  services. Keep business logic, networking, and collection in dedicated classes.
+- Keep browser event handlers, CLI entry points, and PHP request dispatch thin:
+  delegate application behavior to objects.
+- Keep Shell and BAT files as thin launchers for object-oriented application code.
+  They do not provide native class-based OOP. Use classes for PowerShell behavior.
+- Preserve internal class boundaries when packaging PHP as a single deployment file.
+- Document the rationale when MVC does not fit a component, such as a shared data
+  model or collector service with no user interface.
 
 ## Commits
 
-Adotamos [Conventional Commits 1.0.0](https://www.conventionalcommits.org/en/v1.0.0/).
-Use o formato:
+Follow [Conventional Commits 1.0.0](https://www.conventionalcommits.org/en/v1.0.0/):
 
 ```text
-tipo(escopo opcional): descrição
+type(optional scope): description
 
-Corpo opcional.
+Optional body.
 
-Rodapés opcionais.
+Optional footer(s).
 ```
 
-Tipos usados no projeto:
-
-| Tipo | Uso |
+| Type | Purpose |
 | --- | --- |
-| `feat` | Nova funcionalidade |
-| `fix` | Correção de erro |
-| `docs` | Documentação |
-| `refactor` | Reorganização de código sem mudar o comportamento |
-| `perf` | Melhoria de desempenho |
-| `test` | Testes |
-| `build` | Build e dependências |
-| `ci` | Integração contínua |
-| `style` | Formatação do código |
-| `chore` | Manutenção do repositório |
-| `revert` | Reversão de alterações |
+| `feat` | New functionality |
+| `fix` | Bug fixes |
+| `docs` | Documentation |
+| `refactor` | Code restructuring without changing behavior |
+| `perf` | Performance improvements |
+| `test` | Tests |
+| `build` | Build tooling and dependencies |
+| `ci` | Continuous integration |
+| `style` | Code formatting |
+| `chore` | Repository maintenance |
+| `revert` | Reverting changes |
 
-Use tipos em minúsculas e descrições curtas. Escopos sugeridos: `extension`,
-`cli`, `probe`, `explorer`, `shared` e `repo`. O escopo é opcional.
-
-Exemplos:
+Use lowercase types and short English descriptions. Suggested scopes include
+`extension`, `cli`, `probe`, `explorer`, `shared`, and `repo`. Scopes are optional.
 
 ```text
 chore(repo): initialize project
@@ -45,22 +60,21 @@ fix(probe): validate redirect destinations
 feat(shared)!: change graph entity identifiers
 ```
 
-Mudanças incompatíveis devem usar `!` antes de `:` ou um rodapé
-`BREAKING CHANGE: descrição da incompatibilidade`. Explique a migração no corpo
-quando necessário. Separe mudanças independentes em commits distintos.
+Mark incompatible changes with `!` before `:` or a
+`BREAKING CHANGE: description of the incompatibility` footer. Explain migration
+steps in the body when needed. Keep unrelated changes in separate commits.
 
-Essa convenção é documentada para colaboradores; este repositório inicial ainda
-não inclui validação automática de mensagens de commit.
+Automated commit message validation is not included yet.
 
-## Alterações
+## Changes and verification
 
-- Mantenha a extensão utilizável sem o conector PHP.
-- Preserve a compatibilidade do contrato JSON ou documente sua migração.
-- Nunca versione tokens, credenciais ou dados privados coletados.
-- Documente como verificar a alteração e execute as verificações pertinentes ao componente.
-- Atualize o README quando o estado de implementação ou a configuração mudar.
+- Keep the extension usable without the PHP connector.
+- Preserve JSON contract compatibility or document its migration.
+- Never commit tokens, credentials, or private collection data.
+- Document how to verify changes and run checks appropriate to the component.
+- Update the README when implementation status or configuration changes.
 
-Ainda não há comandos de build ou testes automatizados. Eles serão documentados
-conforme os componentes forem implementados.
+There are no build commands or automated tests yet. These will be documented as
+application components are implemented.
 
-As contribuições são distribuídas sob a [licença MIT](LICENSE) do projeto.
+Contributions are distributed under the project's [MIT License](LICENSE).
