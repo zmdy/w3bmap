@@ -74,6 +74,8 @@ privacy, and verification.
 
 Each user installs `w3bmap.php` on their own hosting service, VPS, or local
 server and configures its URL and authentication key in the extension.
+Open `probe/install.php` to generate the key and save settings in a private
+`.env` outside the public web root. No Apache configuration changes are needed.
 **The project does not provide a public or centralized PHP endpoint.** Browser
 collection remains available without the connector.
 
@@ -163,8 +165,10 @@ confidence, module results, and errors):
 
 The PHP connector is distributed as a single file, without a mandatory Composer
 installation or database. All operations require bearer-token authentication,
-including capabilities. Configure `W3BMAP_API_KEY` and `W3BMAP_ALLOWED_DOMAINS` on
-the server before use. The following actions are implemented:
+including capabilities. The optional `install.php` setup page generates
+`W3BMAP_API_KEY`, collects `W3BMAP_ALLOWED_DOMAINS`, and writes the private `.env`
+automatically. See the [installation guide](docs/connector.md). The following
+actions are implemented:
 
 ```text
 GET  /w3bmap.php?action=capabilities
@@ -217,6 +221,8 @@ Run the offline regression suite:
 
 ```sh
 php tests/run.php
+php tests/install.php
+php tests/install-http.php
 ```
 
 The suite uses injected DNS and HTTP fixtures to check authentication, request

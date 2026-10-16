@@ -26,8 +26,9 @@ DOM; it does not crawl other pages or inspect cross-origin frame contents.
 
 ## Optional PHP connector
 
-Deploy the [PHP connector](connector.md) on a server you control. Configure its
-token and authorized target hostnames first. There is no shared project endpoint.
+Deploy the [PHP connector](connector.md) on a server you control. Open its
+`install.php` page to generate a token and save authorized target hostnames in a
+private `.env`. There is no shared project endpoint.
 
 Open **Settings** in the extension:
 

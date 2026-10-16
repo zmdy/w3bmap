@@ -15,6 +15,159 @@ final class AppException extends RuntimeException
     }
 }
 
+final class ConfigurationPaths
+{
+    public function __construct(public string $directory, public string $documentRoot)
+    {
+        $this->directory = self::normalize($directory);
+        $this->documentRoot = self::normalize($documentRoot);
+        if (self::contains($this->documentRoot, $this->directory)) {
+            throw new AppException('The configuration directory must be outside the public document root.', 503, 'configuration_error');
+        }
+    }
+
+    public static function discover(string $installationDirectory, string $documentRoot = ''): self
+    {
+        $installation = realpath($installationDirectory);
+        if ($installation === false) {
+            throw new AppException('The connector installation directory is unavailable.', 503, 'configuration_error');
+        }
+        $root = ($documentRoot !== '' ? realpath($documentRoot) : false) ?: $installation;
+        $ancestor = $installation;
+        do {
+            if (in_array(strtolower(basename($ancestor)), ['htdocs', 'public_html', 'www', 'wwwroot', 'public', 'html'], true)
+                && self::contains($ancestor, $root)) {
+                $root = $ancestor;
+            }
+            $parent = dirname($ancestor);
+            if ($parent === $ancestor) {
+                break;
+            }
+            $ancestor = $parent;
+        } while (true);
+        $identity = self::normalize($installation);
+        if (PHP_OS_FAMILY === 'Windows') {
+            $identity = strtolower($identity);
+        }
+        return new self(dirname($root) . '/w3bmap-config/' . substr(hash('sha256', $identity), 0, 20), $root);
+    }
+
+    public static function normalize(string $path): string
+    {
+        $value = rtrim(str_replace('\\', '/', $path), '/');
+        return $value === '' ? '/' : $value;
+    }
+
+    public static function contains(string $root, string $path): bool
+    {
+        $root = self::normalize($root);
+        $path = self::normalize($path);
+        if (PHP_OS_FAMILY === 'Windows') {
+            $root = strtolower($root);
+            $path = strtolower($path);
+        }
+        return $path === $root || str_starts_with($path, rtrim($root, '/') . '/');
+    }
+
+    public function envFile(): string
+    {
+        $resolved = realpath($this->directory);
+        if (is_link($this->directory) || ($resolved !== false && self::contains($this->documentRoot, $resolved))) {
+            throw new AppException('The configuration directory must remain private and cannot be a symbolic link.', 503, 'configuration_error');
+        }
+        return $this->directory . '/.env';
+    }
+
+    public function ensureDirectory(): void
+    {
+        if (is_link($this->directory) || (!is_dir($this->directory) && !@mkdir($this->directory, 0700, true))) {
+            throw new AppException('PHP cannot create the private configuration directory. Create it outside the web root and grant the PHP user write access.', 503, 'configuration_error');
+        }
+        $resolved = realpath($this->directory);
+        if ($resolved === false || self::contains($this->documentRoot, $resolved) || !is_writable($resolved)) {
+            throw new AppException('The private configuration directory is unavailable or resolves inside the web root.', 503, 'configuration_error');
+        }
+        if (PHP_OS_FAMILY !== 'Windows' && !@chmod($resolved, 0700)) {
+            throw new AppException('Cannot restrict private configuration directory permissions.', 503, 'configuration_error');
+        }
+    }
+}
+
+final class EnvironmentFile
+{
+    public const KEYS = ['W3BMAP_API_KEY', 'W3BMAP_ALLOWED_DOMAINS', 'W3BMAP_ALLOW_LOCAL_HTTP',
+        'W3BMAP_ENABLE_ENVIRONMENT', 'W3BMAP_RATE_LIMIT', 'W3BMAP_TIMEOUT', 'W3BMAP_MAX_BYTES', 'W3BMAP_RATE_DIRECTORY'];
+
+    public function read(string $path): array
+    {
+        if (!file_exists($path) && !is_link($path)) {
+            return [];
+        }
+        if (is_link($path) || !is_file($path) || !is_readable($path)) {
+            throw new AppException('The private .env file is not readable.', 503, 'configuration_error');
+        }
+        $content = @file_get_contents($path, false, null, 0, 16385);
+        if ($content === false || strlen($content) > 16384) {
+            throw new AppException('The private .env file is unreadable or exceeds 16 KiB.', 503, 'configuration_error');
+        }
+        return $this->parse($content);
+    }
+
+    public function parse(string $content): array
+    {
+        $values = [];
+        $content = preg_replace('/^\xEF\xBB\xBF/', '', $content);
+        foreach (preg_split('/\r\n|\n|\r/', $content) as $line) {
+            $line = trim($line);
+            if ($line === '' || str_starts_with($line, '#')) {
+                continue;
+            }
+            if (!preg_match('/^([A-Z][A-Z0-9_]*)\s*=\s*(.*)$/D', $line, $match)
+                || !in_array($match[1], self::KEYS, true) || array_key_exists($match[1], $values)) {
+                throw new AppException('The private .env file contains an unknown, duplicate, or malformed setting.', 503, 'configuration_error');
+            }
+            $value = trim($match[2]);
+            if (str_starts_with($value, '"')) {
+                try {
+                    $value = json_decode($value, true, 8, JSON_THROW_ON_ERROR);
+                } catch (\JsonException $error) {
+                    throw new AppException('The private .env file contains an invalid quoted value.', 503, 'configuration_error');
+                }
+                if (!is_string($value)) {
+                    throw new AppException('The private .env file requires string values.', 503, 'configuration_error');
+                }
+            } elseif (str_starts_with($value, "'")) {
+                if (strlen($value) < 2 || !str_ends_with($value, "'")) {
+                    throw new AppException('The private .env file contains an invalid quoted value.', 503, 'configuration_error');
+                }
+                $value = substr($value, 1, -1);
+            }
+            if (preg_match('/[\x00-\x1f\x7f]/', $value)) {
+                throw new AppException('The private .env file contains control characters.', 503, 'configuration_error');
+            }
+            $values[$match[1]] = $value;
+        }
+        if (strlen($values['W3BMAP_API_KEY'] ?? '') < 32 || !array_key_exists('W3BMAP_ALLOWED_DOMAINS', $values)) {
+            throw new AppException('The private .env file must define an API key and domain allowlist.', 503, 'configuration_error');
+        }
+        return $values;
+    }
+
+    public function encode(array $values): string
+    {
+        $lines = ['# w3bm@p connector configuration. Keep this file outside the public web root.'];
+        foreach ($values as $key => $value) {
+            if (!in_array($key, self::KEYS, true)) {
+                throw new AppException('Unsupported configuration setting.', 503, 'configuration_error');
+            }
+            $lines[] = $key . '=' . json_encode((string) $value, JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR);
+        }
+        $content = implode("\n", $lines) . "\n";
+        $this->parse($content);
+        return $content;
+    }
+}
+
 final class Config
 {
     public function __construct(
@@ -29,24 +182,43 @@ final class Config
     ) {
     }
 
-    public static function fromEnvironment(): self
+    public static function fromEnvironment(?string $envFile = null): self
     {
+        $values = $envFile === null ? [] : (new EnvironmentFile())->read($envFile);
         return new self(
-            (string) (getenv('W3BMAP_API_KEY') ?: ''),
-            array_values(array_filter(array_map('trim', explode(',', (string) getenv('W3BMAP_ALLOWED_DOMAINS'))))),
-            getenv('W3BMAP_ALLOW_LOCAL_HTTP') === '1',
-            getenv('W3BMAP_ENABLE_ENVIRONMENT') === '1',
-            self::integer('W3BMAP_RATE_LIMIT', 30, 1, 1000),
-            self::integer('W3BMAP_TIMEOUT', 10, 1, 30),
-            self::integer('W3BMAP_MAX_BYTES', 1048576, 1024, 5242880),
-            (string) (getenv('W3BMAP_RATE_DIRECTORY') ?: sys_get_temp_dir() . '/w3bmap-rate')
+            self::value($values, 'W3BMAP_API_KEY'),
+            array_values(array_filter(array_map('trim', explode(',', self::value($values, 'W3BMAP_ALLOWED_DOMAINS'))))),
+            self::boolean($values, 'W3BMAP_ALLOW_LOCAL_HTTP'),
+            self::boolean($values, 'W3BMAP_ENABLE_ENVIRONMENT'),
+            self::integer($values, 'W3BMAP_RATE_LIMIT', 30, 1, 1000),
+            self::integer($values, 'W3BMAP_TIMEOUT', 10, 1, 30),
+            self::integer($values, 'W3BMAP_MAX_BYTES', 1048576, 1024, 5242880),
+            self::value($values, 'W3BMAP_RATE_DIRECTORY') ?: sys_get_temp_dir() . '/w3bmap-rate'
         );
     }
 
-    private static function integer(string $name, int $default, int $min, int $max): int
+    private static function value(array $values, string $name): string
     {
-        $raw = getenv($name);
-        if ($raw === false || $raw === '') {
+        if (array_key_exists($name, $values)) {
+            return $values[$name];
+        }
+        $value = getenv($name);
+        return $value === false ? '' : $value;
+    }
+
+    private static function boolean(array $values, string $name): bool
+    {
+        $raw = self::value($values, $name);
+        if (!in_array($raw, ['', '0', '1'], true)) {
+            throw new AppException('Invalid server configuration: ' . $name . '.', 503, 'configuration_error');
+        }
+        return $raw === '1';
+    }
+
+    private static function integer(array $values, string $name, int $default, int $min, int $max): int
+    {
+        $raw = self::value($values, $name);
+        if ($raw === '') {
             return $default;
         }
         $value = filter_var($raw, FILTER_VALIDATE_INT);
@@ -865,7 +1037,8 @@ final class Application
             if (PHP_VERSION_ID < 80100) {
                 throw new AppException('PHP 8.1 or newer is required.', 503, 'configuration_error');
             }
-            $config = Config::fromEnvironment();
+            $paths = ConfigurationPaths::discover(__DIR__, (string) ($_SERVER['DOCUMENT_ROOT'] ?? ''));
+            $config = Config::fromEnvironment($paths->envFile());
             $controller = new ProbeController($config, self::collection($config, $config->allowedDomains),
                 new FileRateLimiter($config->rateDirectory, $config->rateLimit));
             $body = file_get_contents('php://input', false, null, 0, 16385);

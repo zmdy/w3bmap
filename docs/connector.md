@@ -1,8 +1,9 @@
 # PHP connector
 
-The connector is optional and self-hosted. Deploy **only** `probe/w3bmap.php` to
-your server; it has no Composer, database, or sibling-file dependency. It never
-executes system commands.
+The connector is optional and self-hosted. Deploy `probe/w3bmap.php` and
+`probe/install.php` to the same directory. The installer can be removed after
+setup; the API itself has no Composer, database, or sibling-code dependency.
+It never executes system commands.
 
 ## Requirements
 
@@ -15,15 +16,59 @@ executes system commands.
 
 ## Configuration
 
-Define environment variables in your web server or PHP-FPM configuration. A
-`probe/.env.example` reference is included, but `.env` files are **not** loaded by
-the application. Do not put your real token in source control or a public file.
+### Automatic installation
 
-Generate a key locally:
+1. Open `probe/install.php` through your web server. On the default XAMPP setup,
+   use `http://localhost/w3bm%40p/probe/install.php`.
+2. Enter the hostnames you are authorized to analyze and review the limits.
+3. Click **Generate key and install**. The installer creates a private `.env`,
+   generates a 256-bit API key, and configures private rate-limit storage.
+4. Save the key shown on the success page and enter it with the connector's full
+   `w3bmap.php` URL in the extension settings. The key is displayed only once.
 
-```sh
-php -r 'echo bin2hex(random_bytes(32)), PHP_EOL;'
-```
+No `httpd.conf`, `SetEnv`, PHP-FPM environment changes, or server restart are
+needed. The API automatically loads the private `.env` on every request.
+
+The installer displays the exact configuration path. The directory is
+`w3bmap-config/<installation-id>/` beside the public document root; the ID is
+derived from the absolute connector directory. For XAMPP it is normally
+`C:/xampp/w3bmap-config/<installation-id>/.env`, outside `htdocs`. Conventional
+public ancestors such as `htdocs`, `public_html`, and `public` are recognized,
+including when the PHP development server serves a nested directory. Keep the
+same deployment path when switching servers. Moving the connector changes its
+installation ID and requires migrating its private configuration.
+
+PHP needs write access to this private directory during installation and to its
+`rate` directory during use. If automatic creation fails, create the displayed
+directory and grant access to the PHP service account. On POSIX systems the
+installer uses directory mode `0700` and file mode `0600`; on Windows, inherited
+NTFS permissions apply. Never copy the real `.env` into the public directory.
+
+Local setup requires both a loopback client address and a loopback Host header.
+Remote setup requires HTTPS plus a one-time code read through SSH or the hosting
+file manager from the displayed private `setup-token` path. The remote page
+creates this code but never reveals its contents. Sessions and CSRF tokens
+protect form submissions. The code is deleted after successful installation.
+
+An existing `.env` locks the installer, including if that file is malformed.
+Repeated installation never overwrites it. Remove `install.php` after setup if
+desired. To change settings or rotate the key, edit the private `.env` directly;
+back up the existing configuration before intentionally reinstalling.
+
+### File settings
+
+`probe/.env.example` documents the supported settings. The `.env` values take
+precedence over existing process environment variables, including explicitly
+empty values. Process variables remain a fallback for deployments without a
+file. The CLI keeps its existing process-environment behavior and does not
+automatically read the server's private key.
+
+Use one `NAME=value` per line. Full-line `#` comments, blank lines, unquoted
+values, single-quoted literal strings, and JSON-style double-quoted strings are
+supported. There is no variable expansion, command execution, or inline-comment
+syntax. Unknown or duplicate keys, control characters, malformed values, and
+files larger than 16 KiB are rejected. An invalid existing file returns HTTP 503
+rather than silently reverting to another configuration.
 
 | Variable | Default | Meaning |
 | --- | --- | --- |
@@ -34,7 +79,7 @@ php -r 'echo bin2hex(random_bytes(32)), PHP_EOL;'
 | `W3BMAP_RATE_LIMIT` | `30` | Authorized requests per fixed minute window, globally for this key; range 1–1000 |
 | `W3BMAP_TIMEOUT` | `10` | Per-upstream-request timeout in seconds; range 1–30 |
 | `W3BMAP_MAX_BYTES` | `1048576` | Per-upstream-response body limit in bytes; range 1024–5242880 |
-| `W3BMAP_RATE_DIRECTORY` | System temporary directory + `/w3bmap-rate` | Writable state directory outside the document root |
+| `W3BMAP_RATE_DIRECTORY` | Installer: private configuration directory + `/rate`; otherwise system temporary directory + `/w3bmap-rate` | Writable state directory outside the document root |
 
 Allowlist entries are exact: `example.com` does not authorize `www.example.com`.
 Add both explicitly if needed. `*.example.com` authorizes subdomains but not the
@@ -49,29 +94,16 @@ and prevent direct access that bypasses the proxy. Ensure the server passes the
 
 ## Local development
 
-Use a fresh token and start the PHP development server from the repository root.
-This command serves only the `probe` directory.
-
-PowerShell:
-
-```powershell
-$env:W3BMAP_API_KEY = (php -r 'echo bin2hex(random_bytes(32));')
-$env:W3BMAP_ALLOWED_DOMAINS = 'example.com,www.example.com'
-$env:W3BMAP_ALLOW_LOCAL_HTTP = '1'
-php -S 127.0.0.1:8080 -t probe
-```
-
-POSIX shell:
+Start the development server from the repository root:
 
 ```sh
-export W3BMAP_API_KEY="$(php -r 'echo bin2hex(random_bytes(32));')"
-export W3BMAP_ALLOWED_DOMAINS='example.com,www.example.com'
-export W3BMAP_ALLOW_LOCAL_HTTP=1
 php -S 127.0.0.1:8080 -t probe
 ```
 
-Configure the client with the same token in another terminal. The server token is
-not printed by these commands. For the CLI, see [cli.md](cli.md).
+Open `http://127.0.0.1:8080/install.php`, enter your authorized domains, and leave
+the local HTTP checkbox enabled. Use the generated key with
+`http://127.0.0.1:8080/w3bmap.php`. If already installed, edit the existing private
+`.env` instead. For the CLI, see [cli.md](cli.md).
 
 ## Protocol
 
@@ -161,3 +193,14 @@ services (collectors, HTTP transport, network policy, rate limiter), a
 `ProbeController`, and a `JsonView`. `Application` wires their dependencies.
 Collectors and security services are not independent MVC applications; they
 provide behavior to the controller and share the graph model and JSON view.
+
+The installer uses `InstallationSettings` as its configuration model,
+`InstallationService` for private storage and atomic publication under a lock,
+`InstallationAccess` for request authorization, `InstallationController` for
+coordination, and `InstallationView` for HTML rendering. Configuration parsing
+and private-path discovery are shared with the API.
+
+Run `php tests/install.php` for configuration and installation unit checks, and
+`php tests/install-http.php` for a complete isolated HTTP installation and
+authenticated API check. The latter starts a temporary local PHP server and
+requires cURL and `proc_open`; it never installs into the real deployment.

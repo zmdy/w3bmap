@@ -74,8 +74,10 @@ Automated commit message validation is not included yet.
 - Document how to verify changes and run checks appropriate to the component.
 - Update the README when implementation status or configuration changes.
 
-Run `php tests/run.php` for the offline regression suite and `php -l` on changed
-PHP files. For launcher changes, also check `sh -n cli/w3bmap.sh` and exercise the
+Run `php tests/run.php` for the offline regression suite, `php tests/install.php`
+for configuration checks, and `php tests/install-http.php` for an isolated HTTP
+setup and authentication check (requires cURL and `proc_open`). Run `php -l` on
+changed PHP files. For launcher changes, also check `sh -n cli/w3bmap.sh` and exercise the
 relevant launcher. See the [CLI](docs/cli.md) and [connector](docs/connector.md)
 guides for manual integration checks. There is no build step or Composer dependency.
 
