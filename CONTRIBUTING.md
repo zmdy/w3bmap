@@ -79,4 +79,12 @@ PHP files. For launcher changes, also check `sh -n cli/w3bmap.sh` and exercise t
 relevant launcher. See the [CLI](docs/cli.md) and [connector](docs/connector.md)
 guides for manual integration checks. There is no build step or Composer dependency.
 
+For Explorer changes, run `npm ci` and `npm test` from `explorer/`, then verify
+imports, filtering, evidence inspection, and export in a browser. The application
+is served without a build. If the shared schema or browser dependencies change,
+run `npm run vendor` and commit the regenerated assets as well. Read the
+[Explorer guide](docs/explorer.md) for architecture and maintenance details.
+Vendored upstream code and generated validator output preserve their upstream
+structure; project OOP/MVC conventions apply to the application source.
+
 Contributions are distributed under the project's [MIT License](LICENSE).

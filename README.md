@@ -8,22 +8,22 @@ An open source platform for web technology discovery and infrastructure mapping.
 Discover technologies, map pages and infrastructure, and explore their connections
 while keeping control of your data and collection infrastructure.
 
-> **Status:** the first PHP connector and SH/BAT CLI are implemented. The Chrome
-> extension, Graph Explorer, native PowerShell collector, and cross-run correlation
+> **Status:** the PHP connector, SH/BAT CLI, and Graph Explorer are implemented.
+> The Chrome extension, native PowerShell collector, and cross-run correlation
 > are still planned.
 
 ## Architecture
 
 w3bm@p follows a local-first architecture with no required account, database, or
-central backend. Independent collectors produce a shared JSON format for future
-consolidation and visualization in the Graph Explorer.
+central backend. Independent collectors produce a shared JSON format that can be
+imported and visualized in the Graph Explorer.
 
 | Component | Responsibility | Technologies and status |
 | --- | --- | --- |
 | Extension | Discover technologies, pages, links, and resources; configure and query the user's connector | JavaScript, Chrome Manifest V3 — planned |
 | PHP Connector / Probe API | Enrich discoveries with DNS, RDAP, certificates, HTTP, and other public sources | PHP 8.1+, cURL, OpenSSL — implemented |
 | CLI | Collect data from the terminal and export JSON in standalone or connected mode | SH/BAT launchers with PHP classes — implemented; native PowerShell planned |
-| Graph Explorer | Import, correlate, and visualize entities, relationships, and evidence | SPA, Cytoscape.js — planned |
+| Graph Explorer | Import, filter, inspect, visualize, and export entities, relationships, and evidence | JavaScript SPA, Cytoscape.js — implemented; cross-run correlation planned |
 | Shared | Define the JSON graph contract | JSON Schema — implemented; shared fingerprint catalog planned |
 
 ## Quick start
@@ -51,6 +51,17 @@ php cli/w3bmap.php --action capabilities
 Read the [CLI guide](docs/cli.md) for exports, connected mode, requirements, and
 exit codes. Read the [connector guide](docs/connector.md) to deploy the authenticated
 single-file PHP API and configure its token and target allowlist.
+
+To view exported collections, serve the static Explorer:
+
+```sh
+php -S 127.0.0.1:8081 -t explorer
+```
+
+Open `http://127.0.0.1:8081/` and choose **Import collection**, or explore the
+synthetic sample. No npm installation or build is required to use it. Read the
+[Explorer guide](docs/explorer.md) for filters, evidence inspection, privacy,
+import limits, and development commands.
 
 ### Optional self-hosted PHP connector
 
@@ -97,18 +108,18 @@ w3bmap/
 ├── extension/          # Planned Chrome extension and connector settings
 ├── cli/                # w3bmap.sh, w3bmap.bat, and the PHP CLI application
 ├── probe/              # w3bmap.php, distributed as a single file
-├── explorer/           # Planned shared graph interface
+├── explorer/           # Static graph interface, MVC source, and local libraries
 ├── shared/             # schema.json
 ├── tests/              # Offline PHP regression suite
-├── docs/               # CLI/connector guides and artwork
+├── docs/               # CLI, connector, and Explorer guides and artwork
 ├── AGENTS.md           # Repository instructions for coding agents
 ├── CONTRIBUTING.md
 ├── LICENSE
 └── README.md
 ```
 
-The `extension/` and `explorer/` directories will be added when developed.
-The PHP applications separate models, views, controllers, and services internally.
+The `extension/` directory will be added when developed.
+Application code separates models, views, controllers, and services.
 The connector remains deployable as one file; the CLI shares its classes.
 
 ## Data contract
@@ -187,7 +198,7 @@ Queries and diagnostics must remain within the scope authorized by the operator.
 - [x] Define the shared JSON graph schema.
 - [x] Implement standalone and connected PHP CLI with SH/BAT launchers.
 - [x] Implement the authenticated self-hosted PHP connector.
-- [ ] Build the Graph Explorer with import and export.
+- [x] Build the Graph Explorer with import, validation, filtering, and export.
 - [ ] Implement the Chrome extension with local collection and technology detection.
 - [ ] Add a native PowerShell collector.
 - [ ] Integrate the optional connector into the Chrome extension.
@@ -212,6 +223,18 @@ php -l probe/w3bmap.php
 php -l cli/w3bmap.php
 sh -n cli/w3bmap.sh
 ```
+
+For Explorer model, validation, and interoperability tests (Node.js 20.6+ and PHP
+required), run from `explorer/`:
+
+```sh
+npm ci
+npm test
+```
+
+After changing the shared schema, run `npm run vendor` in that directory to
+regenerate the committed validator. Browser dependencies are local and pinned;
+see [their credits and license notices](explorer/vendor/README.md).
 
 ## Contributing
 

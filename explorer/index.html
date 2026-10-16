@@ -1,0 +1,413 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Explore your w3bm@p discoveries in a private, local graph workspace."
+    />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'self'; font-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'"
+    />
+    <title>Graph Explorer · w3bm@p</title>
+    <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="style.css" />
+    <script type="module" src="app.js"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#workspace">Skip to workspace</a>
+    <svg
+      class="icon-sprite"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+    >
+      <symbol id="icon-network" viewBox="0 0 24 24">
+        <path d="M12 8V5m0 10v-4M5 15v-4h14v4" />
+        <rect x="9" y="2" width="6" height="4" rx="1" />
+        <rect x="2" y="16" width="6" height="5" rx="1" />
+        <rect x="9" y="16" width="6" height="5" rx="1" />
+        <rect x="16" y="16" width="6" height="5" rx="1" />
+      </symbol>
+      <symbol id="icon-upload" viewBox="0 0 24 24">
+        <path
+          d="M12 16V3m-5 5 5-5 5 5M4 16v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4"
+        />
+      </symbol>
+      <symbol id="icon-download" viewBox="0 0 24 24">
+        <path
+          d="M12 3v13m-5-5 5 5 5-5M4 16v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4"
+        />
+      </symbol>
+      <symbol id="icon-search" viewBox="0 0 24 24">
+        <circle cx="10.5" cy="10.5" r="6.5" />
+        <path d="m16 16 4.5 4.5" />
+      </symbol>
+      <symbol id="icon-fit" viewBox="0 0 24 24">
+        <path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5" />
+        <rect x="8" y="8" width="8" height="8" rx="1" />
+      </symbol>
+      <symbol id="icon-grid" viewBox="0 0 24 24">
+        <rect x="3" y="3" width="7" height="7" rx="1" />
+        <rect x="14" y="3" width="7" height="7" rx="1" />
+        <rect x="3" y="14" width="7" height="7" rx="1" />
+        <rect x="14" y="14" width="7" height="7" rx="1" />
+      </symbol>
+      <symbol id="icon-list" viewBox="0 0 24 24">
+        <path d="M8 5h13M8 12h13M8 19h13M3 5h.01M3 12h.01M3 19h.01" />
+      </symbol>
+      <symbol id="icon-info" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="9" />
+        <path d="M12 11v6m0-10h.01" />
+      </symbol>
+      <symbol id="icon-close" viewBox="0 0 24 24">
+        <path d="m6 6 12 12M6 18 18 6" />
+      </symbol>
+      <symbol id="icon-file" viewBox="0 0 24 24">
+        <path
+          d="M14 2H5a1 1 0 0 0-1 1v18a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V8zm0 0v6h6M8 13h8M8 17h5"
+        />
+      </symbol>
+      <symbol id="icon-shield" viewBox="0 0 24 24">
+        <path d="m12 2 8 4v6c0 5-8 10-8 10S4 17 4 12V6z" />
+        <path d="m8 12 3 3 5-6" />
+      </symbol>
+    </svg>
+    <aside class="rail" aria-label="Application">
+      <a class="brand-mark" href="./" aria-label="w3bm@p home"
+        ><svg><use href="#icon-network" /></svg
+      ></a>
+      <div class="rail-divider"></div>
+      <button
+        class="rail-button active"
+        id="graph-nav"
+        aria-label="Show graph workspace"
+        title="Graph workspace"
+      >
+        <svg><use href="#icon-network" /></svg>
+      </button>
+      <button
+        class="rail-button"
+        id="help-button"
+        aria-label="Open Explorer guide"
+        title="Explorer guide"
+      >
+        <svg><use href="#icon-info" /></svg>
+      </button>
+      <span class="rail-spacer"></span>
+      <span class="rail-version">0.1</span>
+    </aside>
+    <div class="application">
+      <header class="app-header">
+        <div class="brand-wordmark">
+          w3bm<span>@</span>p <span class="header-divider">/</span>
+          <span class="product-name">Graph Explorer</span>
+        </div>
+        <div class="header-actions">
+          <span class="privacy-pill"><span></span> Local workspace</span>
+          <button id="export-button" class="button secondary" disabled>
+            <svg><use href="#icon-download" /></svg>Export JSON
+          </button>
+          <button id="import-button" class="button primary">
+            <svg><use href="#icon-upload" /></svg>Import collection
+          </button>
+        </div>
+      </header>
+      <main id="workspace" class="workspace">
+        <aside class="sidebar" aria-label="Collection and filters">
+          <div class="panel-label">
+            INVESTIGATION
+            <button
+              id="clear-button"
+              class="icon-button"
+              aria-label="Clear collection"
+              title="Clear collection"
+            >
+              <svg><use href="#icon-close" /></svg>
+            </button>
+          </div>
+          <div class="collection-card">
+            <div class="collection-icon">
+              <svg><use href="#icon-network" /></svg>
+            </div>
+            <div class="collection-title" id="target-label">No collection</div>
+            <div class="collection-filename" id="filename-label">
+              Import a JSON export to begin
+            </div>
+            <div id="collection-tags" class="collection-tags"></div>
+          </div>
+          <div class="sidebar-section">
+            <div class="section-heading">
+              <h2>Entity types</h2>
+              <span id="total-node-count">0</span>
+            </div>
+            <div id="type-filters" class="type-filters"></div>
+          </div>
+          <div class="sidebar-section">
+            <h2>Relationships</h2>
+            <label class="toggle-row"
+              ><span>Include inferred</span
+              ><input
+                id="inferred-filter"
+                type="checkbox"
+                role="switch"
+                checked
+            /></label>
+            <div class="range-heading">
+              <label for="confidence-filter">Minimum confidence</label
+              ><output id="confidence-value" for="confidence-filter">0%</output>
+            </div>
+            <input
+              id="confidence-filter"
+              type="range"
+              min="0"
+              max="100"
+              value="0"
+              step="5"
+            />
+            <div class="range-labels">
+              <span>All findings</span><span>Verified</span>
+            </div>
+          </div>
+          <div class="sidebar-section">
+            <label class="field-label" for="source-filter"
+              >Collection source</label
+            >
+            <select id="source-filter">
+              <option value="all">All sources</option>
+              <option value="cli">CLI</option>
+              <option value="probe">PHP Connector</option>
+              <option value="extension">Extension</option>
+            </select>
+            <button id="reset-button" class="text-button">Reset filters</button>
+          </div>
+          <div class="sidebar-footer">
+            <svg><use href="#icon-shield" /></svg>
+            <p>
+              Your discoveries stay here.<br /><span
+                >Files are processed in your browser.</span
+              >
+            </p>
+          </div>
+        </aside>
+        <section class="main-panel" aria-label="Graph workspace">
+          <div class="workspace-heading">
+            <div>
+              <div class="eyebrow">
+                DISCOVER · ANALYZE · CONNECT · VISUALIZE
+              </div>
+              <h1>Explore the connections.</h1>
+              <p>One workspace for your web discoveries.</p>
+            </div>
+            <span class="schema-badge">SCHEMA 1.0</span>
+          </div>
+          <div
+            id="notice"
+            class="notice"
+            role="status"
+            aria-live="polite"
+            hidden
+          ></div>
+          <div class="graph-card">
+            <div class="graph-toolbar">
+              <div class="view-tabs" role="tablist" aria-label="Workspace view">
+                <button
+                  id="graph-tab"
+                  role="tab"
+                  aria-selected="true"
+                  aria-controls="graph-panel"
+                  class="selected"
+                >
+                  <svg><use href="#icon-network" /></svg>Graph</button
+                ><button
+                  id="entities-tab"
+                  role="tab"
+                  aria-selected="false"
+                  aria-controls="entities-panel"
+                  tabindex="-1"
+                >
+                  <svg><use href="#icon-list" /></svg>Entities
+                </button>
+              </div>
+              <label class="search-field"
+                ><svg><use href="#icon-search" /></svg
+                ><input
+                  id="search-input"
+                  type="search"
+                  placeholder="Search entities…"
+                  aria-label="Search entities"
+              /></label>
+              <select
+                id="layout-select"
+                class="layout-select"
+                aria-label="Graph layout"
+              >
+                <option value="cose">Force-directed</option>
+                <option value="concentric">Concentric</option>
+                <option value="circle">Circle</option>
+                <option value="grid">Grid</option>
+              </select>
+            </div>
+            <div class="visualization-area" id="drop-zone">
+              <div id="graph-panel" role="tabpanel" aria-labelledby="graph-tab">
+                <div
+                  id="graph"
+                  role="img"
+                  aria-label="Interactive discovery graph. Use the Entities tab for keyboard-accessible inspection."
+                ></div>
+              </div>
+              <div
+                id="entities-panel"
+                role="tabpanel"
+                aria-labelledby="entities-tab"
+                hidden
+              >
+                <div id="entity-list" class="entity-list"></div>
+              </div>
+              <div id="empty-state" class="empty-state" hidden>
+                <div class="empty-symbol">
+                  <svg><use href="#icon-network" /></svg>
+                </div>
+                <h2>Start with a discovery.</h2>
+                <p>Drop a w3bm@p JSON export here, or import a collection.</p>
+                <button id="empty-import" class="button primary">
+                  Import collection</button
+                ><button id="sample-button" class="text-button">
+                  Explore a sample instead
+                </button>
+              </div>
+              <div id="no-results" class="no-results" hidden>
+                <svg><use href="#icon-search" /></svg>
+                <h2>No matching entities</h2>
+                <p>Try a different search or reset your filters.</p>
+                <button id="no-results-reset" class="text-button">
+                  Reset filters
+                </button>
+              </div>
+              <div
+                id="graph-controls"
+                class="graph-controls"
+                role="group"
+                aria-label="Graph controls"
+              >
+                <button id="zoom-in" aria-label="Zoom in" title="Zoom in">
+                  +</button
+                ><button id="zoom-out" aria-label="Zoom out" title="Zoom out">
+                  −</button
+                ><span></span
+                ><button
+                  id="fit-button"
+                  aria-label="Fit graph to view"
+                  title="Fit to view"
+                >
+                  <svg><use href="#icon-fit" /></svg>
+                </button>
+              </div>
+              <div class="canvas-caption" id="canvas-caption">
+                SCROLL TO ZOOM · DRAG TO EXPLORE
+              </div>
+              <div id="drop-overlay" class="drop-overlay" hidden>
+                <svg><use href="#icon-upload" /></svg
+                ><strong>Drop your collection here</strong
+                ><span>One JSON file · up to 16 MiB</span>
+              </div>
+            </div>
+            <div class="graph-footer">
+              <div>
+                <span class="live-dot"></span
+                ><span id="visible-count">0 entities · 0 relationships</span>
+              </div>
+              <span id="zoom-label">100%</span>
+            </div>
+          </div>
+          <div class="workspace-footer">
+            <span
+              ><svg><use href="#icon-shield" /></svg>No uploads. No accounts.
+              Your infrastructure.</span
+            ><button id="load-sample" class="text-button">
+              Load sample collection <span aria-hidden="true">↗</span>
+            </button>
+          </div>
+        </section>
+        <aside class="inspector" aria-label="Entity inspector">
+          <div class="inspector-heading">
+            <h2>Inspector</h2>
+            <span class="inspector-indicator"></span>
+          </div>
+          <div
+            class="inspector-tabs"
+            role="tablist"
+            aria-label="Inspector view"
+          >
+            <button
+              id="details-tab"
+              class="selected"
+              role="tab"
+              aria-controls="details-panel"
+              aria-selected="true"
+            >
+              Details</button
+            ><button
+              id="collection-tab"
+              role="tab"
+              aria-controls="collection-panel"
+              aria-selected="false"
+              tabindex="-1"
+            >
+              Collection
+              <span id="error-count" class="error-count" hidden>0</span>
+            </button>
+          </div>
+          <div
+            id="details-panel"
+            role="tabpanel"
+            aria-labelledby="details-tab"
+            class="inspector-content"
+          ></div>
+          <div
+            id="collection-panel"
+            role="tabpanel"
+            aria-labelledby="collection-tab"
+            class="inspector-content"
+            hidden
+          ></div>
+        </aside>
+      </main>
+    </div>
+    <input id="file-input" type="file" accept=".json,application/json" hidden />
+    <dialog id="help-dialog">
+      <div class="dialog-heading">
+        <h2>Your discovery workspace</h2>
+        <button id="close-help" class="icon-button" aria-label="Close guide">
+          <svg><use href="#icon-close" /></svg>
+        </button>
+      </div>
+      <p>
+        Import a JSON export from the w3bm@p CLI or PHP Connector. Every file is
+        validated against the shared schema before it replaces your current
+        collection.
+      </p>
+      <ol>
+        <li>Use the filters and search to narrow the graph.</li>
+        <li>Select an entity or relationship to inspect evidence.</li>
+        <li>Use the Entities tab for keyboard navigation.</li>
+        <li>Open Collection to inspect module results and errors.</li>
+        <li>Export JSON to save the complete, original collection.</li>
+      </ol>
+      <p>
+        Imports replace the current collection. Filters never remove data from
+        your export. Data stays in memory and is cleared when you reload. The
+        initial sample is synthetic.
+      </p>
+      <div class="guide-note">
+        Limits: 16 MiB · 5,000 entities · 15,000 relationships. Chrome extension
+        and direct connector queries are planned.
+      </div>
+    </dialog>
+    <noscript
+      >This Explorer requires JavaScript. Enable JavaScript and serve this
+      directory over local HTTP.</noscript
+    >
+  </body>
+</html>
