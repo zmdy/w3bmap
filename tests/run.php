@@ -152,6 +152,18 @@ final class TestSuite
         $server = ['HTTPS' => 'on', 'HTTP_AUTHORIZATION' => 'Bearer ' . $key, 'REQUEST_METHOD' => 'GET', 'REMOTE_ADDR' => '127.0.0.1'];
         (new ProbeRequest($server, [], ''))->authorize($config);
         $this->check(true, 'Valid bearer token accepted.');
+        $withoutAuthorization = $server;
+        unset($withoutAuthorization['HTTP_AUTHORIZATION']);
+        foreach (['Authorization', 'authorization', 'AUTHORIZATION'] as $name) {
+            (new ProbeRequest($withoutAuthorization, [], '', [$name => 'Bearer ' . $key]))->authorize($config);
+            $this->check(true, 'Apache header fallback rejected a valid token.');
+        }
+        (new ProbeRequest($withoutAuthorization + ['REDIRECT_HTTP_AUTHORIZATION' => 'Bearer ' . $key], [], ''))->authorize($config);
+        $this->check(true, 'Redirected authorization header was rejected.');
+        $this->rejects(fn () => (new ProbeRequest($withoutAuthorization, [], '', ['Authorization' => 'Bearer wrong']))->authorize($config), 'unauthorized');
+        $this->rejects(fn () => (new ProbeRequest($withoutAuthorization, [], '', ['Authorization' => ['Bearer ' . $key]]))->authorize($config), 'unauthorized');
+        $this->rejects(fn () => (new ProbeRequest(array_replace($server, ['HTTP_AUTHORIZATION' => 'Bearer wrong']), [], '', ['Authorization' => 'Bearer ' . $key]))->authorize($config), 'unauthorized');
+        $this->rejects(fn () => (new ProbeRequest($withoutAuthorization, [], '', ['X-Authorization' => 'Bearer ' . $key]))->authorize($config), 'unauthorized');
         $this->rejects(fn () => (new ProbeRequest($server, [], ''))->authorize(new Config()), 'configuration_error');
         $badToken = array_merge($server, ['HTTP_AUTHORIZATION' => 'Bearer wrong']);
         $this->rejects(fn () => (new ProbeRequest($badToken, [], ''))->authorize($config), 'unauthorized');

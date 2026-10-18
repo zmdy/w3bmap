@@ -38,7 +38,7 @@ export class ConnectorClient {
       });
       if (!response.ok)
         throw new Error(
-          `The connector returned HTTP ${response.status}. Check its token, allowlist, and HTTPS configuration.`,
+          this.httpFailure(response.status),
         );
       if (!response.body)
         throw new Error("The connector returned an empty response.");
@@ -84,12 +84,29 @@ export class ConnectorClient {
         throw new Error("The connector request timed out after 25 seconds.");
       if (error instanceof TypeError)
         throw new Error(
-          "The connector could not be reached. Verify HTTPS, host permission, and the final endpoint URL. Redirects are not followed.",
+          this.connectionFailure(settings),
         );
       throw error;
     } finally {
       clearTimeout(timeout);
     }
+  }
+
+  httpFailure(status) {
+    if (status === 401) return "The connector returned HTTP 401. Verify the API key matches its private .env. The PHP server must expose the Authorization header.";
+    if (status === 403) return "The connector returned HTTP 403. Remote connections require HTTPS. For local HTTP, enable development HTTP in the extension and W3BMAP_ALLOW_LOCAL_HTTP=1 in the private .env.";
+    if (status === 404) return "The connector returned HTTP 404. Use the full URL ending in probe/w3bmap.php, not install.php or the project directory.";
+    return `The connector returned HTTP ${status}. Check the PHP server configuration and logs.`;
+  }
+
+  connectionFailure(settings) {
+    const url = new URL(settings.endpoint);
+    const local = ["localhost", "127.0.0.1"].includes(url.hostname);
+    if (local && url.protocol === "https:")
+      return "The local HTTPS connector could not be reached. Verify the server port and a certificate trusted by Chrome. For local development, explicitly use the HTTP endpoint and enable development HTTP in both the extension and the private .env. Redirects are not followed.";
+    if (local)
+      return "The local connector could not be reached. Confirm Apache/PHP is running, the port and full w3bmap.php URL are correct, and Chrome grants this extension access to the connector host. Redirects are not followed.";
+    return "The connector could not be reached. Verify HTTPS, a certificate trusted by Chrome, host permission, and the final endpoint URL. Redirects are not followed.";
   }
 
   async capabilities(settings) {

@@ -92,8 +92,10 @@ rotation, or server restart is needed. New installations do not write it.
 The application reads the web server's `HTTPS` flag and deliberately does not
 trust client-supplied forwarded headers. When terminating TLS at a trusted reverse
 proxy, configure the web server to set that flag only for verified proxy traffic
-and prevent direct access that bypasses the proxy. Ensure the server passes the
-`Authorization` header to PHP.
+and prevent direct access that bypasses the proxy. The connector reads bearer
+authentication from PHP server variables or, for Apache handlers that expose it
+there instead, the case-insensitive headers returned by `getallheaders()`. This
+fallback does not require Apache configuration changes.
 
 ## Local development
 

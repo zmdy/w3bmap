@@ -883,8 +883,22 @@ final class FileRateLimiter
 
 final class ProbeRequest
 {
-    public function __construct(public array $server, public array $query, public string $body)
+    public function __construct(public array $server, public array $query, public string $body, private array $headers = [])
     {
+    }
+
+    private function authorizationHeader(): string
+    {
+        foreach (['HTTP_AUTHORIZATION', 'REDIRECT_HTTP_AUTHORIZATION'] as $name) {
+            $value = $this->server[$name] ?? '';
+            if ($value !== '') return is_string($value) ? $value : '';
+        }
+        // Some Apache PHP handlers expose Authorization only through getallheaders().
+        foreach ($this->headers as $name => $value) {
+            if (strcasecmp((string) $name, 'Authorization') === 0)
+                return is_string($value) ? $value : '';
+        }
+        return '';
     }
 
     public function authorize(Config $config): void
@@ -897,7 +911,7 @@ final class ProbeRequest
         if (!in_array($secure, ['on', '1'], true) && !($config->allowLocalHttp && $loopback)) {
             throw new AppException('HTTPS is required. Local HTTP must be explicitly enabled.', 403, 'https_required');
         }
-        $header = $this->server['HTTP_AUTHORIZATION'] ?? $this->server['REDIRECT_HTTP_AUTHORIZATION'] ?? '';
+        $header = $this->authorizationHeader();
         if (!is_string($header) || !preg_match('/^Bearer ([^\s]+)$/Di', $header, $matches)
             || !hash_equals($config->apiKey, $matches[1])) {
             throw new AppException('A valid bearer token is required.', 401, 'unauthorized');
@@ -1025,7 +1039,8 @@ final class Application
             $controller = new ProbeController($config, self::collection($config),
                 new FileRateLimiter($config->rateDirectory, $config->rateLimit));
             $body = file_get_contents('php://input', false, null, 0, 16385);
-            $result = $controller->handle(new ProbeRequest($_SERVER, $_GET, $body === false ? '' : $body));
+            $result = $controller->handle(new ProbeRequest($_SERVER, $_GET, $body === false ? '' : $body,
+                function_exists('getallheaders') ? (array) getallheaders() : []));
             $view->send($result);
         } catch (AppException $error) {
             $view->send(['error' => ['code' => $error->errorCode, 'message' => $error->getMessage()]], $error->status);

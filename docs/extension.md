@@ -305,3 +305,25 @@ and reopen the popup during analysis, verify automatic category/version detectio
 and filtering, check badge reset on navigation, export JSON, open and filter the packaged
 graph, grant/decline connector-host access, test capabilities, verify a disallowed
 target retains browser findings, clear the result, and forget the connector.
+
+## Local connector troubleshooting
+
+For a default XAMPP installation in `htdocs/w3bm@p`, the connector URL is
+`http://localhost/w3bm%40p/probe/w3bmap.php`. Use the final PHP file, not
+`install.php`, the Explorer URL, or a directory. Enable **Allow development HTTP
+on localhost or 127.0.0.1** in extension settings and set
+`W3BMAP_ALLOW_LOCAL_HTTP=1` in the private `.env`. Save and test the connection,
+using the API key from that same installation. No server restart is needed.
+
+HTTPS requires a certificate trusted by Chrome, including on localhost. An
+untrusted XAMPP development certificate can cause a transport failure before PHP
+receives the request. Choose local HTTP explicitly for development, or configure
+a trusted certificate; the extension never downgrades or follows redirects
+automatically. A transport error does not establish that authentication failed.
+
+HTTP 401 means the endpoint responded but could not authenticate the bearer
+header. Verify the key; PHP supports both server-variable and Apache header
+lookup. HTTP 403 can indicate that local HTTP was not enabled in the private
+`.env`; HTTP 404 indicates an incorrect file URL. If the extension reports missing
+host access, save the connector settings again and grant access to that host.
+Native Chrome permission handling and certificate trust must be checked in Chrome.
