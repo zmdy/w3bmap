@@ -136,6 +136,10 @@ w3bmap/
 Application code separates models, views, controllers, and services.
 The connector remains deployable as one file; the CLI shares its classes.
 
+Domains, pages, technologies, IPs, certificates, and sitemaps have collapsible
+presentation groups in the extension and Explorer. Grouping preserves original
+entities, evidence, and JSON exports. See [grouping rules](docs/explorer.md#collapsible-groups).
+
 ## Data contract
 
 Collectors share versioned JSON containing entities (`nodes`), relationships

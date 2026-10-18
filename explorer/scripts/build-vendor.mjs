@@ -41,7 +41,15 @@ class VendorBuilder {
       ),
       path.join(output, "cytoscape.js"),
     );
-    for (const name of ["cytoscape", "ajv", "ajv-formats"]) {
+    await build({
+      stdin: { contents: 'export { parse } from "tldts";', resolveDir: root },
+      bundle: true,
+      format: "esm",
+      platform: "browser",
+      minify: true,
+      outfile: path.join(output, "domain-parser.js"),
+    });
+    for (const name of ["cytoscape", "ajv", "ajv-formats", "tldts", "tldts-core"]) {
       const packageRoot =
         name === "cytoscape"
           ? path.dirname(path.dirname(require.resolve(name)))

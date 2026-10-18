@@ -11,6 +11,8 @@ export class PopupController {
 
   async start() {
     this.bindNavigation();
+    this.view.get("expand-site-groups").addEventListener("click", () => this.view.setEntityGroups(true));
+    this.view.get("collapse-site-groups").addEventListener("click", () => this.view.setEntityGroups(false));
     this.view
       .get("analyze-button")
       .addEventListener("click", () => this.analyze());

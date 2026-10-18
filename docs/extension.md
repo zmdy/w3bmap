@@ -58,12 +58,29 @@ logo/CDN request is made by the popup. See the bundled
 
 The **Technologies** panel belongs to the current page. It groups findings by
 category, shows an explicit version when available, and supports filtering by
-name, category, or version. The compact list shows five findings with local brand
-icons and category chips; **View all technologies** reveals the full list and
-search field. Expand a finding for its version, signal, and confidence.
+name, category, or version. Each category is a collapsible group containing
+findings with local brand icons and category chips. Technology categories start
+expanded; **Collapse technology groups** and **Expand technology groups** toggle
+all categories. Expand an individual finding for its version, signal, and confidence.
 **Version unknown** means no usable version was observed; the detector never
 guesses a version from a technology name. **Detect again** reruns inspection,
 which is useful after lazy loading or a client-side route change.
+
+**Related** groups external hostnames under shared suffixes, such as
+`*.simet.nic.br` and `*.gstatic.com`. Each heading shows the unique member count
+and expands independently. **Site** lists all current-page findings in collapsible
+groups: domains, pages by hostname, technologies by category, IPs by IPv4 /24 or
+IPv6 /48 prefix, certificates by issuer, and sitemaps by hostname. It uses the saved
+collection when it belongs to this page, otherwise the quick local snapshot.
+PHP enrichment supplies IPs and certificates when available. An existing saved
+collection is not replaced by a quick scan. Clearing it restores the quick findings.
+
+Related and Site groups start collapsed. Native disclosure controls support mouse,
+Enter and Space. Site also provides **Expand groups** and **Collapse groups**.
+Groups organize findings without asserting ownership or affiliation. Counts and
+exports keep individual records. See [Explorer grouping rules](explorer.md#collapsible-groups).
+The shared grouping service and public suffix data are packaged locally, with no
+additional network requests, permissions, or backend configuration.
 
 The toolbar badge displays the detected count after inspection and clears when
 the tab navigates. Detection runs on popup opening or explicit rescan, rather

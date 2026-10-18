@@ -42,6 +42,7 @@ export class CollectionRepository {
       nodes: data.nodes.length,
       edges: data.edges.length,
       errors: data.errors.length,
+      entities: this.entities(data),
       metrics: {
         pages: data.nodes.filter((node) => node.type === "page" && (!node.evidence.kind || node.evidence.kind === "link")).length,
         domains: data.nodes.filter((node) => node.type === "domain").length,
@@ -53,5 +54,10 @@ export class CollectionRepository {
       page: data.results.browser?.page ?? data.target,
       title: data.results.browser?.title ?? data.target,
     };
+  }
+
+  entities(document) {
+    return document.nodes.map((node) => ({ id: node.id, label: node.label, type: node.type,
+      evidence: { category: node.evidence?.category, issuer: node.evidence?.issuer, url: node.evidence?.url } }));
   }
 }

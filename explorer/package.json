@@ -1,17 +1,18 @@
 {
   "name": "w3bmap-explorer",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "description": "Local-first graph explorer for w3bm@p collection documents.",
   "scripts": {
     "vendor": "node scripts/build-vendor.mjs",
-    "test": "node --test tests/graph.test.js"
+    "test": "node --test tests/*.test.js"
   },
   "devDependencies": {
     "ajv": "8.20.0",
     "ajv-formats": "3.0.1",
     "cytoscape": "3.34.4",
-    "esbuild": "0.28.2"
+    "esbuild": "0.28.2",
+    "tldts": "7.4.18"
   }
 }

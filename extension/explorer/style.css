@@ -681,6 +681,7 @@ h1 {
   display: grid;
   gap: 6px;
 }
+.grouping-note { color: var(--muted); font-size: 11px; line-height: 1.5; }
 .entity-row {
   border: 1px solid #e9edf0;
   border-radius: 6px;

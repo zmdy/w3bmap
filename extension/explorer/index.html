@@ -16,6 +16,7 @@
     <link rel="stylesheet" href="style.css" />
     <link rel="stylesheet" href="assets/icons/icons.css" />
     <script type="module" src="app.js"></script>
+      <link rel="stylesheet" href="assets/clusters.css" />
   </head>
   <body>
     <a class="skip-link" href="#workspace">Skip to workspace</a>
@@ -41,7 +42,7 @@
         <span class="ui-icon" data-icon="info" aria-hidden="true"></span>
       </button>
       <span class="rail-spacer"></span>
-      <span class="rail-version">0.1</span>
+      <span class="rail-version">0.2</span>
     </aside>
     <div class="application">
       <header class="app-header">
@@ -125,6 +126,8 @@
               <option value="probe">PHP Connector</option>
               <option value="extension">Extension</option>
             </select>
+            <p class="grouping-note">Groups organize similar findings. They do not prove ownership. Click a graph group to expand or collapse it.</p>
+            <div class="cluster-actions"><button id="expand-clusters">Expand groups</button><button id="collapse-clusters">Collapse groups</button></div>
             <button id="reset-button" class="text-button">Reset filters</button>
           </div>
           <div class="sidebar-footer">

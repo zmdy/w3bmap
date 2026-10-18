@@ -1,0 +1,15 @@
+.entity-cluster { border: 1px solid #dfe7ed; border-radius: 8px; background: #fff; margin-bottom: 7px; overflow: hidden; }
+.entity-cluster > summary { display: flex; align-items: center; gap: 9px; padding: 11px; list-style: none; cursor: pointer; color: #294951; }
+.entity-cluster > summary::-webkit-details-marker { display: none; }
+.entity-cluster > summary:focus-visible { outline: 2px solid #168b92; outline-offset: -3px; }
+.entity-cluster > summary:hover { background: #f0f7f8; }
+.cluster-chevron { width: 16px; height: 16px; flex-shrink: 0; }
+.entity-cluster[open] > summary .cluster-chevron { transform: rotate(90deg); }
+.cluster-label { min-width: 0; flex: 1; overflow-wrap: anywhere; }
+.cluster-label small { display: block; color: #73848d; font-size: 10px; }
+.cluster-label strong { display: block; font-size: 12px; font-weight: 600; }
+.cluster-count { background: #e9f1f4; padding: 2px 7px; border-radius: 6px; font-size: 11px; }
+.cluster-members { display: grid; gap: 4px; padding: 0 8px 8px 24px; }
+.cluster-member { overflow-wrap: anywhere; font-size: 11px; padding: 8px; background: #f6f9fb; border-radius: 5px; }
+.cluster-actions { display: flex; gap: 8px; margin-bottom: 10px; }
+.cluster-actions button { border: 1px solid #dfe7ed; border-radius: 5px; background: #fff; color: #375e68; padding: 6px 9px; cursor: pointer; font: inherit; font-size: 11px; }

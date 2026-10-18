@@ -1,3 +1,4 @@
+import { GroupedListView } from "./GroupedListView.js";
 import { GraphFilters } from "../models/GraphModel.js";
 import { GraphView } from "./GraphView.js";
 
@@ -44,7 +45,8 @@ export class WorkspaceView {
     sitemap: "Sitemaps",
   };
 
-  constructor() {
+  constructor(clusters, onToggle) {
+    this.groupedList = new GroupedListView(document.getElementById("entity-list"), clusters, (node) => this.entityRow(node), onToggle);
     this.typeCheckboxes = new Map();
     const filters = this.get("type-filters");
     for (const type of GraphFilters.TYPES) {
@@ -124,29 +126,27 @@ export class WorkspaceView {
       !hasDocument || !isGraph || !visible.nodes.length;
     this.get("canvas-caption").hidden =
       !hasDocument || !isGraph || !visible.nodes.length;
-    const list = this.get("entity-list");
-    list.replaceChildren();
-    const fragment = document.createDocumentFragment();
-    for (const node of visible.nodes) {
-      const button = Dom.element("button", "entity-row");
-      button.dataset.nodeId = node.id;
-      const label = Dom.element("span", "entity-label");
-      label.append(
-        Dom.element("strong", "", node.label),
-        Dom.element("small", "", node.type),
-      );
-      button.append(
-        Dom.dot(node.type),
-        label,
-        Dom.element(
-          "span",
-          "entity-confidence",
-          `${Math.round(node.confidence * 100)}%`,
-        ),
-      );
-      fragment.append(button);
-    }
-    list.append(fragment);
+    this.groupedList.render(visible.nodes);
+  }
+
+  entityRow(node) {
+    const button = Dom.element("button", "entity-row");
+    button.dataset.nodeId = node.id;
+    const label = Dom.element("span", "entity-label");
+    label.append(
+      Dom.element("strong", "", node.label),
+      Dom.element("small", "", node.type),
+    );
+    button.append(
+      Dom.dot(node.type),
+      label,
+      Dom.element(
+        "span",
+        "entity-confidence",
+        `${Math.round(node.confidence * 100)}%`,
+      ),
+    );
+    return button;
   }
 
   tab(group, active) {

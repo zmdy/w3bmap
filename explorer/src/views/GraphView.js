@@ -18,7 +18,9 @@ export class GraphView {
     sitemap: "#faf0f5",
   };
 
-  constructor(container, onSelect, onZoom) {
+  constructor(container, onSelect, onZoom, clusters) {
+    this.clusters = clusters;
+    this.layoutName = "cose";
     this.records = new Map();
     this.icons = new Map();
     this.cy = cytoscape({
@@ -49,6 +51,21 @@ export class GraphView {
             "background-width": "47%",
             "background-height": "47%",
           },
+        },
+        {
+          selector: "node.cluster",
+          style: { "border-style": "dashed", "border-width": 2, width: 64, height: 64,
+            "font-weight": 600, "text-max-width": 170 },
+        },
+        {
+          selector: "node:parent",
+          style: { "background-image": "none", "background-opacity": 0.25,
+            "text-valign": "top", "text-margin-y": -9, padding: 28 },
+        },
+        {
+          selector: "edge.aggregate",
+          style: { width: 2, label: (edge) => `${edge.data("relationType").replaceAll("_", " ")} (${edge.data("indexes").length})`,
+            "font-size": 9, "text-background-color": "#fff", "text-background-opacity": 0.9 },
         },
         {
           selector: "node.root",
@@ -105,15 +122,16 @@ export class GraphView {
         },
       ],
     });
-    this.cy.on("tap", "node", (event) =>
-      onSelect("node", this.records.get(event.target.id())),
-    );
-    this.cy.on("tap", "edge", (event) =>
-      onSelect("edge", {
-        ...this.records.get(event.target.id()),
-        index: event.target.data("index"),
-      }),
-    );
+    this.cy.on("tap", "node", (event) => {
+      const data = event.target.data();
+      if (data.clusterId) onSelect("cluster", data.clusterId);
+      else onSelect("node", this.records.get(event.target.id()));
+    });
+    this.cy.on("tap", "edge", (event) => {
+      const data = event.target.data();
+      if (data.aggregate) onSelect("aggregate", data);
+      else onSelect("edge", { ...this.records.get(event.target.id()), index: data.index });
+    });
     this.cy.on("zoom", () => onZoom(Math.round(this.cy.zoom() * 100)));
     this.resizeObserver = new ResizeObserver(() => this.cy.resize());
     this.resizeObserver.observe(container);
@@ -130,53 +148,28 @@ export class GraphView {
   load(document) {
     this.cy.elements().remove();
     this.records.clear();
+    this.document = document;
     if (!document) return;
     for (const node of document.nodes) this.records.set(`n:${node.id}`, node);
-    document.edges.forEach((edge, index) =>
-      this.records.set(`e:${index}`, edge),
-    );
-    this.cy.add([
-      ...document.nodes.map((node) => ({
-        group: "nodes",
-        data: {
-          id: `n:${node.id}`,
-          label:
-            node.label.length > 120
-              ? node.label.slice(0, 117) + "…"
-              : node.label,
-          type: node.type,
-        },
-        classes: node.id === `domain:${document.target}` ? "root" : "",
-      })),
-      ...document.edges.map((edge, index) => ({
-        group: "edges",
-        data: {
-          id: `e:${index}`,
-          source: `n:${edge.source}`,
-          target: `n:${edge.target}`,
-          relationType: edge.type,
-          index,
-        },
-        classes: edge.verification === "inferred" ? "inferred" : "",
-      })),
-    ]);
+    document.edges.forEach((edge, index) => this.records.set(`e:${index}`, edge));
   }
 
   filter(visible) {
-    const ids = new Set([
-      ...visible.nodes.map((node) => `n:${node.id}`),
-      ...visible.edges.map((edge) => `e:${edge.index}`),
-    ]);
-    this.cy.batch(() =>
-      this.cy
-        .elements()
-        .forEach((element) =>
-          element.style("display", ids.has(element.id()) ? "element" : "none"),
-        ),
-    );
+    const projection = this.clusters.project(visible);
+    this.cy.batch(() => {
+      this.cy.elements().remove();
+      this.cy.add([
+        ...projection.nodes.map((node) => ({ group: "nodes", data: node,
+          classes: node.clusterId ? "cluster" : node.record?.id === `domain:${this.document?.target}` ? "root" : "" })),
+        ...projection.edges.map((edge) => ({ group: "edges", data: edge,
+          classes: `${edge.aggregate ? "aggregate" : ""} ${(edge.record?.verification ?? edge.verification) === "inferred" ? "inferred" : ""}` })),
+      ]);
+    });
+    this.layout(this.layoutName);
   }
 
   layout(name) {
+    this.layoutName = name;
     const elements = this.cy
       .elements()
       .filter((element) => element.style("display") !== "none");

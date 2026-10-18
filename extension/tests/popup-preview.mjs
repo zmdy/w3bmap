@@ -17,8 +17,12 @@ class PopupPreviewRuntime {
     const {CollectionRepository}=await import('../src/services/CollectionRepository.js');
     const catalog=await(await fetch('../fingerprints.json')).json();
     const snapshot={url:'https://demo.example/',title:'Popup UI fixture',collected_at:new Date().toISOString(),links:[{url:'https://demo.example/about'},{url:'https://docs.example/'}],resources:[{url:'https://demo.example/_next/static/app.js',kind:'script',observed_via:'performance'},{url:'https://js.stripe.com/v3/',kind:'script',observed_via:'performance'}],hints:[],generators:['WordPress 6.7.1'],runtimeAvailable:true,js:{'React.version':'19.1.0','jQuery.fn.jquery':'3.7.1','DD_RUM':'present'}};
+    const hosts=['api.simet.nic.br','ipv4-api.simet.nic.br','ipv6-api.simet.nic.br','ipv4.sp-ix-p1.sp-ix.peers.simet.nic.br','ipv4.sp-ix-p2.sp-ix.peers.simet.nic.br','ipv4.sp-ix-p3.sp-ix.peers.simet.nic.br','ipv4.sp-p1.sp.peers.simet.nic.br','fonts.gstatic.com','www.gstatic.com'];
+    snapshot.resources.push(...hosts.map(host=>({url:'https://'+host+'/fixture.js',kind:'script',observed_via:'performance'})));
     const technologies=new FingerprintService(catalog).detect(snapshot);
-    if(action==='detect') return {ok:true,data:{page:snapshot.url,technologies,runtimeAvailable:true,catalogSize:catalog.technologies.length,metrics:{pages:3,domains:3,ips:null},relatedDomains:['docs.example','js.stripe.com']}};
+    const graph=new GraphBuilder().build(snapshot,technologies);
+    const entities=new CollectionRepository({}).entities(graph);
+    if(action==='detect') return {ok:true,data:{page:snapshot.url,technologies,runtimeAvailable:true,catalogSize:catalog.technologies.length,entities,metrics:{...new CollectionRepository({}).summary({id:'preview',document:graph}).metrics,ips:null},relatedDomains:['docs.example','js.stripe.com',...hosts]}};
     if(action==='analyze') {const document=new GraphBuilder().build(snapshot,technologies);const record={id:'preview',document};this.record={document,summary:new CollectionRepository({}).summary(record)};return {ok:true,data:this.record.summary};}
     if(action==='collection') return {ok:true,data:this.record?.document??null};
     if(action==='clear') {this.record=null;return {ok:true,data:null};}

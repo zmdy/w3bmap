@@ -2,6 +2,7 @@ import { PageCollector } from "./PageCollector.js";
 import { FingerprintService } from "./FingerprintService.js";
 import { GraphBuilder } from "../models/GraphBuilder.js";
 import { GraphMerger } from "./GraphMerger.js";
+import { CollectionRepository } from "./CollectionRepository.js";
 
 export class AnalysisService {
   constructor(api, settings, connector, collections, validator, catalog) {
@@ -61,6 +62,7 @@ export class AnalysisService {
       await this.api.action.setBadgeBackgroundColor({ tabId: tab.id, color: "#287f83" });
     }
     return { page: snapshot.url, technologies, runtimeAvailable: snapshot.runtimeAvailable,
+      entities: new CollectionRepository(this.api).entities(new GraphBuilder().build(snapshot, technologies)),
       collected_at: snapshot.collected_at, catalogSize: this.catalog.technologies.length,
       metrics: { pages: new Set([snapshot.url, ...(snapshot.links ?? []).map((item) => item.url)]).size, domains: domains.length, ips: null },
       relatedDomains: domains.filter((host) => host !== new URL(snapshot.url).hostname) };

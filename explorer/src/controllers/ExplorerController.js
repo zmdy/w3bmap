@@ -1,3 +1,4 @@
+import { EntityClusterModel } from "../models/EntityClusterModel.js";
 import { GraphModel } from "../models/GraphModel.js";
 import { SampleFactory } from "../models/SampleFactory.js";
 import { DocumentValidator } from "../services/DocumentValidator.js";
@@ -11,7 +12,8 @@ export class ExplorerController {
     this.model = new GraphModel();
     this.validator = new DocumentValidator();
     this.files = new FileService();
-    this.view = new WorkspaceView();
+    this.clusters = new EntityClusterModel();
+    this.view = new WorkspaceView(this.clusters, () => this.updateClusters(false));
     this.inspector = new InspectorView(
       this.view.get("details-panel"),
       this.view.get("collection-panel"),
@@ -22,6 +24,7 @@ export class ExplorerController {
       (zoom) => {
         this.view.get("zoom-label").textContent = `${zoom}%`;
       },
+      this.clusters,
     );
     this.workspaceTab = "graph";
     this.selection = null;
@@ -95,6 +98,8 @@ export class ExplorerController {
     this.bindTabKeyboard(["details", "collection"], (name) =>
       this.view.tab("inspector", name),
     );
+    on("expand-clusters", "click", () => this.setAllClusters(true));
+    on("collapse-clusters", "click", () => this.setAllClusters(false));
     this.bindDrop();
   }
 
@@ -175,6 +180,7 @@ export class ExplorerController {
     this.selection = null;
     this.view.resetFilters();
     this.view.summary(this.model);
+    this.clusters.load(this.model.document.nodes);
     this.graph.load(this.model.document);
     this.inspector.overview(this.model);
     this.refresh();
@@ -207,6 +213,7 @@ export class ExplorerController {
     this.selection = null;
     this.view.resetFilters();
     this.view.summary(this.model);
+    this.clusters.load([]);
     this.graph.load(null);
     this.inspector.empty();
     this.inspector.overview(this.model);
@@ -237,6 +244,7 @@ export class ExplorerController {
           ? visible.nodes.some((node) => node.id === record.id)
           : visible.edges.some((edge) => edge.index === record.index);
       if (exists) {
+        this.graph.select(kind, record);
         this.inspector.selected(kind, record, this.model);
         this.view.selection(kind === "node" ? record.id : null);
       } else {
@@ -278,7 +286,38 @@ export class ExplorerController {
     }
   }
 
+  setAllClusters(open) {
+    this.clusters.setAll(open);
+    this.updateClusters();
+  }
+
+  updateClusters(refreshList = true) {
+    if (refreshList) this.refresh();
+    else this.graph.filter(this.model.visible());
+    if (this.selection) {
+      this.graph.select(this.selection.kind, this.selection.record);
+      this.view.selection(this.selection.kind === "node" ? this.selection.record.id : null);
+    }
+  }
+
   select(kind, record) {
+    if (kind === "cluster") {
+      this.clusters.setOpen(record, !this.clusters.isOpen(record));
+      this.updateClusters();
+      return;
+    }
+    if (kind === "aggregate") {
+      this.view.notice(`${record.indexes.length} visible relationships summarized. Expand the connected groups to inspect each original relationship.`);
+      return;
+    }
+    if (!record) return;
+    const expandedBefore = this.clusters.expanded.size;
+    if (kind === "node") this.clusters.expandNode(record.id);
+    else { this.clusters.expandNode(record.source); this.clusters.expandNode(record.target); }
+    if (expandedBefore !== this.clusters.expanded.size) {
+      this.graph.filter(this.model.visible());
+      this.view.visible(this.model.visible(), Boolean(this.model.document), this.workspaceTab === "graph");
+    }
     this.selection = { kind, record };
     this.graph.select(kind, record);
     this.view.selection(kind === "node" ? record.id : null);

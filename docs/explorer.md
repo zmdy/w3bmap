@@ -68,6 +68,45 @@ how partial collections are presented. Use **Clear collection** to start empty.
 The Inspector shows observation times in the browser's local timezone while the
 original timestamps are preserved in exported JSON.
 
+## Collapsible groups
+
+The Graph and Entities views share expansion state. Click a collapsed graph group
+to expand it; click the expanded group's boundary or heading to collapse it.
+In Entities, use each disclosure heading (Enter or Space also works). The sidebar
+provides **Expand groups** and **Collapse groups** for the entire collection.
+Groups with one member keep their normal individual graph node.
+
+| Entity | Grouping rule |
+| --- | --- |
+| Domains | Registrable-domain boundary, then the longest suffix shared by the discovered hosts |
+| Pages | Exact hostname of the page URL |
+| Technologies | Observed category; missing categories use Other technologies |
+| IP addresses | IPv4 /24 or IPv6 /48 prefix |
+| Certificates | Issuer organization or common name, when recorded |
+| Sitemaps | Exact hostname of the sitemap URL |
+
+For example, `api.simet.nic.br`, `ipv4-api.simet.nic.br` and
+`ipv6-api.simet.nic.br` appear under `*.simet.nic.br`. `fonts.gstatic.com` and
+`www.gstatic.com` appear under `*.gstatic.com`. Domain grouping uses the locally
+bundled [tldts](https://github.com/remusao/tldts) public suffix parser, including
+private suffixes, so unrelated `com.br` registrants or `github.io` tenants remain
+separate. Labels use the complete collection and remain stable while filtering.
+An apex may be listed alongside its subdomains; the wildcard heading is a visual
+label, not a DNS wildcard record. Duplicate entity IDs are not counted twice.
+
+Groups indicate similarity, not common ownership, an ASN, an actual assigned
+subnet, or an additional collected relationship. Collapsed graph edges summarize
+visible original relationships by direction, relation type and verification.
+Their counts exclude filtered relationships; edges within a collapsed group are
+hidden until expansion. Select a summary edge for guidance, then expand its
+groups to inspect the original edges. Selecting an entity or original relationship
+from the Inspector expands its containing groups automatically.
+
+Filtering applies before graph projection. Group counts reflect visible members;
+collection totals and exports still describe individual entities. Expansion state
+lasts for the current collection and resets on import, clear, or reload. Groups
+and summary edges never enter the shared JSON contract.
+
 ## Export and privacy
 
 **Export JSON** downloads the complete imported document, including entities hidden
@@ -98,10 +137,10 @@ explorer/
 │   └── services/                 # Validation and local file IO
 ├── vendor/                      # Local browser libraries and notices
 ├── scripts/build-vendor.mjs      # Vendor/validator regeneration
-└── tests/graph.test.js
+└── tests/                       # Graph, grouping and synthetic UI fixtures
 ```
 
-Project application code uses classes and MVC. Validator and file services are
+Project application code uses classes and MVC. Grouping, validator and file services are
 dependencies of the controller, not separate MVC applications. Vendored libraries
 and generated code preserve their upstream structure.
 

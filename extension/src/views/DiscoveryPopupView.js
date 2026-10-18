@@ -1,3 +1,5 @@
+import { EntityClusterModel } from "../../explorer/src/models/EntityClusterModel.js";
+import { GroupedListView } from "../../explorer/src/views/GroupedListView.js";
 import { PopupView } from "./PopupView.js";
 import { PopupAssets } from "../services/PopupAssets.js";
 
@@ -5,10 +7,16 @@ export class DiscoveryPopupView extends PopupView {
   constructor(api) {
     super();
     this.assets = new PopupAssets(api);
-    this.expanded = false;
+    this.expanded = true;
     this.scan = null;
     this.latest = null;
     this.page = "";
+    this.relatedClusters = new EntityClusterModel();
+    this.entityClusters = new EntityClusterModel();
+    this.technologyClusters = new EntityClusterModel();
+    this.relatedList = new GroupedListView(this.get("related-domains"), this.relatedClusters, (node) => this.clusterMember(node));
+    this.entityList = new GroupedListView(this.get("site-entities"), this.entityClusters, (node) => this.clusterMember(node));
+    this.technologyList = new GroupedListView(this.get("detected-technologies"), this.technologyClusters, (node) => this.technologyRow(node.technology));
   }
 
   current(tab) {
@@ -32,16 +40,17 @@ export class DiscoveryPopupView extends PopupView {
 
   detection(result) {
     this.scan = result;
+    this.technologyClusters.load(result.technologies.map((technology) => ({ id: `technology:${technology.id}`, label: technology.name,
+      type: "technology", evidence: { category: technology.category }, technology })));
+    if (this.expanded) this.technologyClusters.setAll(true);
     super.detection(result);
     this.updateMetrics();
     const domains = this.get("related-domains");
     domains.replaceChildren();
-    for (const domain of result.relatedDomains ?? []) {
-      const row = document.createElement("div");
-      row.className = "related-domain";
-      row.textContent = domain;
-      domains.append(row);
-    }
+    const related = (result.relatedDomains ?? []).map((domain) => ({ id: `domain:${domain}`, label: domain, type: "domain" }));
+    this.relatedClusters.load(related);
+    this.relatedList.render(related);
+    this.renderEntities();
     if (!domains.childNodes.length) domains.textContent = "No external domains found in this snapshot.";
     this.get("site-overview").textContent = `${new URL(result.page).hostname} · ${result.technologies.length} technology indicators. ${result.runtimeAvailable ? "DOM and JavaScript signals inspected." : "DOM signals inspected; JavaScript inspection unavailable."}`;
   }
@@ -50,54 +59,30 @@ export class DiscoveryPopupView extends PopupView {
     super.detectionError(message);
     this.scan = null;
     this.updateMetrics();
+    this.renderEntities();
     this.get("related-domains").replaceChildren();
   }
 
   toggleTechnologies() {
     this.expanded = !this.expanded;
+    this.technologyClusters.setAll(this.expanded);
     this.get("technology-tools").hidden = !this.expanded;
     if (!this.expanded) this.get("technology-search").value = "";
     this.filterTechnologies(this.get("technology-search").value);
   }
 
   filterTechnologies(query = "") {
+    this.get("technology-tools").hidden = !this.expanded;
     const container = this.get("detected-technologies");
     container.replaceChildren();
     const filtered = this.detected.filter((technology) =>
       `${technology.name} ${technology.category} ${technology.version ?? ""}`.toLowerCase().includes(query.toLowerCase()));
-    for (const technology of this.expanded ? filtered : filtered.slice(0, 5)) {
-      const row = document.createElement("details");
-      row.className = "technology-row";
-      const summary = document.createElement("summary");
-      const image = document.createElement("img");
-      image.className = "technology-icon";
-      image.alt = "";
-      image.width = 25;
-      image.height = 25;
-      image.src = this.assets.technology(technology.id);
-      const name = document.createElement("span");
-      name.className = "technology-name";
-      name.textContent = technology.name;
-      const category = document.createElement("span");
-      category.className = "technology-category";
-      category.textContent = technology.category ?? "Other";
-      const arrow = document.createElement("span");
-      arrow.className = "ui-icon technology-chevron";
-      arrow.dataset.icon = "right";
-      arrow.setAttribute("aria-hidden", "true");
-      summary.append(image, name, category, arrow);
-      const evidence = document.createElement("p");
-      evidence.className = "technology-evidence";
-      const signal = technology.evidence;
-      const indicator = signal.detection_type === "implied" ? `Implied by ${signal.implied_by}`
-        : `${signal.indicator_type}${signal.key ? " · " + signal.key : ""}: ${signal.indicator}`;
-      evidence.textContent = `${technology.version ? "Version " + technology.version : "Version unknown"} · ${Math.round(technology.confidence * 100)}% confidence. ${indicator}`;
-      row.append(summary, evidence);
-      container.append(row);
-    }
+    const nodes = this.technologyClusters.groups.flatMap((group) => group.members).filter((node) => filtered.includes(node.technology));
+    if (query) for (const group of this.technologyClusters.visible(nodes)) this.technologyClusters.setOpen(group.id, true);
+    this.technologyList.render(nodes);
     if (!filtered.length) container.textContent = this.detected.length ? "No matching technologies." : "No supported technology indicators found.";
     const label = document.createElement("span");
-    label.textContent = this.expanded ? "Show fewer technologies" : "View all technologies";
+    label.textContent = this.expanded ? "Collapse technology groups" : "Expand technology groups";
     const arrow = document.createElement("span");
     arrow.className = "ui-icon";
     arrow.dataset.icon = this.expanded ? "up" : "right";
@@ -106,9 +91,75 @@ export class DiscoveryPopupView extends PopupView {
     this.get("view-technologies").setAttribute("aria-expanded", String(this.expanded));
   }
 
+  technologyRow(technology) {
+    const row = document.createElement("details");
+    row.className = "technology-row";
+    const summary = document.createElement("summary");
+    const image = document.createElement("img");
+    image.className = "technology-icon";
+    image.alt = "";
+    image.width = 25;
+    image.height = 25;
+    image.src = this.assets.technology(technology.id);
+    const name = document.createElement("span");
+    name.className = "technology-name";
+    name.textContent = technology.name;
+    const category = document.createElement("span");
+    category.className = "technology-category";
+    category.textContent = technology.category ?? "Other";
+    const arrow = document.createElement("span");
+    arrow.className = "ui-icon technology-chevron";
+    arrow.dataset.icon = "right";
+    arrow.setAttribute("aria-hidden", "true");
+    summary.append(image, name, category, arrow);
+    const evidence = document.createElement("p");
+    evidence.className = "technology-evidence";
+    const signal = technology.evidence;
+    const indicator = signal.detection_type === "implied" ? `Implied by ${signal.implied_by}`
+      : `${signal.indicator_type}${signal.key ? " · " + signal.key : ""}: ${signal.indicator}`;
+    evidence.textContent = `${technology.version ? "Version " + technology.version : "Version unknown"} · ${Math.round(technology.confidence * 100)}% confidence. ${indicator}`;
+    row.append(summary, evidence);
+    return row;
+  }
+
+  clusterMember(node) {
+    const row = document.createElement("div");
+    row.className = "cluster-member";
+    const label = document.createElement("span");
+    label.textContent = node.label;
+    if (node.type === "technology") {
+      const image = document.createElement("img");
+      image.src = this.assets.technology(node.id.replace(/^technology:/, ""));
+      image.alt = "";
+      image.width = image.height = 20;
+      row.append(image);
+    }
+    row.append(label);
+    return row;
+  }
+
+  renderEntities() {
+    const nodes = (this.latest?.page === this.page ? this.latest?.entities : null) ?? this.scan?.entities ?? [];
+    const signature = JSON.stringify(nodes);
+    if (signature !== this.entitySignature) {
+      this.entitySignature = signature;
+      this.entityClusters.load(nodes);
+    }
+    this.entityList.render(nodes);
+    this.get("site-entities-note").textContent = nodes.length
+      ? "Similarity groups only. Expand a group to see its findings; use Graph Explorer for evidence and relationships."
+      : "Inspect or analyze this page to see grouped findings. IPs and certificates require PHP enrichment.";
+  }
+
+  setEntityGroups(open) {
+    this.entityClusters.setAll(open);
+    this.renderEntities();
+  }
+
   state(state) {
     super.state(state);
     this.latest = state.latest;
+    this.renderEntities();
     this.get("recent-empty").hidden = Boolean(state.latest);
     this.get("connector-state").textContent = state.connectorEnabled ? "Your PHP endpoint is configured" : "Browser collection only";
     this.get("connector-dot").classList.toggle("enabled", state.connectorEnabled);

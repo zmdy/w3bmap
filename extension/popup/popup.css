@@ -58,6 +58,9 @@
 .panel-heading { font-size: 14px; margin: 3px 0 12px; }
 .related-list { display: grid; gap: 7px; margin-top: 12px; }
 .related-domain { background: #f6f9fb; border: 1px solid var(--line); border-radius: 6px; padding: 10px; font-size: 11px; overflow-wrap: anywhere; }
+.cluster-member { display: flex; align-items: center; gap: 8px; }
+.cluster-member span { min-width: 0; }
+.cluster-member img { flex-shrink: 0; object-fit: contain; }
 .menu-panel { position: absolute; right: 16px; bottom: 95px; z-index: 2; padding: 6px; width: 190px; background: white; border: 1px solid var(--line); box-shadow: 0 6px 24px #15344820; border-radius: 9px; }
 .menu-panel button { display: block; width: 100%; text-align: left; padding: 10px; border: 0; background: transparent; border-radius: 5px; font-size: 11px; color: #34566a; }
 .menu-panel button:hover { background: #f0f6f8; }
