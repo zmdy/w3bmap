@@ -1,0 +1,94 @@
+.popup-body { width: 360px; min-width: 340px; height: 600px; display: flex; flex-direction: column; background: #fff; color: #12233e; --line: #e9eef3; --ink: #143f50; --teal: #088fa7; }
+.popup-header { height: 55px; min-height: 55px; padding: 0 18px; border: 0; }
+.popup-header .brand { font-size: 21px; letter-spacing: -.8px; gap: 8px; }
+.popup-header .brand img { width: 30px; height: 30px; }
+.header-actions { display: flex; gap: 4px; }
+.icon-button { width: 30px; height: 30px; display: inline-grid; place-items: center; border: 0; border-radius: 7px; background: transparent; color: #415b70; }
+.icon-button:hover { background: #eff6f8; }
+.ui-icon { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+.popup-tabs { display: grid; grid-template-columns: repeat(4,1fr); padding: 0 14px; border-bottom: 1px solid var(--line); min-height: 36px; }
+.popup-tabs button { background: transparent; border: 0; border-bottom: 2px solid transparent; color: #77869a; font-size: 11px; padding: 9px 0; }
+.popup-tabs button[aria-selected=true] { color: #0e5065; border-color: #049bb2; font-weight: 650; }
+.popup-main { flex: 1; overflow-y: auto; min-height: 0; padding: 12px 16px; scrollbar-width: thin; scrollbar-color: #d6e3e9 transparent; }
+.site-card { display: flex; gap: 12px; align-items: center; min-height: 71px; margin-bottom: 12px; }
+.site-favicon { width: 48px; height: 48px; border: 1px solid var(--line); border-radius: 11px; object-fit: contain; background: #fff; padding: 2px; }
+.site-identity { min-width: 0; flex: 1; }
+.site-identity h1 { font-size: 19px; line-height: 1.2; margin: 0 0 5px; letter-spacing: -.6px; overflow-wrap: anywhere; }
+.site-url { color: #7b8c9f; font-size: 10px; margin: 0; overflow-wrap: anywhere; }
+.site-status { font-size: 9px; border-radius: 5px; padding: 5px 7px; background: #edf7f6; color: #147f70; white-space: nowrap; align-self: flex-start; margin-top: 10px; }
+.analyze-row { display: flex; border-radius: 7px; overflow: hidden; background: linear-gradient(105deg,#117e96,#126479); margin-bottom: 16px; }
+.analyze-row .button { background: transparent; border: 0; color: white; border-radius: 0; flex: 1; min-height: 37px; font-size: 12px; padding: 8px; display: flex; justify-content: center; align-items: center; gap: 9px; }
+.analyze-row .icon-button { color: white; border-left: 1px solid #ffffff30; width: 37px; height: 37px; }
+.detection-heading { margin-bottom: 8px; }
+.detection-heading h2 { font-size: 12px; margin: 0; font-weight: 700; }
+.detection-heading .badge { background: #edf0f4; color: #697c90; padding: 2px 5px; font-size: 9px; margin-left: 4px; }
+.detection-panel { margin-bottom: 12px; }
+.detected-technologies { max-height: none; margin-top: 3px; color: #64768b; }
+.technology-row { border: 0; padding: 0; }
+.technology-row summary { list-style: none; min-height: 40px; display: flex; align-items: center; gap: 10px; padding: 6px 4px; border-radius: 6px; }
+.technology-row summary::-webkit-details-marker { display: none; }
+.technology-row summary:hover { background: #f5f9fb; }
+.technology-icon { width: 25px; height: 25px; object-fit: contain; flex-shrink: 0; }
+.technology-name { font-size: 11px; font-weight: 650; color: #192d45; min-width: 0; }
+.technology-category { max-width: 124px; font-size: 8px; color: #64778a; background: #f0f3f6; border-radius: 4px; padding: 3px 5px; font-weight: 400; margin-left: 1px; }
+.technology-chevron { margin-left: auto; color: #678095; font-size: 19px; font-weight: 400; }
+.technology-row[open] .technology-chevron { transform: rotate(90deg); }
+.technology-evidence { background: #f6f9fb; border: 1px solid var(--line); border-radius: 6px; padding: 10px; margin: 0 0 6px 39px; font-size: 10px; line-height: 1.7; }
+.view-all { width: 100%; display: flex; align-items: center; justify-content: space-between; border: 1px solid var(--line); border-radius: 7px; background: #fff; color: #46657a; padding: 9px 11px; font-size: 10px; margin-top: 8px; }
+.technology-tools { margin-bottom: 8px; }
+.technology-tools .search-label { margin-top: 10px; }
+.technology-tools input { font-size: 11px; }
+.scan-status { margin: 8px 0 0; font-size: 9px; line-height: 1.5; color: #7c8c9d; }
+.metric-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-top: 12px; }
+.metric-card { border: 1px solid var(--line); border-radius: 8px; padding: 11px 10px; }
+.metric-card .ui-icon { display: block; color: #008aaa; width: 17px; margin-bottom: 8px; }
+.metric-card strong { font-size: 20px; display: block; letter-spacing: -.6px; }
+.metric-card span { font-size: 9px; color: #7b8c9f; display: block; margin-top: 4px; }
+.metrics-note { font-size: 9px; color: #7b8c9f; margin: 7px 0 0; }
+.popup-actions { padding: 10px 16px; border-top: 1px solid #f1f4f7; }
+.graph-button { display: flex; justify-content: center; align-items: center; gap: 9px; width: 100%; background: #113f50; color: white; min-height: 37px; font-size: 11px; }
+.popup-actions .action-row { margin-top: 8px; }
+.popup-actions .secondary { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 10px; padding: 8px 9px; min-height: 33px; }
+.popup-footer { min-height: 35px; padding: 7px 16px; display: flex; align-items: center; justify-content: space-between; text-align: left; font-size: 9px; letter-spacing: 0; }
+.connector-label { display: flex; align-items: center; gap: 7px; color: #7d8ea0; }
+.status-dot { width: 7px; height: 7px; background: #8ba1b0; flex-shrink: 0; }
+.status-dot.enabled { background: #168967; }
+.popup-footer .icon-button { width: 24px; height: 24px; }
+.notice { margin: 8px 0; padding: 8px 10px; font-size: 10px; }
+.panel-heading { font-size: 14px; margin: 3px 0 12px; }
+.related-list { display: grid; gap: 7px; margin-top: 12px; }
+.related-domain { background: #f6f9fb; border: 1px solid var(--line); border-radius: 6px; padding: 10px; font-size: 11px; overflow-wrap: anywhere; }
+.menu-panel { position: absolute; right: 16px; bottom: 95px; z-index: 2; padding: 6px; width: 190px; background: white; border: 1px solid var(--line); box-shadow: 0 6px 24px #15344820; border-radius: 9px; }
+.menu-panel button { display: block; width: 100%; text-align: left; padding: 10px; border: 0; background: transparent; border-radius: 5px; font-size: 11px; color: #34566a; }
+.menu-panel button:hover { background: #f0f6f8; }
+.popup-body .result-card { padding: 12px; margin: 12px 0; }
+.popup-body .result-card h2 { font-size: 15px; }
+.popup-body .result-counts { margin: 13px 0; padding-bottom: 12px; }
+.empty-panel { font-size: 11px; line-height: 1.8; color: #7d8c9c; }
+/* Keep the overview usable within Chrome's 600px popup height. */
+.popup-header { height: 44px; min-height: 44px; }
+.popup-tabs { min-height: 30px; }
+.popup-tabs button { padding: 6px 0; }
+.popup-main { padding: 8px 16px; }
+.site-card { min-height: 48px; margin-bottom: 6px; }
+.site-favicon { width: 44px; height: 44px; }
+.analyze-row { margin-bottom: 6px; }
+.analyze-row .button { min-height: 32px; }
+.analyze-row .icon-button { height: 32px; }
+.detection-heading { margin-bottom: 3px; }
+.detection-heading .icon-button { height: 20px; }
+.technology-row summary { min-height: 29px; padding: 3px 4px; }
+.technology-icon { width: 21px; height: 21px; }
+.detection-panel { margin-bottom: 8px; }
+.view-all { padding: 6px 10px; margin-top: 5px; }
+.scan-status[role=status], .metrics-note { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.metric-grid { margin-top: 6px; }
+.metric-card { padding: 8px 10px; }
+.metric-card .ui-icon { width: 14px; height: 14px; margin-bottom: 4px; }
+.metric-card strong { font-size: 18px; }
+.metric-card span { font-size: 8px; margin-top: 3px; }
+.popup-actions { padding: 8px 16px; }
+.graph-button { min-height: 34px; }
+.popup-actions .action-row { margin-top: 6px; }
+.popup-actions .secondary { min-height: 30px; padding: 7px 9px; }
+.popup-footer { min-height: 30px; padding: 3px 16px; }

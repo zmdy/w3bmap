@@ -42,6 +42,11 @@ export class CollectionRepository {
       nodes: data.nodes.length,
       edges: data.edges.length,
       errors: data.errors.length,
+      metrics: {
+        pages: data.nodes.filter((node) => node.type === "page" && (!node.evidence.kind || node.evidence.kind === "link")).length,
+        domains: data.nodes.filter((node) => node.type === "domain").length,
+        ips: data.nodes.filter((node) => node.type === "ip").length,
+      },
       technologies: data.nodes
         .filter((node) => node.type === "technology")
         .map((node) => node.label),

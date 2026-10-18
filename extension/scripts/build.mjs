@@ -39,6 +39,10 @@ class ExtensionBuilder {
       await readFile(path.join(root, "manifest.json"), "utf8"),
     );
     for (const file of [
+      "popup/popup.css",
+      "assets/site-fallback.svg",
+      "assets/brand-mark.svg",
+      "assets/technology-icons/generic.svg",
       manifest.background.service_worker,
       manifest.action.default_popup,
       manifest.options_ui.page,
@@ -46,6 +50,8 @@ class ExtensionBuilder {
     ]) {
       await access(path.join(root, file));
     }
+    const { technologyIcons } = await import("../assets/technology-icons/icons.js");
+    for (const file of Object.values(technologyIcons)) await access(path.join(root, "assets/technology-icons", file));
     console.log(
       "Unpacked extension is ready in extension/. Explorer and fingerprints are packaged locally.",
     );

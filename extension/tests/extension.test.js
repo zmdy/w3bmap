@@ -115,7 +115,7 @@ test("manifest uses activeTab and optional connector hosts without broad require
     await readFile(new URL("../manifest.json", import.meta.url), "utf8"),
   );
   assert.equal(manifest.manifest_version, 3);
-  assert.deepEqual(manifest.permissions, ["activeTab", "scripting", "storage"]);
+  assert.deepEqual(manifest.permissions, ["activeTab", "scripting", "storage", "favicon"]);
   assert.equal(manifest.host_permissions, undefined);
   assert.equal(manifest.content_scripts, undefined);
   assert.equal(manifest.externally_connectable, undefined);

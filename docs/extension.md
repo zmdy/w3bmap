@@ -28,9 +28,37 @@ DOM; it does not crawl other pages or inspect cross-origin frame contents.
 
 ## Technology detection
 
+The popup follows four views: **This page** contains the active site's favicon,
+technology list and discovery counters; **Site** explains current-site findings;
+**Related** lists referenced external domains; **Recent** shows the latest saved
+session collection. Recent is not a browsing-history archive. Graph/export actions
+always use the saved collection; when it belongs to another page, the graph button
+explicitly says **Open last saved graph**. **More options** provides rescan,
+connector settings, and collection clearing. Tabs support arrow, Home, and End keys.
+
+The layout stays within Chrome's 600px popup height with a scrolling content area
+and fixed graph/export actions. The favicon uses Chrome's extension-origin
+`_favicon` endpoint, not an external favicon service. Missing icons use a packaged
+fallback. Favicons remain UI-only and are not included in collection exports.
+The HTTPS/HTTP badge identifies the page protocol, not an observed HTTP status.
+
+**Pages found** counts the active page and discovered link references, not visited
+pages or every static asset. **Domains** counts distinct discovered hostnames,
+including the current host and third parties; it does not claim they are all
+subdomains. **IP addresses** remains unknown until a full collection is available,
+then shows the number of collected IP entities. The connector footer indicates
+configuration, not a live health check or proof that an endpoint is reachable.
+
+62 [Simple Icons](https://github.com/simple-icons/simple-icons) brand logos are
+packaged under CC0-1.0. Other technologies use a generic local icon; no third-party
+logo/CDN request is made by the popup. See the bundled
+[icon provenance](../extension/assets/technology-icons/README.md).
+
 The **Technologies** panel belongs to the current page. It groups findings by
 category, shows an explicit version when available, and supports filtering by
-name, category, or version. Expand a finding for its signal and confidence.
+name, category, or version. The compact list shows five findings with local brand
+icons and category chips; **View all technologies** reveals the full list and
+search field. Expand a finding for its version, signal, and confidence.
 **Version unknown** means no usable version was observed; the detector never
 guesses a version from a technology name. **Detect again** reruns inspection,
 which is useful after lazy loading or a client-side route change.
@@ -121,9 +149,13 @@ after the new configuration is saved.
 | `activeTab` | Temporary access to the chosen tab when the user opens the extension |
 | `scripting` | Execute the snapshot collector in the top frame's isolated world |
 | `storage` | Local settings, optional remembered token, and session collection handoff |
+| `favicon` | Display the current site's favicon through Chrome's `_favicon` endpoint |
 | Optional connector host | Cross-origin authenticated requests only after a host grant |
 
-There is no required all-sites host access, background navigation monitor,
+The favicon permission can produce a Chrome permission warning when updating the
+extension; no extra `tabs` or all-sites permission is added to suppress it.
+
+There is no required all-sites host access or background page collection, or
 `webRequest` listener, remotely loaded code, external messaging interface, or
 web-accessible resource declaration. Optional patterns permit arbitrary HTTPS
 connectors and the two development loopback hosts; Settings requests the exact
@@ -226,6 +258,14 @@ catalog. Commit the generated copies so a checkout remains ready to load. After
 changing the shared schema, regenerate the Explorer validator using its own build
 workflow first, then rebuild the extension. Do not edit generated copies directly.
 The PNG icons are raster versions of the project's `assets/logo.svg`.
+
+For the redesigned popup, `DiscoveryPopupView` specializes the shared rendering
+view and `PopupAssets` resolves packaged technology icons and Chrome favicons.
+`popup/popup.css` scopes the new layout without changing the settings page.
+For a reproducible UI preview with mock Chrome APIs and synthetic findings, run
+`node extension/tests/popup-preview.mjs` from the repository root and open the
+printed localhost URL. This fixture cannot validate native permissions, Chrome's
+favicon cache, or the real extension popup lifecycle.
 
 The automated suite uses Chrome API fixtures and a separate VM for the injected
 collector. It checks settings, permission-request ordering, token storage, request

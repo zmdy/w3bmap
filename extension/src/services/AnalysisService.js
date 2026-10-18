@@ -53,13 +53,17 @@ export class AnalysisService {
   async detect() {
     const { tab, snapshot } = await this.capture();
     const technologies = this.fingerprints.detect(snapshot);
+    const domains = [...new Set([snapshot.url, ...(snapshot.links ?? []).map((item) => item.url), ...(snapshot.resources ?? []).map((item) => item.url)]
+      .map((value) => new URL(value).hostname))].sort();
     // Quick inspection never invokes PHP or replaces the last saved collection.
     if (this.api.action?.setBadgeText) {
       await this.api.action.setBadgeText({ tabId: tab.id, text: technologies.length ? String(technologies.length) : "" });
       await this.api.action.setBadgeBackgroundColor({ tabId: tab.id, color: "#287f83" });
     }
     return { page: snapshot.url, technologies, runtimeAvailable: snapshot.runtimeAvailable,
-      collected_at: snapshot.collected_at, catalogSize: this.catalog.technologies.length };
+      collected_at: snapshot.collected_at, catalogSize: this.catalog.technologies.length,
+      metrics: { pages: new Set([snapshot.url, ...(snapshot.links ?? []).map((item) => item.url)]).size, domains: domains.length, ips: null },
+      relatedDomains: domains.filter((host) => host !== new URL(snapshot.url).hostname) };
   }
 
   async analyze() {

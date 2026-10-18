@@ -1,15 +1,16 @@
 import { RuntimeClient } from "../services/RuntimeClient.js";
-import { PopupView } from "../views/PopupView.js";
+import { DiscoveryPopupView } from "../views/DiscoveryPopupView.js";
 import { FileService } from "../../explorer/src/services/FileService.js";
 
 export class PopupController {
   constructor(api) {
     this.api = api;
     this.client = new RuntimeClient(api);
-    this.view = new PopupView();
+    this.view = new DiscoveryPopupView(api);
   }
 
   async start() {
+    this.bindNavigation();
     this.view
       .get("analyze-button")
       .addEventListener("click", () => this.analyze());
@@ -32,6 +33,26 @@ export class PopupController {
     this.view.current(tab);
     await this.refresh();
     await this.detect();
+  }
+
+  bindNavigation() {
+    const tabs = ["page", "site", "related", "recent"];
+    for (const [index, name] of tabs.entries()) {
+      const button = this.view.get(`tab-${name}`);
+      button.addEventListener("click", () => this.view.selectTab(name));
+      button.addEventListener("keydown", (event) => {
+        const next = event.key === "ArrowRight" ? (index + 1) % tabs.length : event.key === "ArrowLeft" ? (index + tabs.length - 1) % tabs.length : event.key === "Home" ? 0 : event.key === "End" ? tabs.length - 1 : null;
+        if (next !== null) { event.preventDefault(); this.view.selectTab(tabs[next], true); }
+      });
+    }
+    this.view.get("view-technologies").addEventListener("click", () => this.view.toggleTechnologies());
+    for (const id of ["header-menu", "scan-options", "more-options"]) {
+      this.view.get(id).addEventListener("click", () => this.view.menu(this.view.get("more-menu").hidden));
+    }
+    for (const id of ["footer-settings", "menu-settings"]) this.view.get(id).addEventListener("click", () => this.api.runtime.openOptionsPage());
+    this.view.get("menu-rescan").addEventListener("click", () => { this.view.menu(false); this.view.selectTab("page"); this.detect(); });
+    document.addEventListener("keydown", (event) => { if (event.key === "Escape") this.view.menu(false); });
+    document.addEventListener("click", (event) => { if (!event.target.closest("#more-menu,#header-menu,#scan-options,#more-options")) this.view.menu(false); });
   }
 
   async detect() {
@@ -82,6 +103,7 @@ export class PopupController {
   }
 
   async operation(action) {
+    this.view.menu(false);
     try {
       await this.client.send(action);
       await this.refresh();

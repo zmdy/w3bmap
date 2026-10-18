@@ -21,6 +21,9 @@ resources, and optional PHP enrichment. Use **Open graph** or **Export JSON** wh
 the collection is ready. Quick detection never replaces the last saved graph.
 
 The local catalog includes 80 independently authored technology definitions.
+The redesigned popup includes the active site's favicon, 62 bundled technology
+logos with a generic fallback, four discovery tabs, counters, and fixed graph/export
+actions. Updating to this version adds Chrome's `favicon` permission.
 Versions are shown only when an explicit numeric signal is available; otherwise
 the UI says **Version unknown**. Coverage is smaller than Wappalyzer's catalog.
 
