@@ -8,9 +8,11 @@ import {
 } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
+import { IconAssetBuilder } from "../../scripts/build-icons.mjs";
 
 class ExtensionBuilder {
   async run() {
+    await new IconAssetBuilder().run();
     const root = fileURLToPath(new URL("../", import.meta.url));
     const repository = path.dirname(root);
     const source = path.join(repository, "explorer");

@@ -82,9 +82,9 @@ export class DiscoveryPopupView extends PopupView {
       category.className = "technology-category";
       category.textContent = technology.category ?? "Other";
       const arrow = document.createElement("span");
-      arrow.className = "technology-chevron";
+      arrow.className = "ui-icon technology-chevron";
+      arrow.dataset.icon = "right";
       arrow.setAttribute("aria-hidden", "true");
-      arrow.textContent = "›";
       summary.append(image, name, category, arrow);
       const evidence = document.createElement("p");
       evidence.className = "technology-evidence";
@@ -99,7 +99,8 @@ export class DiscoveryPopupView extends PopupView {
     const label = document.createElement("span");
     label.textContent = this.expanded ? "Show fewer technologies" : "View all technologies";
     const arrow = document.createElement("span");
-    arrow.textContent = this.expanded ? "↑" : "›";
+    arrow.className = "ui-icon";
+    arrow.dataset.icon = this.expanded ? "up" : "right";
     arrow.setAttribute("aria-hidden", "true");
     this.get("view-technologies").replaceChildren(label, arrow);
     this.get("view-technologies").setAttribute("aria-expanded", String(this.expanded));

@@ -21,8 +21,8 @@ resources, and optional PHP enrichment. Use **Open graph** or **Export JSON** wh
 the collection is ready. Quick detection never replaces the last saved graph.
 
 The local catalog includes 80 independently authored technology definitions.
-The redesigned popup includes the active site's favicon, 62 bundled technology
-logos with a generic fallback, four discovery tabs, counters, and fixed graph/export
+The redesigned popup includes the active site's favicon, Iconify technology
+logos with Iconify fallbacks, four discovery tabs, counters, and fixed graph/export
 actions. Updating to this version adds Chrome's `favicon` permission.
 Versions are shown only when an explicit numeric signal is available; otherwise
 the UI says **Version unknown**. Coverage is smaller than Wappalyzer's catalog.
@@ -51,3 +51,7 @@ reload the target page before analyzing again.
 The Node suite uses Chrome API fixtures. Loading the unpacked extension and
 checking Chrome's permission prompts and popup lifecycle require a real Chrome
 session; an ordinary HTTP preview does not grant extension permissions.
+
+All application icons are packaged from Iconify collections. Edit the canonical
+`shared/iconify/` catalog and rebuild; do not draw SVG paths in application code.
+See [icon provenance and licensing](../shared/iconify/README.md).

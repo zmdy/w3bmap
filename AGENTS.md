@@ -22,6 +22,15 @@ identifiers, comments, interface text, errors, examples, and commit messages.
 
 ## Changes
 
+- Use only icons from Iconify collections for interface controls, technology
+  logos, application marks, graph node icons, and fallbacks. Keep their original
+  geometry, provenance, and licenses in `shared/iconify/`. Do not draw SVG icon
+  paths in application code or use Unicode symbols as replacement icons.
+- The actual current site's favicon is page content obtained through Chrome's
+  favicon endpoint. Keep it separate from the Iconify interface asset catalog.
+- Run `node scripts/build-icons.mjs` after changing the canonical Iconify catalog,
+  then rebuild the extension to refresh its packaged Explorer assets.
+
 - Follow Conventional Commits 1.0.0 with English descriptions.
 - Never commit credentials or private collection exports.
 - Update documentation to reflect actual implementation status.

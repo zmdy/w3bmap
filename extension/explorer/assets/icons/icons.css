@@ -1,0 +1,31 @@
+/* Generated from Iconify. Do not draw or edit icon geometry here. */
+.ui-icon { display: inline-block; width: 19px; height: 19px; background-color: currentColor; mask: var(--icon-url) center / contain no-repeat; -webkit-mask: var(--icon-url) center / contain no-repeat; flex-shrink: 0; }
+.ui-icon[data-icon="network"] { --icon-url: url("./network.svg"); }
+.ui-icon[data-icon="settings"] { --icon-url: url("./settings.svg"); }
+.ui-icon[data-icon="more"] { --icon-url: url("./more.svg"); }
+.ui-icon[data-icon="chevron"] { --icon-url: url("./chevron.svg"); }
+.ui-icon[data-icon="play"] { --icon-url: url("./play.svg"); }
+.ui-icon[data-icon="external"] { --icon-url: url("./external.svg"); }
+.ui-icon[data-icon="download"] { --icon-url: url("./download.svg"); }
+.ui-icon[data-icon="upload"] { --icon-url: url("./upload.svg"); }
+.ui-icon[data-icon="file"] { --icon-url: url("./file.svg"); }
+.ui-icon[data-icon="globe"] { --icon-url: url("./globe.svg"); }
+.ui-icon[data-icon="sitemap"] { --icon-url: url("./sitemap.svg"); }
+.ui-icon[data-icon="refresh"] { --icon-url: url("./refresh.svg"); }
+.ui-icon[data-icon="right"] { --icon-url: url("./right.svg"); }
+.ui-icon[data-icon="up"] { --icon-url: url("./up.svg"); }
+.ui-icon[data-icon="down"] { --icon-url: url("./down.svg"); }
+.ui-icon[data-icon="search"] { --icon-url: url("./search.svg"); }
+.ui-icon[data-icon="fit"] { --icon-url: url("./fit.svg"); }
+.ui-icon[data-icon="grid"] { --icon-url: url("./grid.svg"); }
+.ui-icon[data-icon="list"] { --icon-url: url("./list.svg"); }
+.ui-icon[data-icon="info"] { --icon-url: url("./info.svg"); }
+.ui-icon[data-icon="close"] { --icon-url: url("./close.svg"); }
+.ui-icon[data-icon="shield"] { --icon-url: url("./shield.svg"); }
+.ui-icon[data-icon="code"] { --icon-url: url("./code.svg"); }
+.ui-icon[data-icon="server"] { --icon-url: url("./server.svg"); }
+.ui-icon[data-icon="plus"] { --icon-url: url("./plus.svg"); }
+.ui-icon[data-icon="minus"] { --icon-url: url("./minus.svg"); }
+.ui-icon[data-icon="extension"] { --icon-url: url("./extension.svg"); }
+.ui-icon[data-icon="terminal"] { --icon-url: url("./terminal.svg"); }
+.ui-icon[data-icon="branch"] { --icon-url: url("./branch.svg"); }

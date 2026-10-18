@@ -32,7 +32,7 @@ test("every bundled brand icon exists locally and has no executable or external 
     assert.match(file, /^[a-z0-9-]+\.svg$/);
     const icon = await readFile(new URL(`../assets/technology-icons/${file}`, import.meta.url), "utf8");
     assert.match(icon, /^<svg /);
-    assert.ok(!/<script|\bon\w+=|(?:href|src)=|<!/i.test(icon), `Unsafe asset: ${id}`);
+    assert.ok(!/<script|foreignObject|\bon\w+=|(?:href|src)=["'](?!#)|<!/i.test(icon), `Unsafe asset: ${id}`);
     assert.ok(assets.technology(id).endsWith(file));
   }
   await access(new URL("../assets/technology-icons/LICENSE.md", import.meta.url));

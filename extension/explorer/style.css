@@ -52,14 +52,9 @@ summary:focus-visible {
 button {
   color: inherit;
 }
-svg {
+.ui-icon {
   width: 19px;
   height: 19px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.6;
-  stroke-linecap: round;
-  stroke-linejoin: round;
   flex-shrink: 0;
 }
 .icon-sprite {
@@ -105,7 +100,7 @@ svg {
   place-items: center;
   border-radius: 11px;
 }
-.brand-mark svg {
+.brand-mark .ui-icon {
   width: 23px;
   height: 23px;
 }
@@ -211,7 +206,7 @@ svg {
   white-space: nowrap;
   transition: background 0.15s;
 }
-.button svg {
+.button .ui-icon {
   width: 16px;
   height: 16px;
 }
@@ -265,7 +260,7 @@ svg {
   background: #f1f4f6;
   color: #344855;
 }
-.icon-button svg {
+.icon-button .ui-icon {
   width: 15px;
   height: 15px;
 }
@@ -496,7 +491,7 @@ select {
   padding-bottom: 22px;
   padding-top: 10px;
 }
-.sidebar-footer svg {
+.sidebar-footer .ui-icon {
   color: #9babaf;
   width: 16px;
   height: 16px;
@@ -605,7 +600,7 @@ h1 {
   font-size: 11px;
   color: #9aa4af;
 }
-.view-tabs svg {
+.view-tabs .ui-icon {
   width: 15px;
   height: 15px;
 }
@@ -631,7 +626,7 @@ h1 {
   max-width: 190px;
   flex: 1;
 }
-.search-field svg {
+.search-field .ui-icon {
   width: 14px;
   height: 14px;
   color: #a8b2bb;
@@ -758,7 +753,7 @@ h1 {
   background: #e7ecef;
   margin: 0 4px;
 }
-.graph-controls svg {
+.graph-controls .ui-icon {
   width: 15px;
   height: 15px;
 }
@@ -805,7 +800,7 @@ h1 {
   align-items: center;
   gap: 6px;
 }
-.workspace-footer svg {
+.workspace-footer .ui-icon {
   width: 12px;
   height: 12px;
 }
@@ -887,7 +882,7 @@ h1 {
   font-size: 11px;
   line-height: 1.8;
 }
-.inspector-empty svg {
+.inspector-empty .ui-icon {
   width: 30px;
   height: 30px;
   color: #becad1;
@@ -909,7 +904,7 @@ h1 {
   color: var(--type-color);
   margin-bottom: 15px;
 }
-.entity-avatar svg {
+.entity-avatar .ui-icon {
   width: 23px;
   height: 23px;
 }
@@ -1078,7 +1073,7 @@ h1 {
   background: #f2f8f8;
   margin-bottom: 15px;
 }
-.empty-symbol svg {
+.empty-symbol .ui-icon {
   width: 29px;
   height: 29px;
 }
@@ -1099,7 +1094,7 @@ h1 {
 .empty-state .text-button {
   margin-top: 17px;
 }
-.no-results > svg {
+.no-results > .ui-icon {
   width: 30px;
   height: 30px;
   color: #adbbc5;
@@ -1120,7 +1115,7 @@ h1 {
   color: #468f94;
   pointer-events: none;
 }
-.drop-overlay svg {
+.drop-overlay .ui-icon {
   width: 34px;
   height: 34px;
 }
@@ -1306,7 +1301,7 @@ noscript {
     height: 33px;
     border-radius: 9px;
   }
-  .brand-mark svg {
+  .brand-mark .ui-icon {
     width: 21px;
   }
   .rail-button {

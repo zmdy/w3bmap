@@ -10,12 +10,10 @@ export class Dom {
   }
 
   static icon(name) {
-    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    const use = document.createElementNS("http://www.w3.org/2000/svg", "use");
-    use.setAttribute("href", `#icon-${name}`);
-    svg.setAttribute("aria-hidden", "true");
-    svg.append(use);
-    return svg;
+    const icon = this.element("span", "ui-icon");
+    icon.dataset.icon = name;
+    icon.setAttribute("aria-hidden", "true");
+    return icon;
   }
 
   static dot(type) {

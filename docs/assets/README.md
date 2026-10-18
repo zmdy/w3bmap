@@ -10,14 +10,14 @@ paths, with no remote fonts, scripts, or image dependencies at render time.
 - Author: Aniket Suvarna.
 - Upstream: [atisawd/boxicons](https://github.com/atisawd/boxicons).
 - Distribution: [Iconify API](https://api.iconify.design/bx.json?icons=extension,server,network-chart,terminal,git-branch).
-- Icons: `bx:network-chart`, `bx:extension`, `bx:terminal`, `bx:server`, and `bx:git-branch`.
+- Icons: `bx:network-chart`, `bx:extension`, `bx:terminal`, `bx:server`, `bx:git-branch`, and `bx:down-arrow-alt`.
 - Changes: paths are embedded unchanged, positioned, and colored within the diagram.
 
-The [upstream README](https://github.com/atisawd/boxicons#license) licenses SVG icons
-under Creative Commons Attribution 4.0. See the
-[CC BY 4.0 license](https://creativecommons.org/licenses/by/4.0/).
-The upstream repository's MIT notice is also retained in
-[boxicons-LICENSE.txt](boxicons-LICENSE.txt).
+The current Iconify BoxIcons v2 collection metadata declares the MIT license.
+The upstream notice is retained in [boxicons-LICENSE.txt](boxicons-LICENSE.txt).
+The icons now use the same pinned original Iconify geometry as the application;
+the source revision and metadata are recorded in
+[the shared icon catalog](../../shared/iconify/README.md).
 
 The project's MIT license applies to the original illustration layout; the
 embedded icons retain their upstream license terms.

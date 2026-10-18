@@ -16,10 +16,7 @@
     <text x="147" y="202" font-size="14" fill="#475569">Chrome / JS</text>
     <text x="440" y="202" font-size="14" fill="#475569">Shell / PowerShell / BAT</text>
     <text x="733" y="202" font-size="14" fill="#475569">PHP · Optional · Self-hosted</text>
-    <g fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M440 224v14m-4-4 4 4 4-4"/>
-      <path d="M440 340v14m-4-4 4 4 4-4"/>
-    </g>
+    <g color="#94a3b8"><g transform="translate(428 220)"><path fill="currentColor" d="m18.707 12.707l-1.414-1.414L13 15.586V6h-2v9.586l-4.293-4.293l-1.414 1.414L12 19.414z"/></g><g transform="translate(428 336)"><path fill="currentColor" d="m18.707 12.707l-1.414-1.414L13 15.586V6h-2v9.586l-4.293-4.293l-1.414 1.414L12 19.414z"/></g></g>
     <rect x="16" y="252" width="848" height="72" rx="9" fill="#f8fafc" stroke="#dce2e9"/>
     <text x="440" y="281" font-size="19" font-weight="600">Unified Data Schema</text>
     <text x="440" y="307" font-size="14" fill="#475569">JSON · Entities · Relationships · Evidence</text>

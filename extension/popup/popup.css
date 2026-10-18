@@ -31,7 +31,7 @@
 .technology-icon { width: 25px; height: 25px; object-fit: contain; flex-shrink: 0; }
 .technology-name { font-size: 11px; font-weight: 650; color: #192d45; min-width: 0; }
 .technology-category { max-width: 124px; font-size: 8px; color: #64778a; background: #f0f3f6; border-radius: 4px; padding: 3px 5px; font-weight: 400; margin-left: 1px; }
-.technology-chevron { margin-left: auto; color: #678095; font-size: 19px; font-weight: 400; }
+.technology-chevron { margin-left: auto; color: #678095; width: 17px; height: 17px; }
 .technology-row[open] .technology-chevron { transform: rotate(90deg); }
 .technology-evidence { background: #f6f9fb; border: 1px solid var(--line); border-radius: 6px; padding: 10px; margin: 0 0 6px 39px; font-size: 10px; line-height: 1.7; }
 .view-all { width: 100%; display: flex; align-items: center; justify-content: space-between; border: 1px solid var(--line); border-radius: 7px; background: #fff; color: #46657a; padding: 9px 11px; font-size: 10px; margin-top: 8px; }

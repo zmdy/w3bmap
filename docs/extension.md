@@ -49,8 +49,10 @@ subdomains. **IP addresses** remains unknown until a full collection is availabl
 then shows the number of collected IP entities. The connector footer indicates
 configuration, not a live health check or proof that an endpoint is reachable.
 
-62 [Simple Icons](https://github.com/simple-icons/simple-icons) brand logos are
-packaged under CC0-1.0. Other technologies use a generic local icon; no third-party
+All interface, application, graph, technology, and fallback icons come from
+[Iconify collections](https://github.com/iconify/icon-sets): BoxIcons v2, SVG Logos,
+and Simple Icons. The current catalog has 69 technology logos and 11 generic
+Iconify fallbacks. Their original geometry is packaged locally; no third-party
 logo/CDN request is made by the popup. See the bundled
 [icon provenance](../extension/assets/technology-icons/README.md).
 
@@ -257,7 +259,10 @@ No npm install is required. The build copies the canonical Explorer and fingerpr
 catalog. Commit the generated copies so a checkout remains ready to load. After
 changing the shared schema, regenerate the Explorer validator using its own build
 workflow first, then rebuild the extension. Do not edit generated copies directly.
-The PNG icons are raster versions of the project's `assets/logo.svg`.
+The PNG icons are raster versions of Iconify's `bx:network-chart`. Generated SVGs
+only wrap original Iconify geometry; application views do not draw SVG icons or
+assemble SVG data URLs. The canonical catalog, source revision, licenses, asset
+hashes, and build instructions are in [shared/iconify](../shared/iconify/README.md).
 
 For the redesigned popup, `DiscoveryPopupView` specializes the shared rendering
 view and `PopupAssets` resolves packaged technology icons and Chrome favicons.

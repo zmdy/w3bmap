@@ -121,22 +121,8 @@ export class GraphView {
 
   icon(type) {
     if (this.icons.has(type)) return this.icons.get(type);
-    const paths = {
-      domain:
-        '<circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><path d="M3 12h18M5 7h14M5 17h14"/>',
-      ip: '<rect x="3" y="3" width="18" height="7" rx="2"/><rect x="3" y="14" width="18" height="7" rx="2"/><path d="M7 6.5h.1M7 17.5h.1M16 6.5h2M16 17.5h2"/>',
-      page: '<path d="M14 2H5v20h14V7zM14 2v6h5M8 12h7M8 16h7"/>',
-      technology: '<path d="m8 6-6 6 6 6m8-12 6 6-6 6M14 3l-4 18"/>',
-      certificate:
-        '<path d="m12 2 8 4v6c0 5-8 10-8 10S4 17 4 12V6zM8 12l3 3 5-6"/>',
-      sitemap:
-        '<rect x="9" y="2" width="6" height="5" rx="1"/><path d="M12 7v6M5 17v-4h14v4"/><rect x="2" y="17" width="6" height="5" rx="1"/><rect x="16" y="17" width="6" height="5" rx="1"/>',
-    };
-    const icon =
-      "data:image/svg+xml;charset=utf-8," +
-      encodeURIComponent(
-        `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="${GraphView.COLORS[type]}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">${paths[type]}</svg>`,
-      );
+    const safeType = Object.hasOwn(GraphView.COLORS, type) ? type : "domain";
+    const icon = new URL(`../../assets/icons/graph-${safeType}.svg`, import.meta.url).href;
     this.icons.set(type, icon);
     return icon;
   }
