@@ -6,7 +6,6 @@ namespace W3bmap\Installer;
 
 use W3bmap\AppException;
 use W3bmap\ConfigurationPaths;
-use W3bmap\Domain;
 use W3bmap\EnvironmentFile;
 
 require_once __DIR__ . '/w3bmap.php';
@@ -15,21 +14,8 @@ final class InstallationSettings
 {
     public function values(array $input, ConfigurationPaths $paths): array
     {
-        $raw = $input['domains'] ?? '';
-        if (!is_string($raw) || strlen($raw) > 8192) {
-            throw new AppException('Provide an authorized domain list of at most 8192 characters.');
-        }
-        $domains = [];
-        foreach (preg_split('/[\s,]+/', trim($raw), -1, PREG_SPLIT_NO_EMPTY) as $rule) {
-            $wildcard = str_starts_with($rule, '*.');
-            $domains[] = ($wildcard ? '*.' : '') . Domain::normalize($wildcard ? substr($rule, 2) : $rule);
-        }
-        if ($domains === []) {
-            throw new AppException('Enter at least one domain you are authorized to analyze.');
-        }
         return [
             'W3BMAP_API_KEY' => bin2hex(random_bytes(32)),
-            'W3BMAP_ALLOWED_DOMAINS' => implode(',', array_unique($domains)),
             'W3BMAP_ALLOW_LOCAL_HTTP' => isset($input['local_http']) ? '1' : '0',
             'W3BMAP_ENABLE_ENVIRONMENT' => isset($input['environment']) ? '1' : '0',
             'W3BMAP_RATE_LIMIT' => $this->integer($input, 'rate_limit', 30, 1, 1000),
@@ -180,7 +166,7 @@ final class InstallationView
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>w3bm@p · Connector setup</title>
-<style>body{font:16px/1.6 system-ui,sans-serif;background:#101722;color:#e8eef5;margin:0;padding:40px 20px}main{max-width:760px;margin:auto}h1{font-size:30px;margin-bottom:0}p{color:#b8c6d8}form,.panel{background:#192433;border:1px solid #35465a;border-radius:16px;padding:28px;margin:24px 0}label{display:block;margin:18px 0 6px}input:not([type=checkbox]),textarea{box-sizing:border-box;width:100%;background:#101722;color:#e8eef5;border:1px solid #52657b;border-radius:7px;padding:11px;font:inherit}textarea{min-height:90px}small{color:#b8c6d8}code{overflow-wrap:anywhere}button{margin-top:24px;background:#9fe7cb;color:#10251e;border:0;border-radius:8px;padding:13px 22px;font:600 16px system-ui;cursor:pointer}.notice{border-left:3px solid #9fe7cb;padding:12px 18px;background:#192433}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px}a{color:#9fe7cb}</style>
+<style>body{font:16px/1.6 system-ui,sans-serif;background:#101722;color:#e8eef5;margin:0;padding:40px 20px}main{max-width:760px;margin:auto}h1{font-size:30px;margin-bottom:0}p{color:#b8c6d8}form,.panel{background:#192433;border:1px solid #35465a;border-radius:16px;padding:28px;margin:24px 0}label{display:block;margin:18px 0 6px}input:not([type=checkbox]){box-sizing:border-box;width:100%;background:#101722;color:#e8eef5;border:1px solid #52657b;border-radius:7px;padding:11px;font:inherit}small{color:#b8c6d8}code{overflow-wrap:anywhere}button{margin-top:24px;background:#9fe7cb;color:#10251e;border:0;border-radius:8px;padding:13px 22px;font:600 16px system-ui;cursor:pointer}.notice{border-left:3px solid #9fe7cb;padding:12px 18px;background:#192433}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px}a{color:#9fe7cb}</style>
 </head><body><main><small>DISCOVER · ANALYZE · CONNECT · VISUALIZE</small><h1>w3bm@p connector setup</h1>
 <p>Generate your API key and save the PHP connector settings in a private .env file.</p>
 <?php if ($message !== ''): ?><p class="notice" role="alert"><?= $escape($message) ?></p><?php endif; ?>
@@ -189,14 +175,12 @@ final class InstallationView
 <label for="api-key">API key</label><input id="api-key" readonly autocomplete="off" value="<?= $escape($result['W3BMAP_API_KEY']) ?>">
 <p>In the extension settings, enter the connector URL below and the API key above.</p>
 <code><?= $escape($endpoint) ?></code>
-<p>Authorized domains: <code><?= $escape($result['W3BMAP_ALLOWED_DOMAINS']) ?></code></p>
 <p>The installer is now locked. You can remove install.php from your deployment.</p></section>
 <?php elseif ($locked): ?><section class="panel"><h2>Installation locked</h2><p>A private .env already exists. Edit that file to change settings. The API key is never shown by this page again.</p></section>
 <?php else: ?>
 <form method="post" action=""><input type="hidden" name="csrf" value="<?= $escape($csrf) ?>">
 <?php if (!$local): ?><p>Read the one-time setup code using your hosting file manager or SSH:<br><code><?= $escape($paths->directory . '/setup-token') ?></code></p><label for="setup-code">Setup code</label><input id="setup-code" name="setup_code" type="password" required autocomplete="off"><?php endif; ?>
-<label for="domains">Authorized domains</label><textarea id="domains" name="domains" required maxlength="8192" placeholder="example.com, www.example.com"></textarea>
-<small>Separate domains with commas or new lines. *.example.com allows subdomains; add example.com separately for the root domain.</small>
+<p>Queries accept public domains. Private and local network destinations are blocked.</p>
 <div class="grid"><div><label for="rate">Requests per minute</label><input id="rate" name="rate_limit" type="number" min="1" max="1000" value="30" required></div>
 <div><label for="timeout">Request timeout (seconds)</label><input id="timeout" name="timeout" type="number" min="1" max="30" value="10" required></div>
 <div><label for="bytes">Maximum response bytes</label><input id="bytes" name="max_bytes" type="number" min="1024" max="5242880" value="1048576" required></div></div>

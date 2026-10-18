@@ -76,15 +76,15 @@ final class InstallationHttpTests
                 }
                 usleep(100000);
             }
-            $this->check($status === 200 && str_contains($html, 'Authorized domains'), 'Installer form was not served.');
+            $this->check($status === 200 && str_contains($html, 'Queries accept public domains') && !str_contains($html, 'name="domains"'), 'Installer form was not served.');
             preg_match('/name="csrf" value="([a-f0-9]{64})"/', $html, $match);
             $csrf = $match[1] ?? '';
             $this->check(strlen($csrf) === 64, 'CSRF field is missing.');
-            [$status] = $this->request($base . '/install.php', ['domains' => 'example.com']);
+            [$status] = $this->request($base . '/install.php', []);
             $this->check($status === 403, 'HTTP installation accepted a missing CSRF token.');
-            [$status] = $this->request($base . '/install.php', ['csrf' => $csrf, 'domains' => '*']);
-            $this->check($status === 400, 'HTTP installation accepted an unrestricted target.');
-            [$status, $html] = $this->request($base . '/install.php', ['csrf' => $csrf, 'domains' => 'example.com', 'local_http' => '1']);
+            [$status] = $this->request($base . '/install.php', ['csrf' => $csrf, 'timeout' => 31]);
+            $this->check($status === 400, 'HTTP installation accepted an invalid timeout.');
+            [$status, $html] = $this->request($base . '/install.php', ['csrf' => $csrf, 'local_http' => '1']);
             $this->check($status === 200 && str_contains($html, 'Installation complete'), 'HTTP installation failed.');
             preg_match('/id="api-key" readonly autocomplete="off" value="([a-f0-9]{64})"/', $html, $match);
             $key = $match[1] ?? '';
@@ -104,7 +104,7 @@ final class InstallationHttpTests
             $this->check($status === 200 && json_decode($json, true)['limits']['requests_per_minute'] === 31, 'Editing .env required a server restart.');
             [$status, $html] = $this->request($base . '/install.php');
             $this->check($status === 200 && str_contains($html, 'Installation locked') && !str_contains($html, $key), 'Refresh revealed the API key or unlocked setup.');
-            [$status] = $this->request($base . '/install.php', ['csrf' => $csrf, 'domains' => 'other.example']);
+            [$status] = $this->request($base . '/install.php', ['csrf' => $csrf]);
             $this->check($status === 409, 'Repeated HTTP installation was not locked.');
             file_put_contents($paths->envFile(), 'invalid');
             [$status] = $this->request($base . '/w3bmap.php?action=capabilities', null, $key);

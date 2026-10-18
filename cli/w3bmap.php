@@ -240,7 +240,7 @@ final class CliController
             if ($options->endpoint !== '') {
                 $result = (new ConnectorClient($config))->query($options);
             } else {
-                $collection = Application::collection($config, null);
+                $collection = Application::collection($config);
                 $result = $options->action === 'capabilities'
                     ? ['tool' => 'w3bm@p', 'schema_version' => '1.0', 'source' => 'cli', 'modules' => $collection->available()]
                     : $collection->analyze($options->domain, $options->modules, 'cli');

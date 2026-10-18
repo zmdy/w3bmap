@@ -95,6 +95,7 @@ final class ConfigurationPaths
 
 final class EnvironmentFile
 {
+    // Accept the retired domain setting so existing installations keep loading; it is ignored.
     public const KEYS = ['W3BMAP_API_KEY', 'W3BMAP_ALLOWED_DOMAINS', 'W3BMAP_ALLOW_LOCAL_HTTP',
         'W3BMAP_ENABLE_ENVIRONMENT', 'W3BMAP_RATE_LIMIT', 'W3BMAP_TIMEOUT', 'W3BMAP_MAX_BYTES', 'W3BMAP_RATE_DIRECTORY'];
 
@@ -147,8 +148,8 @@ final class EnvironmentFile
             }
             $values[$match[1]] = $value;
         }
-        if (strlen($values['W3BMAP_API_KEY'] ?? '') < 32 || !array_key_exists('W3BMAP_ALLOWED_DOMAINS', $values)) {
-            throw new AppException('The private .env file must define an API key and domain allowlist.', 503, 'configuration_error');
+        if (strlen($values['W3BMAP_API_KEY'] ?? '') < 32) {
+            throw new AppException('The private .env file must define an API key.', 503, 'configuration_error');
         }
         return $values;
     }
@@ -172,7 +173,6 @@ final class Config
 {
     public function __construct(
         public string $apiKey = '',
-        public array $allowedDomains = [],
         public bool $allowLocalHttp = false,
         public bool $enableEnvironment = false,
         public int $rateLimit = 30,
@@ -187,7 +187,6 @@ final class Config
         $values = $envFile === null ? [] : (new EnvironmentFile())->read($envFile);
         return new self(
             self::value($values, 'W3BMAP_API_KEY'),
-            array_values(array_filter(array_map('trim', explode(',', self::value($values, 'W3BMAP_ALLOWED_DOMAINS'))))),
             self::boolean($values, 'W3BMAP_ALLOW_LOCAL_HTTP'),
             self::boolean($values, 'W3BMAP_ENABLE_ENVIRONMENT'),
             self::integer($values, 'W3BMAP_RATE_LIMIT', 30, 1, 1000),
@@ -275,29 +274,13 @@ final class SystemResolver implements Resolver
 
 final class NetworkPolicy
 {
-    public function __construct(private Resolver $resolver, private ?array $allowedDomains = null)
+    public function __construct(private Resolver $resolver)
     {
     }
 
     public function authorize(string $host): string
     {
-        $host = Domain::normalize($host);
-        if ($this->allowedDomains === null) {
-            return $host;
-        }
-        foreach ($this->allowedDomains as $rule) {
-            $rule = strtolower(trim($rule));
-            if ($host === $rule) {
-                return $host;
-            }
-            if (str_starts_with($rule, '*.')) {
-                $base = Domain::normalize(substr($rule, 2));
-                if ($host !== $base && str_ends_with($host, '.' . $base)) {
-                    return $host;
-                }
-            }
-        }
-        throw new AppException('The target is not in the connector domain allowlist.', 403, 'target_not_allowed');
+        return Domain::normalize($host);
     }
 
     public function resolvePublic(string $host): array
@@ -1022,10 +1005,10 @@ final class ProbeController
 
 final class Application
 {
-    public static function collection(Config $config, ?array $allowedDomains): CollectionService
+    public static function collection(Config $config): CollectionService
     {
         $resolver = new SystemResolver();
-        $policy = new NetworkPolicy($resolver, $allowedDomains);
+        $policy = new NetworkPolicy($resolver);
         return new CollectionService($policy, $resolver, new CurlHttpClient($policy, $config));
     }
 
@@ -1039,7 +1022,7 @@ final class Application
             }
             $paths = ConfigurationPaths::discover(__DIR__, (string) ($_SERVER['DOCUMENT_ROOT'] ?? ''));
             $config = Config::fromEnvironment($paths->envFile());
-            $controller = new ProbeController($config, self::collection($config, $config->allowedDomains),
+            $controller = new ProbeController($config, self::collection($config),
                 new FileRateLimiter($config->rateDirectory, $config->rateLimit));
             $body = file_get_contents('php://input', false, null, 0, 16385);
             $result = $controller->handle(new ProbeRequest($_SERVER, $_GET, $body === false ? '' : $body));

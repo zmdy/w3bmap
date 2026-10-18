@@ -128,15 +128,14 @@ final class TestSuite
             $this->check(NetworkPolicy::isPublicIp($address), 'Public address rejected: ' . $address);
         }
         $resolver = new FixtureResolver();
-        $policy = new NetworkPolicy($resolver, ['example.com', '*.example.net']);
-        $this->check($policy->authorize('a.example.net') === 'a.example.net', 'Subdomain allowlist failed.');
-        foreach (['example.net', 'evil-example.com', 'example.com.evil.net', 'other.org'] as $host) {
-            $this->rejects(fn () => $policy->authorize($host), 'target_not_allowed');
+        $policy = new NetworkPolicy($resolver);
+        foreach (['example.com', 'a.example.net', 'other.org'] as $host) {
+            $this->check($policy->authorize($host) === $host, 'Public target required prior registration.');
         }
         $this->rejects(fn () => $policy->destination('file:///etc/passwd'), 'blocked_destination');
         $this->rejects(fn () => $policy->destination('https://user:password@example.com'), 'blocked_destination');
         $this->rejects(fn () => $policy->destination('https://example.com:8080/'), 'blocked_destination');
-        $this->rejects(fn () => $policy->destination('https://outside.example/'), 'target_not_allowed');
+        $this->check($policy->destination('https://outside.example/')[0] === 'outside.example', 'Public destination was rejected.');
         $resolver->ips = ['93.184.215.14', '127.0.0.1'];
         $this->rejects(fn () => $policy->destination('https://example.com/'), 'blocked_destination');
         $resolver->ips = [];
@@ -149,7 +148,7 @@ final class TestSuite
     private function authenticationAndRequests(): void
     {
         $key = str_repeat('a', 64);
-        $config = new Config($key, ['example.com']);
+        $config = new Config($key);
         $server = ['HTTPS' => 'on', 'HTTP_AUTHORIZATION' => 'Bearer ' . $key, 'REQUEST_METHOD' => 'GET', 'REMOTE_ADDR' => '127.0.0.1'];
         (new ProbeRequest($server, [], ''))->authorize($config);
         $this->check(true, 'Valid bearer token accepted.');
@@ -173,21 +172,22 @@ final class TestSuite
         $parameters = (new ProbeRequest($post, ['action' => 'analyze'], '{"domain":"example.com","modules":["dns"]}'))->parameters();
         $this->check($parameters['modules'] === ['dns'], 'POST parameter parsing failed.');
         $resolver = new FixtureResolver();
-        $collection = new CollectionService(new NetworkPolicy($resolver, ['example.com']), $resolver, new FixtureHttpClient());
+        $collection = new CollectionService(new NetworkPolicy($resolver), $resolver, new FixtureHttpClient());
         $controller = new ProbeController($config, $collection, new FileRateLimiter($this->temporaryDirectory, 100));
         $capabilities = $controller->handle(new ProbeRequest($server, [], ''));
         $this->check(in_array('dns', $capabilities['modules'], true), 'Capabilities missing DNS.');
         $this->check(!str_contains((new JsonView())->encode($capabilities), $key), 'Capabilities leaked a token.');
         $this->rejects(fn () => $controller->handle(new ProbeRequest($server, ['action' => 'environment'], '')), 'module_disabled');
         $this->rejects(fn () => $controller->handle(new ProbeRequest($server, ['action' => 'unknown'], '')), 'invalid_request');
-        $this->rejects(fn () => $controller->handle(new ProbeRequest($server, ['action' => 'dns', 'domain' => 'outside.example'], '')), 'target_not_allowed');
+        $result = $controller->handle(new ProbeRequest($server, ['action' => 'dns', 'domain' => 'outside.example'], ''));
+        $this->check($result['status'] === 'complete', 'Authenticated public domain query failed.');
     }
 
     private function collectionAndGraph(): void
     {
         $resolver = new FixtureResolver();
         $http = new FixtureHttpClient();
-        $service = new CollectionService(new NetworkPolicy($resolver, ['example.com']), $resolver, $http);
+        $service = new CollectionService(new NetworkPolicy($resolver), $resolver, $http);
         $result = $service->analyze('example.com', ['dns', 'headers', 'technologies', 'links', 'sitemap', 'robots', 'rdap'], 'cli');
         $this->check($result['status'] === 'complete', 'Fixture collection failed.');
         $data = json_decode((new JsonView())->encode($result), true, 128, JSON_THROW_ON_ERROR);

@@ -65,10 +65,7 @@ final class InstallationTests
             $code = $service->setupCode();
             $this->check(strlen($code) === 64 && $service->setupCode() === $code, 'Setup code must persist until installation.');
             $settings = new InstallationSettings();
-            foreach (['', '*', 'http://example.com', 'localhost', '127.0.0.1'] as $invalid) {
-                $this->rejects(fn () => $settings->values(['domains' => $invalid], $paths), 400);
-            }
-            $this->rejects(fn () => $settings->values(['domains' => 'example.com', 'timeout' => 31], $paths), 400);
+            $this->rejects(fn () => $settings->values(['timeout' => 31], $paths), 400);
             $access = new InstallationAccess();
             $local = ['REMOTE_ADDR' => '127.0.0.1', 'HTTP_HOST' => 'localhost:8080'];
             $remote = ['REMOTE_ADDR' => '203.0.113.4', 'HTTP_HOST' => 'probe.example.com', 'HTTPS' => 'on'];
@@ -80,19 +77,22 @@ final class InstallationTests
             $this->rejects(fn () => $access->authorize($remote, ['csrf' => 'token'], 'token', $service), 403);
             $this->rejects(fn () => $access->authorize(array_replace($remote, ['HTTPS' => 'off', 'HTTP_X_FORWARDED_PROTO' => 'https']), ['csrf' => 'token', 'setup_code' => $code], 'token', $service), 403);
             $access->authorize($remote, ['csrf' => 'token', 'setup_code' => $code], 'token', $service);
-            $values = $service->install(['domains' => "Example.com, *.example.com\nexample.com", 'local_http' => '1']);
+            $values = $service->install(['local_http' => '1']);
             $this->check($service->installed(), 'Installation did not publish .env.');
             $this->check(!file_exists($paths->directory . '/setup-token'), 'Setup code survived installation.');
             $this->check(strlen($values['W3BMAP_API_KEY']) === 64 && ctype_xdigit($values['W3BMAP_API_KEY']), 'Generated key is invalid.');
-            $this->check($values['W3BMAP_ALLOWED_DOMAINS'] === 'example.com,*.example.com', 'Domain normalization failed.');
+            $this->check(!array_key_exists('W3BMAP_ALLOWED_DOMAINS', $values), 'Installer wrote a retired domain setting.');
             putenv('W3BMAP_API_KEY=' . str_repeat('x', 64));
             $config = Config::fromEnvironment($paths->envFile());
             $this->check($config->apiKey === $values['W3BMAP_API_KEY'] && $config->allowLocalHttp && $config->rateLimit === 30, '.env was not loaded or lost precedence.');
             $before = file_get_contents($paths->envFile());
-            $this->rejects(fn () => $service->install(['domains' => 'other.example']), 409);
+            $this->rejects(fn () => $service->install([]), 409);
             $this->check(file_get_contents($paths->envFile()) === $before, 'Second installation changed credentials.');
             $file = new EnvironmentFile();
-            $this->check($file->parse("\xEF\xBB\xBF# comment\r\nW3BMAP_API_KEY='" . str_repeat('a', 32) . "'\r\nW3BMAP_ALLOWED_DOMAINS=\r\n")['W3BMAP_ALLOWED_DOMAINS'] === '', 'BOM, quotes, or empty deny-all list failed.');
+            $this->check($file->parse("\xEF\xBB\xBF# comment\r\nW3BMAP_API_KEY='" . str_repeat('a', 32) . "'\r\nW3BMAP_ALLOWED_DOMAINS=\r\n")['W3BMAP_ALLOWED_DOMAINS'] === '', 'Legacy configuration parsing failed.');
+            $legacy = $file->parse($before . "W3BMAP_ALLOWED_DOMAINS=example.com\n");
+            file_put_contents($paths->envFile(), $file->encode($legacy));
+            $this->check(Config::fromEnvironment($paths->envFile())->apiKey === $values['W3BMAP_API_KEY'], 'Legacy .env did not load.');
             foreach (['', $before . "UNKNOWN=value\n", $before . "W3BMAP_TIMEOUT=1\n", str_replace('"30"', '"bad', $before)] as $invalid) {
                 $this->rejects(fn () => $file->parse($invalid), 503);
             }

@@ -133,7 +133,7 @@ Enrichment sends the analyzed page's hostname, selected module names, and bearer
 token to the configured server. It does not send the browser's page body, links,
 resources, title, cookies, or browsing history to the connector. PHP web modules
 query the hostname's HTTPS homepage, which may differ from the current page's
-path. The PHP allowlist and public-address policy still apply.
+path. The PHP authentication, request limits, and public-address policy still apply.
 
 The connector is disabled by default. If it fails, the local findings are retained
 in a `partial` collection with a `connector` module error. Individual PHP module

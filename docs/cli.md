@@ -100,9 +100,9 @@ There is no automatic merge between local and remote runs yet.
 | `2` | Invalid command-line arguments |
 | `3` | Partial or failed collection; the graph and module errors are still written |
 
-Standalone targets are explicitly selected by the local operator and do not use
-the server allowlist. Public-address checks, TLS verification, limits, and redirect
-checks still apply. Connected targets must be authorized by the server allowlist.
+Both standalone and connected collections accept public domains without prior
+registration. Public-address checks, TLS verification, limits, and redirect checks
+still apply. Connected requests also require the server API key.
 
 ## Internal design
 

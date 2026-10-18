@@ -50,7 +50,7 @@ php cli/w3bmap.php --action capabilities
 
 Read the [CLI guide](docs/cli.md) for exports, connected mode, requirements, and
 exit codes. Read the [connector guide](docs/connector.md) to deploy the authenticated
-single-file PHP API and configure its token and target allowlist.
+single-file PHP API and configure its authentication token.
 
 To view exported collections, serve the static Explorer:
 
@@ -172,7 +172,7 @@ confidence, module results, and errors):
 The PHP connector is distributed as a single file, without a mandatory Composer
 installation or database. All operations require bearer-token authentication,
 including capabilities. The optional `install.php` setup page generates
-`W3BMAP_API_KEY`, collects `W3BMAP_ALLOWED_DOMAINS`, and writes the private `.env`
+`W3BMAP_API_KEY` and writes the private `.env`
 automatically. See the [installation guide](docs/connector.md). The following
 actions are implemented:
 

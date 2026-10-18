@@ -73,7 +73,6 @@ rather than silently reverting to another configuration.
 | Variable | Default | Meaning |
 | --- | --- | --- |
 | `W3BMAP_API_KEY` | Unset | Required bearer token, at least 32 characters, without whitespace |
-| `W3BMAP_ALLOWED_DOMAINS` | Empty | Comma-separated authorized target hostnames; an empty list denies every target |
 | `W3BMAP_ALLOW_LOCAL_HTTP` | `0` | `1` allows development HTTP requests only from a direct loopback peer |
 | `W3BMAP_ENABLE_ENVIRONMENT` | `0` | `1` enables authenticated PHP version and extension diagnostics |
 | `W3BMAP_RATE_LIMIT` | `30` | Authorized requests per fixed minute window, globally for this key; range 1–1000 |
@@ -81,10 +80,14 @@ rather than silently reverting to another configuration.
 | `W3BMAP_MAX_BYTES` | `1048576` | Per-upstream-response body limit in bytes; range 1024–5242880 |
 | `W3BMAP_RATE_DIRECTORY` | Installer: private configuration directory + `/rate`; otherwise system temporary directory + `/w3bmap-rate` | Writable state directory outside the document root |
 
-Allowlist entries are exact: `example.com` does not authorize `www.example.com`.
-Add both explicitly if needed. `*.example.com` authorizes subdomains but not the
-apex domain. Redirect destinations must also be authorized. Public IPv4/IPv6
-addresses are required; there is no switch to scan private networks.
+All public domain targets are accepted without prior registration. Every resolved
+IPv4/IPv6 address must be public; there is no switch to scan private networks.
+Redirects are checked under the same policy. Authentication and request limits
+remain required.
+
+Existing `.env` files may retain `W3BMAP_ALLOWED_DOMAINS` for compatibility, but
+that retired setting is ignored. It can be removed; no reinstallation, API key
+rotation, or server restart is needed. New installations do not write it.
 
 The application reads the web server's `HTTPS` flag and deliberately does not
 trust client-supplied forwarded headers. When terminating TLS at a trusted reverse
@@ -100,7 +103,7 @@ Start the development server from the repository root:
 php -S 127.0.0.1:8080 -t probe
 ```
 
-Open `http://127.0.0.1:8080/install.php`, enter your authorized domains, and leave
+Open `http://127.0.0.1:8080/install.php` and leave
 the local HTTP checkbox enabled. Use the generated key with
 `http://127.0.0.1:8080/w3bmap.php`. If already installed, edit the existing private
 `.env` instead. For the CLI, see [cli.md](cli.md).
@@ -155,8 +158,8 @@ HTTP 4xx; server configuration failures return 503. These errors use:
 ```json
 {
   "error": {
-    "code": "target_not_allowed",
-    "message": "The target is not in the connector domain allowlist."
+    "code": "unauthorized",
+    "message": "A valid bearer token is required."
   }
 }
 ```
@@ -174,8 +177,8 @@ Responses use `Cache-Control: no-store`; credentials are never included in them.
 - The HTTP client has a 45-second aggregate budget. System DNS lookup timing still
   depends on the host resolver; configure its timeouts at the operating-system level.
 - RDAP uses `https://rdap.org/domain/` and follows public HTTPS registry redirects.
-  These service hosts are checked for public addresses separately from the target
-  allowlist. Use a registered domain for RDAP; subdomains often have no record.
+  These service hosts and each redirect are checked for public addresses.
+  Use a registered domain for RDAP; subdomains often have no record.
 - TLS details describe the final HTTPS destination after redirects. Certificate
   inspection uses the verified HTTP connection, not a raw port scanner.
 - Links and sitemap entries are recorded without fetching them. Sitemap indexes
