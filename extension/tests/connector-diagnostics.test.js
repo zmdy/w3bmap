@@ -11,6 +11,17 @@ class ConnectorDiagnosticFixture {
 }
 const fixture = new ConnectorDiagnosticFixture();
 
+test("the transport keeps the browser global receiver required by native fetch", async () => {
+  const client = fixture.client(function (url, options) {
+    assert.equal(this, globalThis, "Native browser fetch would reject this receiver.");
+    assert.equal(options.redirect, "error");
+    assert.equal(options.credentials, "omit");
+    return Promise.resolve(new Response(JSON.stringify({ tool: "w3bm@p", api_version: "1.0", schema_version: "1.0", modules: ["dns"] })));
+  });
+  const result = await client.capabilities(fixture.settings("http://localhost/probe/w3bmap.php"));
+  assert.deepEqual(result.modules, ["dns"]);
+});
+
 test("local transport errors distinguish HTTPS certificate setup from HTTP server access without retrying", async () => {
   for (const endpoint of ["https://localhost/probe/w3bmap.php", "http://127.0.0.1/probe/w3bmap.php"]) {
     let requests = 0;

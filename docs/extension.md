@@ -303,7 +303,7 @@ Chrome host permissions are substituted in this Node transport test.
 Manual Chrome verification after loading unpacked: analyze a normal page, close
 and reopen the popup during analysis, verify automatic category/version detection
 and filtering, check badge reset on navigation, export JSON, open and filter the packaged
-graph, grant/decline connector-host access, test capabilities, verify a disallowed
+graph, grant/decline connector-host access, test capabilities, verify a private-network
 target retains browser findings, clear the result, and forget the connector.
 
 ## Local connector troubleshooting
@@ -327,3 +327,18 @@ lookup. HTTP 403 can indicate that local HTTP was not enabled in the private
 `.env`; HTTP 404 indicates an incorrect file URL. If the extension reports missing
 host access, save the connector settings again and grant access to that host.
 Native Chrome permission handling and certificate trust must be checked in Chrome.
+
+The connector client binds native `fetch` to the browser global object. Calling
+an unbound native function as a service-object method can throw `Illegal invocation`
+before any network request; the former generic transport message hid that error.
+Version 0.4.2 fixes this receiver binding. Node's native fetch does not reproduce
+this browser restriction, so maintenance includes a browser regression fixture:
+
+```sh
+node extension/tests/browser-transport-preview.mjs
+```
+
+Serve the repository and open the printed URL. Both Window and Worker tests should
+report that PHP was reached (HTTP 401 is expected for the dummy fixture key).
+No real API key is written into the fixture. This same-origin transport test does
+not replace testing an installed extension's host permissions in Chrome.

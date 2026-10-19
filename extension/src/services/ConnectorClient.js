@@ -3,7 +3,8 @@ import { ConnectorSettings } from "../models/ConnectorSettings.js";
 export class ConnectorClient {
   constructor(api, fetcher = fetch) {
     this.api = api;
-    this.fetcher = fetcher;
+    // Native browser fetch requires its Window or WorkerGlobalScope receiver.
+    this.fetcher = fetcher.bind(globalThis);
   }
 
   async request(settings, action, payload = null) {
