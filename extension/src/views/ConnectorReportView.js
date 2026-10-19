@@ -30,6 +30,12 @@ export class ConnectorReportView {
           : "PHP connection verified. Available findings and module errors were saved."
         : "PHP connection could not be verified. Browser findings have been preserved.");
     content.append(message);
+    if (report?.crawl) {
+      const crawl = document.createElement("p");
+      crawl.textContent = report.crawl.status === "running" ? `Recursive analysis: depth ${report.crawl.depth}, ${report.crawl.scope} scope.`
+        : `Recursive analysis: ${report.crawl.visitedPages ?? 0} pages, ${report.crawl.visitedHosts ?? 0} hosts. Stop reason: ${report.crawl.stopReason ?? report.crawl.status}.`;
+      content.append(crawl);
+    }
     for (const entry of report?.modules ?? []) {
       const row = document.createElement("div");
       row.className = "php-module";

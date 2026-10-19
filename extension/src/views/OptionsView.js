@@ -23,6 +23,7 @@ export class OptionsView {
       apiKey: this.get("api-key").value,
       rememberKey: this.get("remember-key").checked,
       allowLocalHttp: this.get("local-http").checked,
+      crawl: this.crawl,
       modules: [
         ...document.querySelectorAll('input[name="modules"]:checked'),
       ].map((input) => input.value),
@@ -30,6 +31,7 @@ export class OptionsView {
   }
 
   fill(settings) {
+    this.crawl = settings.crawl.publicValues();
     this.get("endpoint").value = settings.endpoint;
     this.get("api-key").value = settings.apiKey;
     this.get("remember-key").checked = settings.rememberKey;

@@ -140,4 +140,8 @@ export class ConnectorClient {
       modules: settings.modules,
     });
   }
+
+  async crawl(settings, url) {
+    return this.request(settings, "crawl", { ...settings.crawl.payload(url), modules: settings.modules });
+  }
 }

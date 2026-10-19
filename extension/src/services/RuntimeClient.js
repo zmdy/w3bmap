@@ -3,8 +3,8 @@ export class RuntimeClient {
     this.api = api;
   }
 
-  async send(action) {
-    const response = await this.api.runtime.sendMessage({ action });
+  async send(action, parameters = {}) {
+    const response = await this.api.runtime.sendMessage({ ...parameters, action });
     if (!response?.ok)
       throw new Error(
         response?.error ??

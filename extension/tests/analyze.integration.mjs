@@ -14,6 +14,7 @@ class AnalyzeIntegration {
     if (!endpoint || !apiKey) throw new Error("Set W3BMAP_INTEGRATION_ENDPOINT and W3BMAP_API_KEY for the opt-in PHP integration.");
     const settings = new ConnectorSettings({ endpoint, apiKey,
       allowLocalHttp: process.env.W3BMAP_ALLOW_LOCAL_HTTP === "1",
+      crawl: { enabled: process.env.W3BMAP_INTEGRATION_CRAWL === "1", depth: 1, maxPages: 2, maxHosts: 2, scope: "all", seeds: ["https://www.iana.org/help/example-domains"] },
       modules: process.env.W3BMAP_INTEGRATION_MODULES?.split(",") ?? ConnectorSettings.MODULES });
     const snapshot = { url: "https://example.com/", title: "Integration fixture", collected_at: new Date().toISOString(),
       links: [], resources: [], generators: [], hints: [] };
@@ -37,7 +38,7 @@ class AnalyzeIntegration {
     assert.ok(!JSON.stringify(document).includes(apiKey), "Authentication data entered the export.");
     console.log(JSON.stringify({ status: summary.connector.status, connection: summary.connector.connection,
       modules: summary.connector.modules.map(({ module, status }) => ({ module, status })),
-      entities: summary.nodes, relationships: summary.edges }));
+      crawl: summary.connector.crawl ?? null, entities: summary.nodes, relationships: summary.edges }));
   }
 }
 

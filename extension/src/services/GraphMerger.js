@@ -20,7 +20,7 @@ export class GraphMerger {
       "source_tool",
     );
     for (const [module, data] of Object.entries(remote.results)) {
-      if (!ConnectorSettings.MODULES.includes(module))
+      if (![...ConnectorSettings.MODULES, "crawl"].includes(module))
         throw new Error("The connector returned an unsupported result module.");
       result.results[module] = data;
     }

@@ -202,3 +202,13 @@ test("a PHP-produced document is accepted without altering the shared contract",
   );
   assert.equal(validator.parse(output).status, "complete");
 });
+
+test("recursive PHP collections preserve a valid graph and per-page traversal evidence", () => {
+  const code = 'require "../tests/crawl.php"; [$graph] = (new W3bmap\\CrawlTests\\CrawlTests())->collect(["depth" => 2]); echo (new W3bmap\\JsonView())->encode($graph);';
+  const data = validator.parse(execFileSync(process.env.W3BMAP_PHP_BIN || "php", ["-r", code], { cwd: new URL("../", import.meta.url), encoding: "utf8" }));
+  assert.ok(data.results.crawl.pages.length > 1);
+  assert.ok(data.edges.some((edge) => edge.source.startsWith("page:") && edge.type === "uses"));
+  const model = new GraphModel();
+  model.load(data, "recursive fixture");
+  assert.equal(JSON.parse(model.exportJson()).results.crawl.visited_pages, data.results.crawl.visited_pages);
+});

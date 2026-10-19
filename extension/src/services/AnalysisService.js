@@ -3,6 +3,7 @@ import { FingerprintService } from "./FingerprintService.js";
 import { GraphBuilder } from "../models/GraphBuilder.js";
 import { ConnectorEnrichmentService } from "./ConnectorEnrichmentService.js";
 import { CollectionRepository } from "./CollectionRepository.js";
+import { CrawlSettings } from "../models/CrawlSettings.js";
 
 export class AnalysisService {
   constructor(api, settings, connector, collections, validator, catalog) {
@@ -70,7 +71,7 @@ export class AnalysisService {
       relatedDomains: domains.filter((host) => host !== new URL(snapshot.url).hostname) };
   }
 
-  async analyze() {
+  async analyze(crawlOverride) {
     if (this.running)
       throw new Error(
         "A page analysis is already running. Reopen the popup to see its result.",
@@ -83,9 +84,13 @@ export class AnalysisService {
       let document = new GraphBuilder().build(snapshot, technologies);
       this.validator.validate(document);
       const settings = await this.settings.load();
+      if (crawlOverride !== undefined) {
+        settings.crawl = new CrawlSettings(crawlOverride).validate();
+        await this.settings.saveCrawl(settings.crawl);
+      }
       const enriched = await this.enrichment.enrich(document, settings, (connector) => {
         this.progress = { stage: "connector", message: connector.connection === "checking"
-          ? "Testing the PHP connection…" : "Running PHP checks…", connector };
+          ? "Testing the PHP connection…" : connector.crawl?.status === "running" ? "Recursively analyzing linked pages…" : "Running PHP checks…", connector };
       });
       document = enriched.document;
       document.results.browser.connector = enriched.report;

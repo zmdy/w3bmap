@@ -196,7 +196,7 @@ POST /w3bmap.php?action=analyze
 
 Modules cover DNS, RDAP, certificates, HTTP headers, technology indicators,
 robots.txt, sitemaps, and links. Optional PHP environment diagnostics are disabled
-by default. Local directory inspection and recursive crawling are not implemented.
+by default. Local directory inspection is not implemented. Bounded recursive HTML analysis is available in the extension and CLI.
 See [the connector protocol and limits](docs/connector.md) for request bodies,
 deployment settings, security boundaries, and partial-result behavior.
 
@@ -286,3 +286,10 @@ Copyright (c) 2026 Hudson.
 The architecture illustration uses BoxIcons v2 icons by Aniket Suvarna, obtained
 through [Iconify](https://icon-sets.iconify.design/bx/). See the
 [asset credits and license notices](docs/assets/README.md).
+
+Recursive analysis (version 0.5.0) supports depth, page/host limits, hostname scope,
+URL include/exclude patterns, and explicit first-hop URLs. Enable it in the popup
+or run `sh cli/w3bmap.sh --url https://example.com/ --depth 2 --scope host` (Windows:
+`cli\w3bmap.cmd` or `.bat`). See the [recursive CLI guide](docs/cli.md#recursive-analysis)
+and [extension controls](docs/extension.md#recursive-analysis). Browser technology
+detection stays a flat list; entity clusters remain available in Site and Explorer.

@@ -106,3 +106,11 @@
 .php-module [data-status="complete"] { color: #16835e; }
 .php-module [data-status="failed"], .php-module [data-status="unavailable"], .php-module [data-status="no_result"] { color: #b34842; }
 .php-module small { width: 100%; color: #7b6470; line-height: 1.5; overflow-wrap: anywhere; }
+
+.crawl-options { border: 1px solid var(--line); border-radius: 8px; padding: 10px; margin: 10px 0 14px; font-size: 11px; }
+.crawl-options summary { display: flex; align-items: center; gap: 8px; cursor: pointer; color: #375e68; }
+.crawl-options label { display: block; margin-top: 10px; color: #46657a; }
+.crawl-options label input[type=checkbox] { width: auto; }
+.crawl-options input[type=number], .crawl-options select, .crawl-options textarea { width: 100%; margin-top: 5px; font: inherit; border: 1px solid #dfe7ed; border-radius: 5px; padding: 6px; box-sizing: border-box; }
+.crawl-options p { font-size: 10px; line-height: 1.5; color: #788492; }
+.crawl-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }

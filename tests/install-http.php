@@ -98,6 +98,14 @@ final class InstallationHttpTests
             $this->check($status === 401, 'The installed API allowed anonymous access.');
             [$status, $json] = $this->request($base . '/w3bmap.php?action=capabilities', null, $key);
             $this->check($status === 200 && is_array(json_decode($json, true)), 'The API did not accept its generated .env key.');
+            $this->check(json_decode($json, true)['crawl']['max_depth'] === 5, 'Crawl capabilities were not advertised.');
+            [$status] = $this->request($base . '/w3bmap.php?action=crawl', null, $key);
+            $this->check($status === 405, 'Crawl accepted a GET request.');
+            curl_setopt_array($this->client, [CURLOPT_URL => $base . '/w3bmap.php?action=crawl', CURLOPT_POST => true,
+                CURLOPT_HTTPHEADER => ['Authorization: Bearer ' . $key, 'Content-Type: application/json'],
+                CURLOPT_POSTFIELDS => json_encode(['url' => 'https://example.com/', 'depth' => 6])]);
+            curl_exec($this->client);
+            $this->check(curl_getinfo($this->client, CURLINFO_RESPONSE_CODE) === 400, 'Crawl did not validate recursive settings over HTTP.');
             $content = file_get_contents($paths->envFile());
             file_put_contents($paths->envFile(), str_replace('W3BMAP_RATE_LIMIT="30"', 'W3BMAP_RATE_LIMIT="31"', $content));
             [$status, $json] = $this->request($base . '/w3bmap.php?action=capabilities', null, $key);

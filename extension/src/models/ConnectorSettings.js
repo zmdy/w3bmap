@@ -1,3 +1,5 @@
+import { CrawlSettings } from "./CrawlSettings.js";
+
 export class ConnectorSettings {
   static MODULES = [
     "dns",
@@ -15,6 +17,7 @@ export class ConnectorSettings {
     this.apiKey = String(values.apiKey ?? "");
     this.rememberKey = values.rememberKey === true;
     this.allowLocalHttp = values.allowLocalHttp === true;
+    this.crawl = new CrawlSettings(values.crawl);
     this.modules = Array.isArray(values.modules)
       ? [...new Set(values.modules)]
       : [...ConnectorSettings.MODULES];
@@ -24,6 +27,7 @@ export class ConnectorSettings {
   get enabled() { return this.endpoint.length > 0; }
 
   validate(requireConnection = false) {
+    this.crawl.validate();
     if (
       this.modules.some(
         (module) => !ConnectorSettings.MODULES.includes(module),
@@ -81,6 +85,7 @@ export class ConnectorSettings {
       rememberKey: this.rememberKey,
       allowLocalHttp: this.allowLocalHttp,
       modules: this.modules,
+      crawl: this.crawl.publicValues(),
     };
   }
 }

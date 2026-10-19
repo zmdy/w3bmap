@@ -7,6 +7,7 @@ namespace W3bmap\Cli;
 use W3bmap\AppException;
 use W3bmap\Application;
 use W3bmap\Config;
+use W3bmap\CrawlOptions;
 use W3bmap\Domain;
 use W3bmap\JsonView;
 
@@ -25,17 +26,20 @@ final class Options
     public string $output = '';
     public string $action = 'analyze';
     public bool $help = false;
+    public array $crawlInput = [];
+    public ?CrawlOptions $crawl = null;
 
     public static function parse(array $arguments): self
     {
         $options = new self();
         for ($index = 1; $index < count($arguments); $index++) {
             $argument = $arguments[$index];
+            if ($argument === '--recursive') { $options->action = 'crawl'; continue; }
             if (in_array($argument, ['--help', '-h'], true)) {
                 $options->help = true;
                 continue;
             }
-            if (!in_array($argument, ['--domain', '--modules', '--endpoint', '--output', '--action'], true)) {
+            if (!in_array($argument, ['--domain', '--modules', '--endpoint', '--output', '--action', '--url', '--depth', '--max-pages', '--max-hosts', '--scope', '--include', '--exclude', '--seed'], true)) {
                 throw new AppException('Unknown argument: ' . $argument . '. Use --help for usage.');
             }
             $value = $arguments[++$index] ?? '';
@@ -43,6 +47,14 @@ final class Options
                 throw new AppException('A value is required after ' . $argument . '.');
             }
             switch ($argument) {
+                case '--url': case '--depth': case '--max-pages': case '--max-hosts': case '--scope':
+                    $options->crawlInput[str_replace('-', '_', substr($argument, 2))] = $value;
+                    $options->action = 'crawl';
+                    break;
+                case '--include': case '--exclude': case '--seed':
+                    $options->crawlInput[$argument === '--seed' ? 'seeds' : substr($argument, 2)][] = $value;
+                    $options->action = 'crawl';
+                    break;
                 case '--domain': $options->domain = $value; break;
                 case '--modules': $options->modules = array_map('trim', explode(',', $value)); break;
                 case '--endpoint': $options->endpoint = $value; break;
@@ -53,11 +65,16 @@ final class Options
         if ($options->help) {
             return $options;
         }
-        if (!in_array($options->action, ['analyze', 'capabilities', 'environment'], true)) {
-            throw new AppException('The action must be analyze, capabilities, or environment.');
+        if (!in_array($options->action, ['analyze', 'crawl', 'capabilities', 'environment'], true)) {
+            throw new AppException('The action must be analyze, crawl, capabilities, or environment.');
         }
         if ($options->action === 'analyze') {
             $options->domain = Domain::normalize($options->domain);
+        }
+        if ($options->action === 'crawl') {
+            $options->crawlInput['url'] ??= 'https://' . Domain::normalize($options->domain) . '/';
+            $options->crawl = new CrawlOptions($options->crawlInput);
+            $options->domain = (string) parse_url($options->crawl->startUrl, PHP_URL_HOST);
         }
         if ($options->action === 'environment' && $options->endpoint === '') {
             throw new AppException('Environment diagnostics require a connector endpoint.');
@@ -117,10 +134,10 @@ final class ConnectorClient
                 return strlen($chunk);
             },
         ]);
-        if ($options->action === 'analyze') {
+        if (in_array($options->action, ['analyze', 'crawl'], true)) {
             $headers[] = 'Content-Type: application/json';
             curl_setopt_array($handle, [CURLOPT_POST => true, CURLOPT_HTTPHEADER => $headers,
-                CURLOPT_POSTFIELDS => json_encode(['domain' => $options->domain, 'modules' => $options->modules], JSON_THROW_ON_ERROR)]);
+                CURLOPT_POSTFIELDS => json_encode(array_merge(['domain' => $options->domain, 'modules' => $options->modules], $options->crawl?->values() ?? []), JSON_THROW_ON_ERROR)]);
         }
         $success = curl_exec($handle);
         $status = (int) curl_getinfo($handle, CURLINFO_RESPONSE_CODE);
@@ -144,7 +161,7 @@ final class ConnectorClient
         if (!is_array($data) || ($data['tool'] ?? '') !== 'w3bm@p') {
             throw new AppException('The endpoint is not a compatible w3bm@p connector.', 502, 'connector_error');
         }
-        if ($options->action === 'analyze') {
+        if (in_array($options->action, ['analyze', 'crawl'], true)) {
             if (($data['schema_version'] ?? '') !== '1.0' || !is_array($data['nodes'] ?? null)
                 || !is_array($data['edges'] ?? null) || !in_array($data['status'] ?? '', ['complete', 'partial', 'failed'], true)) {
                 throw new AppException('The connector returned an incompatible graph document.', 502, 'connector_error');
@@ -166,13 +183,23 @@ w3bm@p CLI
 Usage:
   w3bmap.sh --domain example.com [options]
   w3bmap.bat --domain example.com [options]
+  w3bmap.cmd --url https://example.com/docs/ --depth 2 [options]
   php cli/w3bmap.php --domain example.com [options]
 
 Options:
   --domain HOST       ASCII or punycode DNS hostname; no URL, port, or path
   --modules LIST      Comma-separated modules (default: dns,headers,ssl,technologies)
   --endpoint URL      Use your self-hosted PHP connector instead of local collection
-  --action NAME       analyze (default), capabilities, or environment
+  --action NAME       analyze (default), crawl, capabilities, or environment
+  --recursive         Follow page links with bounded recursive analysis
+  --url URL           Start at this page instead of the domain homepage; enables crawl
+  --depth N           Link depth, 0-5 (default: 1); enables crawl
+  --max-pages N       Maximum visited pages, 1-50 (default: 10)
+  --max-hosts N       Maximum hosts, 1-10 (default: 5)
+  --scope NAME        host (default), subdomains, or all public hosts
+  --include PATTERN   Include URL pattern; '*' wildcard; repeat up to 10 times
+  --exclude PATTERN   Exclude URL pattern; repeat up to 10 times
+  --seed URL          Explicit first-hop URL instead of discovered first-hop links; repeat up to 20 times
   --output FILE       Write JSON to a new file; existing files are never overwritten
   --help, -h          Show help
 
@@ -242,8 +269,10 @@ final class CliController
             } else {
                 $collection = Application::collection($config);
                 $result = $options->action === 'capabilities'
-                    ? ['tool' => 'w3bm@p', 'schema_version' => '1.0', 'source' => 'cli', 'modules' => $collection->available()]
-                    : $collection->analyze($options->domain, $options->modules, 'cli');
+                    ? ['tool' => 'w3bm@p', 'schema_version' => '1.0', 'source' => 'cli', 'modules' => $collection->available(), 'crawl' => ['supported' => extension_loaded('curl') && extension_loaded('dom')]]
+                    : ($options->action === 'crawl'
+                        ? Application::crawler($config, $options->crawl)->analyze($options->crawl, $options->modules, 'cli')
+                        : $collection->analyze($options->domain, $options->modules, 'cli'));
             }
             $view->write($result, $options->output);
             return isset($result['status']) && $result['status'] !== 'complete' ? 3 : 0;

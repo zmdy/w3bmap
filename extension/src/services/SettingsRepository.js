@@ -47,4 +47,11 @@ export class SettingsRepository {
     await this.api.storage.local.remove(["connectorSettings", "connectorKey"]);
     await this.api.storage.session.remove("connectorKey");
   }
+
+  async saveCrawl(crawl) {
+    crawl.validate();
+    const settings = await this.load();
+    settings.crawl = crawl;
+    await this.api.storage.local.set({ connectorSettings: settings.publicValues() });
+  }
 }

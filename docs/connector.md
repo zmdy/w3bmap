@@ -184,7 +184,7 @@ Responses use `Cache-Control: no-store`; credentials are never included in them.
 - TLS details describe the final HTTPS destination after redirects. Certificate
   inspection uses the verified HTTP connection, not a raw port scanner.
 - Links and sitemap entries are recorded without fetching them. Sitemap indexes
-  are recognized but not recursively expanded. There is no recursive crawler yet.
+  are recognized but not recursively expanded. Use the separate recursive action to follow eligible page links.
 - Only the conventional `/robots.txt` and `/sitemap.xml` paths are queried.
 - Fingerprints are a small embedded starter set, plus server headers. They are
   indicators rather than authoritative technology or version identification.
@@ -209,3 +209,78 @@ Run `php tests/install.php` for configuration and installation unit checks, and
 `php tests/install-http.php` for a complete isolated HTTP installation and
 authenticated API check. The latter starts a temporary local PHP server and
 requires cURL and `proc_open`; it never installs into the real deployment.
+
+## Recursive analysis
+
+Authenticated `POST ?action=crawl` returns the existing schema 1.0 graph. The
+capabilities response includes `crawl.supported` and its hard limits. Example:
+
+```json
+{
+  "url": "https://example.com/docs/",
+  "modules": ["dns", "rdap", "headers", "ssl", "technologies", "links"],
+  "depth": 2,
+  "scope": "host",
+  "max_pages": 10,
+  "max_hosts": 5,
+  "include": ["https://example.com/docs/*"],
+  "exclude": ["*/logout*"],
+  "seeds": []
+}
+```
+
+Scope is `host`, `subdomains` (the exact initial host and its subdomains), or `all`
+(public hosts only). The start page is depth 0. Inclusion/exclusion filters apply
+to normalized URLs; exclusion takes priority, including at the start page. The
+start page alone bypasses inclusion. Optional first-hop `seeds` replace discovered
+links from the start page; deeper levels use discovered links. See the
+[extension controls](extension.md#recursive-analysis) for matching examples.
+
+The OOP `RecursiveCollectionService` coordinates breadth-first traversal,
+`CrawlOptions` owns normalization and selection, and existing collectors/network
+services perform requests. `WebCollector` records HTML/header technology findings
+and links for every visited HTML page. DNS/RDAP/robots/sitemap metadata is collected
+once per visited final hostname. RDAP queries the hostname supplied; a subdomain
+may not have a registration record. Failed modules do not discard successful data.
+
+The graph target stays the initial hostname, including when redirects lead to a
+different permitted host. Page records include `visited: true`; unvisited links
+remain references. `results.crawl.pages` preserves each visited URL's depth,
+status, links, technology indicators, errors and module results; `hosts` preserves
+host-specific results. Original entities and directed relationships remain
+compatible with the Explorer and the extension's visual clusters.
+
+Boundaries and current limits:
+
+- Maximum depth 5, 50 visited pages, 10 destination hosts, 1,000 queued URLs,
+  20 first-hop URLs, and 10 patterns of at most 200 characters per filter.
+- Each run has a shared 20-second upstream HTTP budget. System DNS timing still
+  depends on the host resolver. Existing per-request timeout/body/header limits,
+  public IPv4/IPv6 checks, certificate validation, DNS pinning, and no-proxy policy
+  remain enforced. The same scope, filters and destination-host limit are checked
+  before every redirect is fetched. Public HTTPS RDAP registry service redirects
+  are separately validated and do not count as crawled site hosts.
+- Graph limits are 4,500 entities, 14,000 relationships, and a conservative 3 MiB
+  intermediate response budget. Each page contributes at most 250 discovered
+  anchors. Report stop reasons (`page_limit`, `host_limit`, `time_limit`,
+  `queue_limit`, `size_limit`) are explicit and return partial data, never silent
+  completion. A depth boundary is the requested traversal boundary, not an error.
+- URLs use standard HTTP/HTTPS ports and DNS hostnames. Queries/fragments are
+  removed before queued fetches, to avoid session parameters and duplicate loops.
+  No forms, browser cookies, credentials, assets, or JavaScript execution are used.
+  Binary content is marked skipped, and common attachment/asset paths are not
+  followed. Links excluded from traversal may still appear as observed references.
+- PHP technology detection currently uses the embedded six-family starter set
+  plus HTTP server indicators. It cannot reproduce browser DOM/runtime signals on
+  recursively fetched pages. No browser tabs are opened during traversal.
+- robots.txt can be collected as a module; its directives are not currently used
+  as traversal rules. Sitemap indexes are recorded without recursive expansion.
+  Crawling follows HTML anchors and optional explicit first-hop URLs.
+- robots.txt content in crawl result summaries is limited to a 4 KiB excerpt;
+  standalone robots collection retains its normal response limit. Expansion state
+  and private connector credentials are never part of the exported crawl settings.
+
+There are no persistent jobs or automatic resume: a new Analyze/CLI invocation
+starts a new bounded run. Narrow filters, depth or page count when a run reaches
+its budget. Recursive collection counts as one authenticated API request for the
+existing rate limiter. The connector remains optional and self-hosted.

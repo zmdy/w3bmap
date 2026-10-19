@@ -56,12 +56,12 @@ Iconify fallbacks. Their original geometry is packaged locally; no third-party
 logo/CDN request is made by the popup. See the bundled
 [icon provenance](../extension/assets/technology-icons/README.md).
 
-The **Technologies** panel belongs to the current page. It groups findings by
-category, shows an explicit version when available, and supports filtering by
-name, category, or version. Each category is a collapsible group containing
-findings with local brand icons and category chips. Technology categories start
-expanded; **Collapse technology groups** and **Expand technology groups** toggle
-all categories. Expand an individual finding for its version, signal, and confidence.
+The **Detected technologies** panel belongs to the current page. It is a flat
+list with local technology logos, category chips, and versions; it does not group
+technologies into category sections. Search filters by name, category, or version.
+**View all technologies** / **Show fewer technologies** control the compact list.
+Each finding still expands to show its evidence and confidence. Entity grouping
+in Site, Related, and the Graph Explorer is unchanged.
 **Version unknown** means no usable version was observed; the detector never
 guesses a version from a technology name. **Detect again** reruns inspection,
 which is useful after lazy loading or a client-side route change.
@@ -159,8 +159,8 @@ flag is ignored, including for existing settings. Clear the endpoint or use
 
 Analyze captures the page, authenticates a capabilities request to the PHP
 connector, requests the selected available modules in one analysis POST, validates
-and merges the returned graph, and saves the combined collection. Only the active
-page's hostname is analyzed, not every referenced domain. There is no port scan
+and merges the returned graph, and saves the combined collection. Ordinary analysis collects only the active page's hostname. Recursive analysis is
+an explicit option described below. There is no port scan
 or vulnerability scan. Unavailable modules are reported individually while
 available checks still run. If the connector fails, local findings are retained
 in a `partial` collection with an error; individual PHP errors are also retained.
@@ -366,3 +366,48 @@ endpoint and key in the process environment and run `npm run test:analyze` from
 capture and actual PHP HTTP calls; Chrome host permissions are simulated. Set
 `W3BMAP_INTEGRATION_MODULES` to a comma-separated subset if needed. Network or
 upstream resource failures may produce partial results, and are reported per module.
+
+## Recursive analysis
+
+The extension remains at version **0.5.0**. Open **Recursive analysis** below the
+Analyze button, enable **Follow links using the PHP connector**, and choose:
+
+- **Depth**: 0 visits only the start page; 1 follows its links; 2 follows the next
+  level, up to 5.
+- **Page limit**: 1–50, default 10. **Host limit**: 1–10, default 5.
+- **Same hostname only**: the initial hostname, including its paths.
+- **Start hostname and its subdomains**: includes subdomains of that exact hostname;
+  it does not automatically infer the registrable parent of a `www` hostname.
+- **All public hostnames**: eligible links may cross to other public hosts.
+- **Include/exclude patterns**: one full URL pattern per line, up to 10 per list;
+  `*` is the only wildcard, and exclusion takes priority. Patterns match the
+  normalized full URL. The start URL bypasses inclusion, but not exclusion.
+- **First-hop URLs**: optionally enter up to 20 explicit URLs instead of the
+  start page's discovered first-hop links. They must satisfy scope and filters;
+  later levels follow their discovered links normally.
+
+Settings are saved when Analyze starts and restored when reopening the popup.
+Saving connector options preserves these preferences. Recursive analysis requires
+a configured, updated PHP connector; it does not request permanent browser access
+to arbitrary sites. Without a connector it saves browser findings with an explicit
+recursive-analysis error. Unchecked, Analyze keeps its normal single-target flow.
+
+The PHP engine visits pages breadth-first, normalizes/deduplicates URLs, detects
+HTML/header technology indicators on each page, records page-to-technology and
+page-to-page relationships, and enriches each visited host once with selected
+DNS, RDAP, robots and sitemap modules. Selected headers and TLS checks describe
+each fetched page. Link discovery and basic technology detection are always part
+of a crawl, even if only host modules were selected. The extension's initial
+page capture retains its richer DOM/runtime detection; PHP does not execute
+JavaScript or reuse the user's authenticated browser session on other pages.
+
+**PHP checks** shows the number of visited pages and hosts and the stop reason.
+The combined graph/export contains per-page URL, depth, HTTP status, technologies,
+links, module results and errors under `results.crawl`, plus host results. See
+[recursive engine boundaries](connector.md#recursive-analysis) for limits,
+redirect/filter behavior and implementation limitations. Opening the popup or
+rescanning technologies never starts a recursive run.
+
+Set `W3BMAP_INTEGRATION_CRAWL=1` for `npm run test:analyze` to exercise recursive
+PHP calls using the public example.com start URL and an explicit IANA first-hop
+URL. This opt-in test has a two-page/two-host limit and simulated browser capture.

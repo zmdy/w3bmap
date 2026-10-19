@@ -1,6 +1,7 @@
 import { EntityClusterModel } from "../../explorer/src/models/EntityClusterModel.js";
 import { GroupedListView } from "../../explorer/src/views/GroupedListView.js";
 import { ConnectorReportView } from "./ConnectorReportView.js";
+import { CrawlOptionsView } from "./CrawlOptionsView.js";
 import { PopupView } from "./PopupView.js";
 import { PopupAssets } from "../services/PopupAssets.js";
 
@@ -9,16 +10,15 @@ export class DiscoveryPopupView extends PopupView {
     super();
     this.assets = new PopupAssets(api);
     this.connectorReport = new ConnectorReportView(this.get("php-checks"));
+    this.crawlOptions = new CrawlOptionsView();
     this.expanded = true;
     this.scan = null;
     this.latest = null;
     this.page = "";
     this.relatedClusters = new EntityClusterModel();
     this.entityClusters = new EntityClusterModel();
-    this.technologyClusters = new EntityClusterModel();
     this.relatedList = new GroupedListView(this.get("related-domains"), this.relatedClusters, (node) => this.clusterMember(node));
     this.entityList = new GroupedListView(this.get("site-entities"), this.entityClusters, (node) => this.clusterMember(node));
-    this.technologyList = new GroupedListView(this.get("detected-technologies"), this.technologyClusters, (node) => this.technologyRow(node.technology));
   }
 
   current(tab) {
@@ -42,9 +42,6 @@ export class DiscoveryPopupView extends PopupView {
 
   detection(result) {
     this.scan = result;
-    this.technologyClusters.load(result.technologies.map((technology) => ({ id: `technology:${technology.id}`, label: technology.name,
-      type: "technology", evidence: { category: technology.category }, technology })));
-    if (this.expanded) this.technologyClusters.setAll(true);
     super.detection(result);
     this.updateMetrics();
     const domains = this.get("related-domains");
@@ -67,7 +64,6 @@ export class DiscoveryPopupView extends PopupView {
 
   toggleTechnologies() {
     this.expanded = !this.expanded;
-    this.technologyClusters.setAll(this.expanded);
     this.get("technology-tools").hidden = !this.expanded;
     if (!this.expanded) this.get("technology-search").value = "";
     this.filterTechnologies(this.get("technology-search").value);
@@ -79,12 +75,10 @@ export class DiscoveryPopupView extends PopupView {
     container.replaceChildren();
     const filtered = this.detected.filter((technology) =>
       `${technology.name} ${technology.category} ${technology.version ?? ""}`.toLowerCase().includes(query.toLowerCase()));
-    const nodes = this.technologyClusters.groups.flatMap((group) => group.members).filter((node) => filtered.includes(node.technology));
-    if (query) for (const group of this.technologyClusters.visible(nodes)) this.technologyClusters.setOpen(group.id, true);
-    this.technologyList.render(nodes);
+    for (const technology of this.expanded ? filtered : filtered.slice(0, 5)) container.append(this.technologyRow(technology));
     if (!filtered.length) container.textContent = this.detected.length ? "No matching technologies." : "No supported technology indicators found.";
     const label = document.createElement("span");
-    label.textContent = this.expanded ? "Collapse technology groups" : "Expand technology groups";
+    label.textContent = this.expanded ? "Show fewer technologies" : "View all technologies";
     const arrow = document.createElement("span");
     arrow.className = "ui-icon";
     arrow.dataset.icon = this.expanded ? "up" : "right";
@@ -159,6 +153,7 @@ export class DiscoveryPopupView extends PopupView {
   }
 
   state(state) {
+    this.crawlOptions.state(state.crawl);
     super.state(state);
     this.latest = state.latest;
     const saved = this.latest?.page === this.page ? this.latest : null;
@@ -171,6 +166,8 @@ export class DiscoveryPopupView extends PopupView {
     this.get("open-graph").title = state.latest ? `Saved collection: ${state.latest.target}` : "";
     this.updateMetrics();
   }
+
+  readCrawl() { return this.crawlOptions.read(); }
 
   updateMetrics() {
     const saved = this.latest?.page === this.page ? this.latest : null;

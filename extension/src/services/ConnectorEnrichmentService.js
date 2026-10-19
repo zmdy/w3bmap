@@ -8,7 +8,15 @@ export class ConnectorEnrichmentService {
 
   async enrich(local, settings, onProgress = () => {}) {
     const report = { status: "not_configured", connection: "not_tested", modules: [] };
-    if (!settings.enabled) return { document: local, report };
+    if (!settings.enabled) {
+      if (settings.crawl?.enabled) {
+        report.status = "failed";
+        report.message = "Recursive analysis requires a configured PHP connector. Browser findings were saved.";
+        local.errors.push({ module: "crawl", code: "connector_required", message: report.message });
+        local.status = "partial";
+      }
+      return { document: local, report };
+    }
     report.status = "running";
     report.connection = "checking";
     report.modules = settings.modules.map((module) => ({ module, status: "pending" }));
@@ -16,21 +24,30 @@ export class ConnectorEnrichmentService {
     try {
       const capabilities = await this.connector.capabilities(settings);
       report.connection = "connected";
+      if (settings.crawl.enabled && capabilities.crawl?.supported !== true) throw new Error("Update the PHP connector to a version supporting recursive analysis.");
       const available = settings.modules.filter((module) => capabilities.modules.includes(module));
       const missing = settings.modules.filter((module) => !capabilities.modules.includes(module));
       for (const entry of report.modules) entry.status = available.includes(entry.module) ? "running" : "unavailable";
+      if (settings.crawl.enabled) report.crawl = { status: "running", depth: settings.crawl.depth, scope: settings.crawl.scope };
       onProgress(structuredClone(report));
       let enriched = structuredClone(local);
       if (available.length) {
         const selected = new ConnectorSettings({ ...settings.publicValues(), apiKey: settings.apiKey, modules: available });
-        const remote = await this.connector.analyze(selected, local.target);
+        const remote = settings.crawl.enabled
+          ? await this.connector.crawl(selected, local.results.browser.page)
+          : await this.connector.analyze(selected, local.target);
         this.validator.validate(remote);
         enriched = new GraphMerger().merge(local, remote);
+        if (remote.results.crawl) {
+          const crawl = remote.results.crawl;
+          report.crawl = { status: remote.status, visitedPages: crawl.visited_pages, visitedHosts: crawl.visited_hosts,
+            stopReason: crawl.stop_reason, remainingUrls: crawl.remaining_urls, depth: settings.crawl.depth, scope: settings.crawl.scope };
+        }
         this.validator.validate(enriched);
         for (const entry of report.modules) {
           if (entry.status === "unavailable") continue;
           const errors = remote.errors.filter((error) => error.module === entry.module || error.module === "connector");
-          entry.status = errors.length ? "failed" : Object.hasOwn(remote.results, entry.module) ? "complete" : "no_result";
+          entry.status = errors.length ? Object.hasOwn(remote.results, entry.module) ? "partial" : "failed" : Object.hasOwn(remote.results, entry.module) ? "complete" : "no_result";
           if (errors.length) entry.message = this.safeMessage(errors.map((error) => error.message).join(" "), settings);
         }
       }
@@ -48,6 +65,7 @@ export class ConnectorEnrichmentService {
     } catch (error) {
       const message = this.safeMessage(error.message, settings);
       report.status = "failed";
+      if (report.crawl) report.crawl.status = "failed";
       if (report.connection === "checking") report.connection = "failed";
       report.message = message;
       for (const entry of report.modules) {

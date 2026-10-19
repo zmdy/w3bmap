@@ -92,7 +92,7 @@ export class PopupController {
       "Collecting the active page. You may close this popup and reopen it to check the result.",
     );
     try {
-      const operation = this.client.send("analyze");
+      const operation = this.client.send("analyze", { crawl: this.view.readCrawl() });
       // Poll progress while the background service performs the PHP requests.
       this.refresh().catch(() => {});
       const result = await operation;

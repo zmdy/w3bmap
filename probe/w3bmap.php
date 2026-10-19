@@ -274,7 +274,7 @@ final class SystemResolver implements Resolver
 
 final class NetworkPolicy
 {
-    public function __construct(private Resolver $resolver)
+    public function __construct(private Resolver $resolver, private ?CrawlOptions $crawl = null)
     {
     }
 
@@ -354,6 +354,7 @@ final class NetworkPolicy
         $host = Domain::normalize($parts['host']);
         if (!$service) {
             $this->authorize($host);
+            $this->crawl?->destination($url);
         }
         $port = $parts['port'] ?? ($parts['scheme'] === 'https' ? 443 : 80);
         if ($port !== ($parts['scheme'] === 'https' ? 443 : 80)) {
@@ -422,9 +423,9 @@ final class CurlHttpClient implements HttpClient
     private array $cache = [];
     private float $deadline;
 
-    public function __construct(private NetworkPolicy $policy, private Config $config)
+    public function __construct(private NetworkPolicy $policy, private Config $config, int $budgetSeconds = 45)
     {
-        $this->deadline = microtime(true) + 45;
+        $this->deadline = microtime(true) + $budgetSeconds;
     }
 
     public function get(string $url, bool $service = false): HttpResponse
@@ -555,6 +556,22 @@ final class GraphDocument
         $this->results[$module] = $data;
     }
 
+    public function absorb(array $document, bool $results = true): void
+    {
+        foreach ($document['nodes'] as $node) {
+            $previous = $this->nodes[$node['id']] ?? null;
+            if ($previous !== null) {
+                $strongest = $node['confidence'] > $previous['confidence'] || ($node['type'] === 'page' && ($node['evidence']['visited'] ?? false)) ? $node : $previous;
+                $strongest['evidence']['observations'] = array_slice(array_merge($previous['evidence']['observations'] ?? [$previous['evidence']], [$node['evidence']]), -50);
+                $node = $strongest;
+            }
+            $this->nodes[$node['id']] = $node;
+        }
+        foreach ($document['edges'] as $edge) $this->edges[$edge['source'] . '|' . $edge['type'] . '|' . $edge['target']] = $edge;
+        if ($results) foreach ((array) $document['results'] as $name => $result) $this->results[$name] = $result;
+        array_push($this->errors, ...$document['errors']);
+    }
+
     public function error(string $module, AppException $error): void
     {
         $this->errors[] = ['module' => $module, 'code' => $error->errorCode, 'message' => $error->getMessage()];
@@ -637,6 +654,33 @@ final class WebCollector implements Collector
                 $this->sitemap($domain, $response, $graph);
                 break;
         }
+    }
+
+    public function page(string $url, array $modules, GraphDocument $graph): array
+    {
+        $response = $this->http->get($url);
+        $host = Domain::normalize((string) parse_url($response->url, PHP_URL_HOST));
+        $graph->node('domain:' . $host, 'domain', $host, ['url' => $response->url]);
+        $graph->node('page:' . $response->url, 'page', $response->url, ['url' => $response->url, 'http_status' => $response->status, 'visited' => true]);
+        $graph->edge('domain:' . $host, 'page:' . $response->url, 'contains', ['url' => $response->url]);
+        $type = strtolower($response->headers['content-type'][0] ?? 'text/html');
+        $html = str_contains($type, 'text/html') || str_contains($type, 'application/xhtml+xml');
+        if ($response->status < 200 || $response->status >= 300)
+            throw new AppException('The page returned HTTP ' . $response->status . '.', 502, 'upstream_status');
+        if (!$html) return ['url' => $response->url, 'http_status' => $response->status, 'status' => 'skipped', 'reason' => 'non_html', 'links' => [], 'technologies' => []];
+        $this->technologies($host, $response, $graph);
+        $this->links($host, $response, $graph);
+        $graph->node('page:' . $response->url, 'page', $response->url, ['url' => $response->url, 'http_status' => $response->status, 'visited' => true]);
+        $data = (array) $graph->toArray()['results'];
+        foreach ($data['technologies']['matches'] as $technology)
+            $graph->edge('page:' . $response->url, 'technology:' . $technology['id'], 'uses', $technology['evidence'], $technology['confidence']);
+        if (in_array('headers', $modules, true)) $graph->result('headers', ['url' => $response->url, 'status' => $response->status, 'headers' => $response->headers]);
+        if (in_array('ssl', $modules, true) && str_starts_with($response->url, 'https://')) {
+            try { $this->certificate($host, $response, $graph); }
+            catch (AppException $error) { $graph->error('ssl', $error); }
+        }
+        return ['url' => $response->url, 'http_status' => $response->status, 'status' => 'complete',
+            'links' => array_column($data['links']['links'], 'url'), 'technologies' => $data['technologies']['matches']];
     }
 
     private function certificate(string $domain, HttpResponse $response, GraphDocument $graph): void
@@ -843,6 +887,197 @@ final class CollectionService
     }
 }
 
+final class CrawlOptions
+{
+    public string $startUrl;
+    public int $depth;
+    public int $maxPages;
+    public int $maxHosts;
+    public string $scope;
+    public array $include;
+    public array $exclude;
+    public array $seeds;
+    private array $destinations = [];
+
+    public function __construct(array $input)
+    {
+        $this->startUrl = self::normalize($input['url'] ?? '');
+        $this->depth = $this->integer($input, 'depth', 1, 0, 5);
+        $this->maxPages = $this->integer($input, 'max_pages', 10, 1, 50);
+        $this->maxHosts = $this->integer($input, 'max_hosts', 5, 1, 10);
+        $scope = $input['scope'] ?? 'host';
+        if (!is_string($scope) || !in_array($scope, ['host', 'subdomains', 'all'], true)) throw new AppException('Invalid crawl scope.');
+        $this->scope = $scope;
+        $this->include = $this->patterns($input['include'] ?? []);
+        $this->exclude = $this->patterns($input['exclude'] ?? []);
+        $seeds = $input['seeds'] ?? [];
+        if (!is_array($seeds) || !array_is_list($seeds) || count($seeds) > 20) throw new AppException('Provide at most 20 starting URLs.');
+        $this->seeds = array_values(array_unique(array_map([self::class, 'normalize'], $seeds)));
+        if (strlen(json_encode($this->values(), JSON_INVALID_UTF8_SUBSTITUTE)) > 12000) throw new AppException('Crawl settings exceed the 12 KiB limit.');
+        if (!$this->allows($this->startUrl)) throw new AppException('The start URL is excluded by the crawl filters.');
+        foreach ($this->seeds as $url) if (!$this->allows($url)) throw new AppException('A starting URL is outside the crawl scope or filters.');
+    }
+
+    public static function normalize(mixed $url): string
+    {
+        if (!is_string($url) || strlen($url) > 2048 || preg_match('/[\x00-\x20\x7f\\\\]/', $url)) throw new AppException('Provide an HTTP or HTTPS crawl URL of at most 2048 characters.');
+        $parts = parse_url($url);
+        if (!is_array($parts) || !isset($parts['scheme'], $parts['host']) || isset($parts['user']) || isset($parts['pass'])
+            || !in_array(strtolower($parts['scheme']), ['http', 'https'], true)) throw new AppException('Crawl URLs require HTTP or HTTPS and cannot contain credentials.');
+        $scheme = strtolower($parts['scheme']);
+        $host = Domain::normalize($parts['host']);
+        if (isset($parts['port']) && $parts['port'] !== ($scheme === 'https' ? 443 : 80)) throw new AppException('Crawl URLs require standard HTTP or HTTPS ports.');
+        $origin = $scheme . '://' . $host;
+        return Url::resolve($origin . '/', $parts['path'] ?? '/') ?? $origin . '/';
+    }
+
+    private function integer(array $input, string $key, int $default, int $min, int $max): int
+    {
+        $value = $input[$key] ?? $default;
+        if ((!is_int($value) && !is_string($value)) || filter_var($value, FILTER_VALIDATE_INT) === false || $value < $min || $value > $max)
+            throw new AppException('Invalid crawl ' . $key . '.');
+        return (int) $value;
+    }
+
+    private function patterns(mixed $patterns): array
+    {
+        if (!is_array($patterns) || !array_is_list($patterns) || count($patterns) > 10) throw new AppException('Provide at most 10 URL patterns per filter.');
+        foreach ($patterns as $pattern) if (!is_string($pattern) || $pattern === '' || strlen($pattern) > 200 || preg_match('/[\x00-\x20\x7f\\\\]/', $pattern)) throw new AppException('Invalid crawl URL pattern.');
+        return $patterns;
+    }
+
+    private function matches(string $pattern, string $text): bool
+    {
+        // Greedy wildcard matching with a bounded input; '*' is the only wildcard.
+        $p = 0; $t = 0; $star = -1; $retry = 0;
+        while ($t < strlen($text)) {
+            if ($p < strlen($pattern) && $pattern[$p] === '*') { $star = $p++; $retry = $t; }
+            elseif ($p < strlen($pattern) && $pattern[$p] === $text[$t]) { $p++; $t++; }
+            elseif ($star >= 0) { $p = $star + 1; $t = ++$retry; }
+            else return false;
+        }
+        while ($p < strlen($pattern) && $pattern[$p] === '*') $p++;
+        return $p === strlen($pattern);
+    }
+
+    public function allows(string $url): bool
+    {
+        try { $url = self::normalize($url); } catch (AppException $error) { return false; }
+        $host = parse_url($url, PHP_URL_HOST);
+        $root = parse_url($this->startUrl, PHP_URL_HOST);
+        if ($this->scope === 'host' && $host !== $root) return false;
+        if ($this->scope === 'subdomains' && $host !== $root && !str_ends_with($host, '.' . $root)) return false;
+        foreach ($this->exclude as $pattern) if ($this->matches($pattern, $url)) return false;
+        if ($url === $this->startUrl || $this->include === []) return true;
+        foreach ($this->include as $pattern) if ($this->matches($pattern, $url)) return true;
+        return false;
+    }
+
+    public function destination(string $url): void
+    {
+        if (!$this->allows($url)) throw new AppException('The destination is outside the recursive analysis scope or URL filters.', 403, 'crawl_scope');
+        $host = strtolower((string) parse_url($url, PHP_URL_HOST));
+        if (!isset($this->destinations[$host]) && count($this->destinations) >= $this->maxHosts) throw new AppException('The crawl host limit was reached.', 403, 'crawl_host_limit');
+        $this->destinations[$host] = true;
+    }
+
+    public function values(): array
+    {
+        return ['url' => $this->startUrl, 'depth' => $this->depth, 'max_pages' => $this->maxPages,
+            'max_hosts' => $this->maxHosts, 'scope' => $this->scope, 'include' => $this->include, 'exclude' => $this->exclude, 'seeds' => $this->seeds];
+    }
+}
+
+final class RecursiveCollectionService
+{
+    public function __construct(private NetworkPolicy $policy, private HttpClient $http, private CollectionService $collection)
+    {
+    }
+
+    private function compactResults(array $results): array
+    {
+        if (isset($results['robots']['content']) && strlen($results['robots']['content']) > 4096) {
+            $results['robots']['content'] = substr($results['robots']['content'], 0, 4096);
+            $results['robots']['truncated'] = true;
+        }
+        return $results;
+    }
+
+    public function analyze(CrawlOptions $options, array $modules, string $source): array
+    {
+        if ($modules === [] || count($modules) > 8) throw new AppException('Invalid recursive collection modules.');
+        foreach ($modules as $module) if (!is_string($module) || !in_array($module, ['dns', 'rdap', 'headers', 'ssl', 'technologies', 'robots', 'sitemap', 'links'], true)) throw new AppException('Invalid recursive collection modules.');
+        if (!extension_loaded('dom')) throw new AppException('Recursive collection requires the PHP DOM extension.', 503, 'module_unavailable');
+        $root = Domain::normalize((string) parse_url($options->startUrl, PHP_URL_HOST));
+        $this->policy->resolvePublic($root);
+        $graph = new GraphDocument($root, $source);
+        $web = new WebCollector($this->http);
+        $queue = new \SplQueue();
+        $queue->enqueue([$options->startUrl, 0]);
+        $queued = [$options->startUrl => true];
+        $visited = []; $pages = []; $hosts = []; $reason = 'complete';
+        $deadline = microtime(true) + 20;
+        while (!$queue->isEmpty()) {
+            if (count($pages) >= $options->maxPages) { $reason = 'page_limit'; break; }
+            if (microtime(true) >= $deadline - 1) { $reason = 'time_limit'; break; }
+            [$url, $depth] = $queue->dequeue();
+            if (isset($visited[$url])) continue;
+            $visited[$url] = true;
+            $host = Domain::normalize((string) parse_url($url, PHP_URL_HOST));
+            if (!isset($hosts[$host]) && count($hosts) >= $options->maxHosts) { $reason = 'host_limit'; continue; }
+            $previousHosts = $hosts;
+            $pageGraph = new GraphDocument($root, $source);
+            $entry = ['requested_url' => $url, 'url' => $url, 'depth' => $depth, 'status' => 'failed', 'links' => [], 'technologies' => []];
+            try {
+                $this->policy->destination($url);
+                $entry = array_merge($entry, $web->page($url, $modules, $pageGraph));
+                $this->policy->destination($entry['url']);
+                $final = CrawlOptions::normalize($entry['url']);
+                $visited[$final] = true;
+                $host = Domain::normalize((string) parse_url($final, PHP_URL_HOST));
+                if (!isset($hosts[$host])) {
+                    $hostModules = array_values(array_intersect($modules, ['dns', 'rdap', 'robots', 'sitemap']));
+                    $hostDocument = $hostModules === [] ? null : $this->collection->analyze($host, $hostModules, $source);
+                    $hosts[$host] = $hostDocument === null ? [] : $this->compactResults((array) $hostDocument['results']);
+                    if ($hostDocument !== null) $pageGraph->absorb($hostDocument);
+                }
+                $entry['errors'] = $pageGraph->toArray()['errors'];
+            } catch (AppException $error) {
+                $pageGraph->error('crawl', new AppException($url . ': ' . $error->getMessage(), $error->status, $error->errorCode));
+                $entry['error'] = $error->getMessage();
+                if (in_array($error->errorCode, ['timeout', 'crawl_host_limit'], true)) $reason = $error->errorCode === 'timeout' ? 'time_limit' : 'host_limit';
+            }
+            $candidate = clone $graph;
+            $candidate->absorb($pageGraph->toArray(), false);
+            $document = $candidate->toArray();
+            if (count($document['nodes']) > 4500 || count($document['edges']) > 14000 || strlen(json_encode($document, JSON_INVALID_UTF8_SUBSTITUTE)) > 2097152) { $hosts = $previousHosts; $reason = 'size_limit'; break; }
+            $pageResults = $this->compactResults((array) $pageGraph->toArray()['results']);
+            $entry['results'] = $pageResults;
+            if (strlen(json_encode([$document, $pages, $entry, $hosts, $pageResults], JSON_INVALID_UTF8_SUBSTITUTE)) > 3145728) { $hosts = $previousHosts; $reason = 'size_limit'; break; }
+            $graph = $candidate;
+            $pages[] = $entry;
+            if ($depth === 0) foreach ($pageResults as $module => $result) $graph->result($module, $result);
+            if ($reason === 'time_limit') break;
+            if ($depth >= $options->depth || $entry['status'] !== 'complete') continue;
+            $links = $depth === 0 && $options->seeds !== [] ? $options->seeds : $entry['links'];
+            foreach ($links as $link) {
+                try { $next = CrawlOptions::normalize($link); } catch (AppException $error) { continue; }
+                if (!$options->allows($next) || isset($queued[$next]) || isset($visited[$next])) continue;
+                if (preg_match('~\.(?:pdf|zip|gz|png|jpe?g|gif|svg|webp|ico|woff2?|ttf|mp[34]|css|js)$~i', (string) parse_url($next, PHP_URL_PATH))) continue;
+                if (count($queued) >= 1000) { $reason = 'queue_limit'; continue; }
+                $queued[$next] = true;
+                $queue->enqueue([$next, $depth + 1]);
+            }
+        }
+        if ($reason !== 'complete') $graph->error('crawl', new AppException('Recursive collection stopped at the ' . $reason . '.', 200, $reason));
+        $summary = ['options' => $options->values(), 'pages' => $pages, 'hosts' => (object) $hosts,
+            'visited_pages' => count($pages), 'visited_hosts' => count($hosts), 'remaining_urls' => $queue->count(),
+            'stop_reason' => $reason, 'max_seconds' => 20, 'technology_detection' => 'server_html_and_headers'];
+        $graph->result('crawl', $summary);
+        return $graph->toArray();
+    }
+}
+
 final class FileRateLimiter
 {
     public function __construct(private string $directory, private int $limit)
@@ -952,8 +1187,8 @@ final class ProbeRequest
             throw new AppException('The modules parameter must be a JSON array.');
         }
         $action = $parameters['action'] ?? 'capabilities';
-        if ($action === 'analyze' && $method !== 'POST') {
-            throw new AppException('The analyze action requires POST.', 405, 'method_not_allowed');
+        if (in_array($action, ['analyze', 'crawl'], true) && $method !== 'POST') {
+            throw new AppException('The ' . $action . ' action requires POST.', 405, 'method_not_allowed');
         }
         return $parameters;
     }
@@ -999,6 +1234,7 @@ final class ProbeController
         $action = $parameters['action'] ?? 'capabilities';
         if ($action === 'capabilities') {
             return ['tool' => 'w3bm@p', 'api_version' => '1.0', 'schema_version' => '1.0',
+                'crawl' => ['supported' => extension_loaded('curl') && extension_loaded('dom'), 'max_depth' => 5, 'max_pages' => 50, 'max_hosts' => 10, 'max_seconds' => 20, 'scopes' => ['host', 'subdomains', 'all']],
                 'modules' => $this->collection->available(), 'environment_enabled' => $this->config->enableEnvironment,
                 'limits' => ['requests_per_minute' => $this->config->rateLimit, 'timeout_seconds' => $this->config->timeout,
                     'max_response_bytes' => $this->config->maxBytes, 'max_redirects' => 3, 'max_discovered_urls' => 250]];
@@ -1008,6 +1244,10 @@ final class ProbeController
                 throw new AppException('Environment diagnostics are disabled.', 403, 'module_disabled');
             }
             return ['tool' => 'w3bm@p', 'php_version' => PHP_VERSION, 'extensions' => get_loaded_extensions()];
+        }
+        if ($action === 'crawl') {
+            $options = new CrawlOptions($parameters);
+            return Application::crawler($this->config, $options)->analyze($options, $parameters['modules'] ?? ['dns', 'rdap', 'headers', 'ssl', 'technologies'], 'probe');
         }
         if ($action !== 'analyze' && !in_array($action, ['dns', 'rdap', 'headers', 'ssl', 'technologies', 'robots', 'sitemap', 'links'], true)) {
             throw new AppException('Unknown action.');
@@ -1019,6 +1259,14 @@ final class ProbeController
 
 final class Application
 {
+    public static function crawler(Config $config, CrawlOptions $options): RecursiveCollectionService
+    {
+        $resolver = new SystemResolver();
+        $policy = new NetworkPolicy($resolver, $options);
+        $http = new CurlHttpClient($policy, $config, 20);
+        return new RecursiveCollectionService($policy, $http, new CollectionService($policy, $resolver, $http));
+    }
+
     public static function collection(Config $config): CollectionService
     {
         $resolver = new SystemResolver();

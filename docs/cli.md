@@ -1,6 +1,6 @@
 # Command-line collectors
 
-The `.sh` and `.bat` files are thin launchers for an object-oriented PHP CLI.
+The `.sh`, `.bat`, and `.cmd` files are thin launchers for an object-oriented PHP CLI.
 They share the connector's collectors and graph format, so **PHP 8.1+ is required
 in both standalone and connected modes**. No server is needed in standalone mode.
 See [connector requirements](connector.md#requirements) for PHP extensions.
@@ -24,7 +24,7 @@ cli\w3bmap.bat --help
 cli\w3bmap.bat --domain example.com --modules dns,headers,ssl,technologies
 ```
 
-Both launchers accept the same arguments as:
+All launchers accept the same arguments as:
 
 ```sh
 php cli/w3bmap.php --domain example.com --modules dns,headers
@@ -74,7 +74,7 @@ credentials, query parameters, or fragments. Use the final PHP file URL.
 | `--domain HOST` | Required target hostname for analysis |
 | `--modules LIST` | Comma-separated module list; default `dns,headers,ssl,technologies` |
 | `--endpoint URL` | Optional self-hosted connector URL |
-| `--action NAME` | `analyze` (default), `capabilities`, or connected-only `environment` |
+| `--action NAME` | `analyze` (default), `crawl`, `capabilities`, or connected-only `environment` |
 | `--output FILE` | Create a new JSON file; never overwrite an existing file |
 | `--help`, `-h` | Show usage |
 
@@ -113,3 +113,45 @@ BAT contain no application collection logic. The launchers are not MVC component
 they only hand arguments and exit codes to the PHP application.
 
 A separate native PowerShell collector is not implemented in this first version.
+
+## Recursive analysis
+
+All launchers use the same PHP OOP recursive engine. `--url`, `--depth`,
+`--recursive`, or any crawl selection option enables the `crawl` action. A domain
+without a URL starts at its HTTPS homepage. Quote wildcard patterns so the shell
+does not expand them. Version remains **0.5.0**.
+
+```sh
+sh cli/w3bmap.sh --url https://example.com/docs/ --depth 2 --scope host --max-pages 10 --modules dns,rdap,technologies,links --include 'https://example.com/docs/*' --exclude '*/logout*' --output exports/crawl.json
+```
+
+Windows Command Prompt (BAT and CMD are interchangeable):
+
+```bat
+cli\w3bmap.cmd --url https://example.com/docs/ --depth 2 --scope host --max-pages 10 --modules dns,rdap,technologies,links --include "https://example.com/docs/*" --output exports/crawl.json
+```
+
+Use `--endpoint` with the same options for connected recursion. The endpoint must
+be updated to support `POST ?action=crawl`; the token remains in the environment.
+
+| Option | Meaning |
+| --- | --- |
+| `--url URL` | Full initial page URL; queries and fragments are omitted |
+| `--recursive` | Crawl the `--domain` HTTPS homepage with default limits |
+| `--depth N` | 0–5; initial page is depth 0, default 1 |
+| `--max-pages N` | 1–50, default 10 |
+| `--max-hosts N` | 1–10, default 5 |
+| `--scope host` | Same exact hostname (default) |
+| `--scope subdomains` | Initial hostname and its subdomains |
+| `--scope all` | All eligible public hosts |
+| `--include PATTERN` | Full URL pattern with `*`; repeat up to 10 times |
+| `--exclude PATTERN` | Exclude matching URLs; repeat up to 10 times |
+| `--seed URL` | Explicit first-hop URL; repeat up to 20 times |
+
+`--modules` controls additional host metadata and page headers/TLS; recursive
+HTML link discovery and basic technology detection always run. Include filters
+exclude nonmatching child URLs, while the initial URL bypasses inclusion.
+Exclusion also applies to the initial URL and to redirects. See
+[engine boundaries](connector.md#recursive-analysis) for the shared time/size
+budgets and detection limitations. Partial crawls still export their graph and
+exit with code 3. These limits apply in both standalone and connected mode.

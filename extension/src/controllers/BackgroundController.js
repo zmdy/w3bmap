@@ -27,11 +27,12 @@ export class BackgroundController {
           running: this.analysis.running,
           progress: this.analysis.progress ?? null,
           connectorEnabled: settings.enabled,
+          crawl: settings.crawl.publicValues(),
           latest: this.collections.summary(await this.collections.latest()),
         };
       }
       case "analyze":
-        return this.analysis.analyze();
+        return this.analysis.analyze(message.crawl);
       case "collection":
         return (await this.collections.latest())?.document ?? null;
       case "clear":
