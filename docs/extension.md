@@ -28,9 +28,10 @@ DOM; it does not crawl other pages or inspect cross-origin frame contents.
 
 ## Technology detection
 
-The popup follows four views: **This page** contains the active site's favicon,
+The popup follows five views: **This page** contains the active site's favicon,
 technology list and discovery counters; **Site** explains current-site findings;
-**Related** lists referenced external domains; **Recent** shows the latest saved
+**Related** lists referenced external domains; **PHP** shows server module data and
+the connection report; **Recent** shows the latest saved
 session collection. Recent is not a browsing-history archive. Graph/export actions
 always use the saved collection; when it belongs to another page, the graph button
 explicitly says **Open last saved graph**. **More options** provides rescan,
@@ -165,7 +166,7 @@ or vulnerability scan. Unavailable modules are reported individually while
 available checks still run. If the connector fails, local findings are retained
 in a `partial` collection with an error; individual PHP errors are also retained.
 
-The popup's collapsible **PHP checks** report shows connection and per-module
+In the **PHP** tab, the collapsible **PHP checks** report shows connection and per-module
 status, including errors. While Analyze runs, background-state polling updates
 its current phase. Close and reopen the popup to see progress or the saved report.
 The saved report is included under `results.browser.connector` without credentials
@@ -173,6 +174,21 @@ or the connector URL. Module results, evidence, and relationships are available 
 the Graph Explorer and JSON export. A successful capability check is distinct from
 a successful collection; individual modules can fail after authentication succeeds.
 Existing collections without a report remain readable.
+
+The same tab displays actual saved DNS, RDAP, HTTP header, TLS certificate,
+technology, robots.txt, sitemap, and link results under expandable modules.
+Recursive collections separate host-scoped data from page-scoped results, keeping
+each page's technology evidence independent. The traversal summary includes visited
+URLs, depth, status, and errors. Failed modules remain visible even when no data
+was returned, and a separate error section preserves collection errors.
+
+The heading identifies the latest saved collection and its timestamp, even when
+another browser page is active. Data loads once per collection from session
+storage, without contacting the connector again, and clears with **Clear last
+collection**. Result previews render as text and expand lazily; arrays, nested
+objects, long text, and total rendered fields are bounded to keep the popup
+responsive. **Export JSON** includes the complete saved values. An empty tab
+explains when no collection or PHP data is available.
 
 **Forget connector** clears its saved settings and token and removes the saved
 host permission. Changing endpoints removes the previous connector-host permission

@@ -6,9 +6,16 @@
 .icon-button { width: 30px; height: 30px; display: inline-grid; place-items: center; border: 0; border-radius: 7px; background: transparent; color: #415b70; }
 .icon-button:hover { background: #eff6f8; }
 .ui-icon { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
-.popup-tabs { display: grid; grid-template-columns: repeat(4,1fr); padding: 0 14px; border-bottom: 1px solid var(--line); min-height: 36px; }
+.popup-tabs { display: grid; grid-template-columns: repeat(5,1fr); padding: 0 14px; border-bottom: 1px solid var(--line); min-height: 36px; }
 .popup-tabs button { background: transparent; border: 0; border-bottom: 2px solid transparent; color: #77869a; font-size: 11px; padding: 9px 0; }
 .popup-tabs button[aria-selected=true] { color: #0e5065; border-color: #049bb2; font-weight: 650; }
+.probe-module { margin: 10px 0; border: 1px solid var(--line); border-radius: 8px; padding: 10px; font-size: 11px; overflow-wrap: anywhere; }
+.probe-module summary { cursor: pointer; font-weight: 600; padding: 4px 0; }
+.probe-module > details { margin-top: 8px; border-top: 1px solid var(--line); padding-top: 7px; }
+.probe-data dl { margin: 8px 0; padding-left: 8px; border-left: 2px solid var(--line); }
+.probe-data dt { color: #567183; font-size: 10px; font-weight: 600; margin-top: 7px; }
+.probe-data dd { margin: 3px 0 8px; color: #12233e; white-space: pre-wrap; }
+.probe-errors { color: #a34141; }
 .popup-main { flex: 1; overflow-y: auto; min-height: 0; padding: 12px 16px; scrollbar-width: thin; scrollbar-color: #d6e3e9 transparent; }
 .site-card { display: flex; gap: 12px; align-items: center; min-height: 71px; margin-bottom: 12px; }
 .site-favicon { width: 48px; height: 48px; border: 1px solid var(--line); border-radius: 11px; object-fit: contain; background: #fff; padding: 2px; }

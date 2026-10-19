@@ -39,7 +39,7 @@ export class PopupController {
   }
 
   bindNavigation() {
-    const tabs = ["page", "site", "related", "recent"];
+    const tabs = ["page", "site", "related", "php", "recent"];
     for (const [index, name] of tabs.entries()) {
       const button = this.view.get(`tab-${name}`);
       button.addEventListener("click", () => this.view.selectTab(name));
@@ -72,6 +72,7 @@ export class PopupController {
   async refresh() {
     const state = await this.client.send("state");
     this.view.state({ ...state, running: state.running || this.analyzing });
+    await this.refreshProbes(state.latest?.id ?? null);
     clearTimeout(this.refreshTimer);
     if (state.running || this.analyzing)
       this.refreshTimer = setTimeout(
@@ -82,6 +83,23 @@ export class PopupController {
         1000,
       );
     return state;
+  }
+
+  async refreshProbes(id) {
+    if (this.probeCollectionId === id) return;
+    this.probeCollectionId = id;
+    this.view.probes.render(null);
+    if (!id) return;
+    this.view.get("probe-context").textContent = "Loading saved PHP results…";
+    try {
+      const document = await this.client.send("collection");
+      if (this.probeCollectionId === id) this.view.probes.render(document);
+    } catch (error) {
+      if (this.probeCollectionId === id) {
+        this.probeCollectionId = undefined;
+        this.view.get("probe-context").textContent = `Could not load saved PHP results: ${error.message}`;
+      }
+    }
   }
 
   async analyze() {
@@ -100,7 +118,7 @@ export class PopupController {
         result.connector?.status === "complete"
           ? "Browser and PHP checks complete. Open the combined graph or export JSON."
           : result.connector?.status === "failed"
-          ? "PHP checks failed. Browser findings were saved; expand PHP checks for details."
+          ? "PHP checks failed. Browser findings were saved; open the PHP tab for details."
           : result.status === "partial"
           ? "Browser findings were collected. Some enrichment modules failed."
           : "Browser collection ready. Configure a PHP connector to include server checks.",

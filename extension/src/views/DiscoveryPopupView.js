@@ -2,6 +2,7 @@ import { EntityClusterModel } from "../../explorer/src/models/EntityClusterModel
 import { GroupedListView } from "../../explorer/src/views/GroupedListView.js";
 import { ConnectorReportView } from "./ConnectorReportView.js";
 import { CrawlOptionsView } from "./CrawlOptionsView.js";
+import { ProbeResultsView } from "./ProbeResultsView.js";
 import { PopupView } from "./PopupView.js";
 import { PopupAssets } from "../services/PopupAssets.js";
 
@@ -11,6 +12,7 @@ export class DiscoveryPopupView extends PopupView {
     this.assets = new PopupAssets(api);
     this.connectorReport = new ConnectorReportView(this.get("php-checks"));
     this.crawlOptions = new CrawlOptionsView();
+    this.probes = new ProbeResultsView(this.get("probe-results"), this.get("probe-context"));
     this.expanded = true;
     this.scan = null;
     this.latest = null;
@@ -156,8 +158,7 @@ export class DiscoveryPopupView extends PopupView {
     this.crawlOptions.state(state.crawl);
     super.state(state);
     this.latest = state.latest;
-    const saved = this.latest?.page === this.page ? this.latest : null;
-    this.connectorReport.render(state.progress?.connector ?? saved?.connector, state.progress);
+    this.connectorReport.render(state.progress?.connector ?? this.latest?.connector, state.progress);
     this.renderEntities();
     this.get("recent-empty").hidden = Boolean(state.latest);
     this.get("connector-state").textContent = state.connectorEnabled ? "Analyze includes PHP checks" : "Browser collection only";
@@ -190,7 +191,7 @@ export class DiscoveryPopupView extends PopupView {
   }
 
   selectTab(name, focus = false) {
-    for (const tab of ["page", "site", "related", "recent"]) {
+    for (const tab of ["page", "site", "related", "php", "recent"]) {
       const selected = tab === name;
       this.get(`tab-${tab}`).setAttribute("aria-selected", String(selected));
       this.get(`tab-${tab}`).tabIndex = selected ? 0 : -1;
