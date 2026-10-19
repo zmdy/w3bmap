@@ -315,7 +315,7 @@ test("DOM-only resources are recorded as references rather than observed request
 });
 
 test("enrichment deduplicates entities while retaining evidence from both sources", () => {
-  const local = new GraphBuilder().build(fixture.snapshot(), []);
+  const local = new GraphBuilder().build(fixture.snapshot(), new FingerprintService(catalog).detect(fixture.snapshot()));
   const before = JSON.stringify(local);
   const remote = fixture.remote(local);
   const result = new GraphMerger().merge(local, remote);
@@ -323,6 +323,8 @@ test("enrichment deduplicates entities while retaining evidence from both source
   assert.equal(result.nodes.length, local.nodes.length);
   assert.equal(result.edges.length, local.edges.length);
   assert.equal(result.nodes[0].evidence.observations.length, 2);
+  const technology = result.nodes.find((node) => node.type === "technology");
+  assert.equal(technology.evidence.category, local.nodes.find((node) => node.id === technology.id).evidence.category);
   assert.equal(result.source, "extension");
   assert.equal(JSON.stringify(local), before);
   remote.target = "different.example";
@@ -530,6 +532,7 @@ test("a connector failure keeps browser findings and records a partial collectio
     api,
     settings,
     {
+      capabilities: async () => ({ modules: ConnectorSettings.MODULES }),
       analyze: async () => {
         throw new Error("Connector unavailable.");
       },
@@ -569,9 +572,12 @@ test("concurrent analysis is rejected and successful enrichment remains schema-c
     api,
     settings,
     {
+      capabilities: async () => ({ modules: ConnectorSettings.MODULES }),
       analyze: async () => {
         await waiting;
-        return fixture.remote(local);
+        const remote = fixture.remote(local);
+        remote.results = Object.fromEntries(ConnectorSettings.MODULES.map((module) => [module, {}]));
+        return remote;
       },
     },
     repository,
@@ -581,7 +587,10 @@ test("concurrent analysis is rejected and successful enrichment remains schema-c
   const first = service.analyze();
   await assert.rejects(() => service.analyze(), /already running/);
   release();
-  await first;
+  const summary = await first;
+  assert.equal(summary.connector.status, "complete");
+  assert.equal(summary.connector.connection, "connected");
+  assert.equal(summary.connector.modules.length, ConnectorSettings.MODULES.length);
   assert.equal(validator.validate((await repository.latest()).document), true);
   assert.equal(service.running, false);
 });

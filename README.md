@@ -91,7 +91,8 @@ The workflow is:
 2. Optionally install the PHP connector on a server you control.
 3. Enter the connector URL and authentication key in the extension settings.
 4. Test the connection and discover the server's available modules.
-5. Enrich browser discoveries with connector queries.
+5. Click **Analyze this page** to test the configured PHP connection, run selected
+   checks, and merge their results with browser discoveries.
 6. Explore the combined graph and export the results as JSON.
 
 The CLI supports **standalone** mode using the local PHP runtime and **connected**

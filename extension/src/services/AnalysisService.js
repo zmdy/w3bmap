@@ -1,7 +1,7 @@
 import { PageCollector } from "./PageCollector.js";
 import { FingerprintService } from "./FingerprintService.js";
 import { GraphBuilder } from "../models/GraphBuilder.js";
-import { GraphMerger } from "./GraphMerger.js";
+import { ConnectorEnrichmentService } from "./ConnectorEnrichmentService.js";
 import { CollectionRepository } from "./CollectionRepository.js";
 
 export class AnalysisService {
@@ -15,6 +15,8 @@ export class AnalysisService {
       catalog,
     });
     this.running = false;
+    this.progress = null;
+    this.enrichment = new ConnectorEnrichmentService(connector, validator, collections);
     this.fingerprints = new FingerprintService(catalog);
     this.plan = PageCollector.plan(catalog);
   }
@@ -74,36 +76,26 @@ export class AnalysisService {
         "A page analysis is already running. Reopen the popup to see its result.",
       );
     this.running = true;
+    this.progress = { stage: "browser", message: "Collecting page findings…", connector: null };
     try {
       const { snapshot } = await this.capture();
       const technologies = this.fingerprints.detect(snapshot);
       let document = new GraphBuilder().build(snapshot, technologies);
       this.validator.validate(document);
       const settings = await this.settings.load();
-      if (settings.enabled) {
-        try {
-          const remote = await this.connector.analyze(
-            settings,
-            document.target,
-          );
-          this.validator.validate(remote);
-          const enriched = new GraphMerger().merge(document, remote);
-          this.validator.validate(enriched);
-          this.collections.checkSize(enriched);
-          document = enriched;
-        } catch (error) {
-          document.errors.push({
-            module: "connector",
-            code: "enrichment_error",
-            message: error.message,
-          });
-          document.status = "partial";
-        }
-      }
+      const enriched = await this.enrichment.enrich(document, settings, (connector) => {
+        this.progress = { stage: "connector", message: connector.connection === "checking"
+          ? "Testing the PHP connection…" : "Running PHP checks…", connector };
+      });
+      document = enriched.document;
+      document.results.browser.connector = enriched.report;
+      this.progress = { stage: "saving", message: "Saving the combined collection…", connector: enriched.report };
+      this.validator.validate(document);
       const record = await this.collections.save(document);
       return this.collections.summary(record);
     } finally {
       this.running = false;
+      this.progress = null;
     }
   }
 }

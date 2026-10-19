@@ -127,19 +127,18 @@ runtime. See [the catalog format](technology-catalog.md) to add definitions.
 ## Optional PHP connector
 
 Deploy the [PHP connector](connector.md) on a server you control. Open its
-`install.php` page to generate a token and save authorized target hostnames in a
-private `.env`. There is no shared project endpoint.
+`install.php` page to generate a token and save settings in a private `.env`. There is no shared project endpoint.
 
 Open **Settings** in the extension:
 
 1. Enter the final PHP file URL, such as `https://your-host.example/w3bmap.php`.
 2. Enter the server's bearer token, using 32–256 visible ASCII characters.
-3. Select enrichment modules. DNS, HTTP headers, TLS, and technologies are selected
-   by default.
-4. Enable **remote enrichment** if it should run after each browser collection.
-5. Click **Save & test connection**. Chrome asks for access to the connector host;
+3. Select enrichment modules. New settings select all eight modules: DNS, RDAP,
+   HTTP headers, TLS, technologies, robots, sitemap, and links. Existing module
+   selections are preserved.
+4. Click **Save & test connection**. Chrome asks for access to the connector host;
    grant it to enable authenticated capability discovery.
-6. Confirm the available modules shown in Settings, then analyze a page again.
+5. Confirm the available modules shown in Settings, then click **Analyze this page**.
 
 For development, HTTP is supported only for `localhost` and `127.0.0.1` after
 enabling the corresponding setting. The server must also have
@@ -152,10 +151,28 @@ resources, title, cookies, or browsing history to the connector. PHP web modules
 query the hostname's HTTPS homepage, which may differ from the current page's
 path. The PHP authentication, request limits, and public-address policy still apply.
 
-The connector is disabled by default. If it fails, the local findings are retained
-in a `partial` collection with a `connector` module error. Individual PHP module
-errors are also retained. Connection tests authenticate and query capabilities,
-including when enrichment itself is disabled.
+No connector is contacted until an endpoint is configured. A saved endpoint
+now automatically opts into PHP checks on **Analyze**; the old separate `enabled`
+flag is ignored, including for existing settings. Clear the endpoint or use
+**Forget connector** for browser-only collection. Automatic popup detection and
+**Detect technologies again** remain local and never call PHP.
+
+Analyze captures the page, authenticates a capabilities request to the PHP
+connector, requests the selected available modules in one analysis POST, validates
+and merges the returned graph, and saves the combined collection. Only the active
+page's hostname is analyzed, not every referenced domain. There is no port scan
+or vulnerability scan. Unavailable modules are reported individually while
+available checks still run. If the connector fails, local findings are retained
+in a `partial` collection with an error; individual PHP errors are also retained.
+
+The popup's collapsible **PHP checks** report shows connection and per-module
+status, including errors. While Analyze runs, background-state polling updates
+its current phase. Close and reopen the popup to see progress or the saved report.
+The saved report is included under `results.browser.connector` without credentials
+or the connector URL. Module results, evidence, and relationships are available in
+the Graph Explorer and JSON export. A successful capability check is distinct from
+a successful collection; individual modules can fail after authentication succeeds.
+Existing collections without a report remain readable.
 
 **Forget connector** clears its saved settings and token and removes the saved
 host permission. Changing endpoints removes the previous connector-host permission
@@ -342,3 +359,10 @@ Serve the repository and open the printed URL. Both Window and Worker tests shou
 report that PHP was reached (HTTP 401 is expected for the dummy fixture key).
 No real API key is written into the fixture. This same-origin transport test does
 not replace testing an installed extension's host permissions in Chrome.
+
+For an opt-in test of the complete Analyze-to-PHP pipeline, set the integration
+endpoint and key in the process environment and run `npm run test:analyze` from
+`extension/`. It collects the public `example.com` target using a simulated page
+capture and actual PHP HTTP calls; Chrome host permissions are simulated. Set
+`W3BMAP_INTEGRATION_MODULES` to a comma-separated subset if needed. Network or
+upstream resource failures may produce partial results, and are reported per module.

@@ -21,7 +21,6 @@ export class OptionsView {
     return new ConnectorSettings({
       endpoint: this.get("endpoint").value,
       apiKey: this.get("api-key").value,
-      enabled: this.get("enabled").checked,
       rememberKey: this.get("remember-key").checked,
       allowLocalHttp: this.get("local-http").checked,
       modules: [
@@ -33,7 +32,6 @@ export class OptionsView {
   fill(settings) {
     this.get("endpoint").value = settings.endpoint;
     this.get("api-key").value = settings.apiKey;
-    this.get("enabled").checked = settings.enabled;
     this.get("remember-key").checked = settings.rememberKey;
     this.get("local-http").checked = settings.allowLocalHttp;
     document.querySelectorAll('input[name="modules"]').forEach((input) => {

@@ -13,13 +13,15 @@ export class ConnectorSettings {
   constructor(values = {}) {
     this.endpoint = String(values.endpoint ?? "").trim();
     this.apiKey = String(values.apiKey ?? "");
-    this.enabled = values.enabled === true;
     this.rememberKey = values.rememberKey === true;
     this.allowLocalHttp = values.allowLocalHttp === true;
     this.modules = Array.isArray(values.modules)
       ? [...new Set(values.modules)]
-      : ["dns", "headers", "ssl", "technologies"];
+      : [...ConnectorSettings.MODULES];
   }
+
+  // An endpoint opts into PHP enrichment; the retired enabled flag is ignored.
+  get enabled() { return this.endpoint.length > 0; }
 
   validate(requireConnection = false) {
     if (

@@ -6,12 +6,13 @@ class PopupPreviewBuilder {
     const script = `<script>
 class PopupPreviewRuntime {
   constructor() {
-    this.record=null;
+    this.record=null; this.running=false; this.progress=null;
     this.runtime={id:'preview-fixture',getURL:path=>path==='_favicon/' ? new URL('../assets/technology-icons/wordpress.svg',document.baseURI).href : new URL('../'+path,document.baseURI).href,sendMessage:message=>this.send(message),openOptionsPage:async()=>{}};
     this.tabs={query:async()=>[{id:1,url:'https://demo.example/'}]};
   }
   async send({action}) {
-    if(action==='state') return {ok:true,data:{running:false,connectorEnabled:true,latest:this.record?.summary??null}};
+    if(action==='analyze') {this.running=true;this.progress={stage:'browser',message:'Collecting page findings…',connector:null};}
+    if(action==='state') return {ok:true,data:{running:this.running,progress:this.progress,connectorEnabled:true,latest:this.record?.summary??null}};
     const {FingerprintService}=await import('../src/services/FingerprintService.js');
     const {GraphBuilder}=await import('../src/models/GraphBuilder.js');
     const {CollectionRepository}=await import('../src/services/CollectionRepository.js');
@@ -23,7 +24,24 @@ class PopupPreviewRuntime {
     const graph=new GraphBuilder().build(snapshot,technologies);
     const entities=new CollectionRepository({}).entities(graph);
     if(action==='detect') return {ok:true,data:{page:snapshot.url,technologies,runtimeAvailable:true,catalogSize:catalog.technologies.length,entities,metrics:{...new CollectionRepository({}).summary({id:'preview',document:graph}).metrics,ips:null},relatedDomains:['docs.example','js.stripe.com',...hosts]}};
-    if(action==='analyze') {const document=new GraphBuilder().build(snapshot,technologies);const record={id:'preview',document};this.record={document,summary:new CollectionRepository({}).summary(record)};return {ok:true,data:this.record.summary};}
+    if(action==='analyze') {
+      const {ConnectorEnrichmentService}=await import('../src/services/ConnectorEnrichmentService.js');
+      const {ConnectorSettings}=await import('../src/models/ConnectorSettings.js');
+      const {DocumentValidator}=await import('../explorer/src/services/DocumentValidator.js');
+      this.running=true;
+      const settings=new ConnectorSettings({endpoint:'https://connector.example/w3bmap.php',apiKey:'a'.repeat(64)});
+      const connector={capabilities:async()=>{await new Promise(resolve=>setTimeout(resolve,700));return {modules:settings.modules};},
+        analyze:async()=>{await new Promise(resolve=>setTimeout(resolve,1500));
+          const root={...graph.nodes[0],source:'probe'};
+          const ip={...root,id:'ip:1.1.1.1',label:'1.1.1.1',type:'ip',evidence:{fixture:true}};
+          return {...graph,source:'probe',nodes:[root,ip],edges:[],results:Object.fromEntries(settings.modules.map(module=>[module,{fixture:true}])),errors:[]};}};
+      try {
+        const combined=await new ConnectorEnrichmentService(connector,new DocumentValidator(),new CollectionRepository({})).enrich(graph,settings,report=>{this.progress={stage:'connector',message:report.connection==='checking'?'Testing the PHP connection…':'Running PHP checks…',connector:report};});
+        const document=combined.document;const record={id:'preview',document};
+        this.record={document,summary:new CollectionRepository({}).summary(record)};
+        return {ok:true,data:this.record.summary};
+      } finally {this.running=false;this.progress=null;}
+    }
     if(action==='collection') return {ok:true,data:this.record?.document??null};
     if(action==='clear') {this.record=null;return {ok:true,data:null};}
     return {ok:false,error:'This is a UI fixture. Graph handoff requires the installed Chrome extension.'};

@@ -46,6 +46,7 @@ export class GraphMerger {
       entries.set(key, {
         ...strongest,
         evidence: {
+          ...strongest.evidence,
           observations: [
             {
               source: previous[sourceKey],

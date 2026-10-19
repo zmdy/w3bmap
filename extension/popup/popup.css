@@ -95,3 +95,14 @@
 .popup-actions .action-row { margin-top: 6px; }
 .popup-actions .secondary { min-height: 30px; padding: 7px 9px; }
 .popup-footer { min-height: 30px; padding: 3px 16px; }
+
+.php-report { border: 1px solid var(--line); border-radius: 8px; margin: 10px 0; background: #fff; }
+.php-report > summary { display: flex; align-items: center; gap: 8px; padding: 11px; cursor: pointer; font-size: 12px; }
+.php-report[open] > summary .ui-icon { transform: rotate(90deg); }
+.php-status { margin-left: auto; font-size: 10px; color: #347d82; }
+.php-report-content { padding: 0 11px 11px; font-size: 11px; }
+.php-report-content p { color: #64768b; line-height: 1.6; overflow-wrap: anywhere; }
+.php-module { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 5px; padding: 7px 0; border-top: 1px solid var(--line); }
+.php-module [data-status="complete"] { color: #16835e; }
+.php-module [data-status="failed"], .php-module [data-status="unavailable"], .php-module [data-status="no_result"] { color: #b34842; }
+.php-module small { width: 100%; color: #7b6470; line-height: 1.5; overflow-wrap: anywhere; }

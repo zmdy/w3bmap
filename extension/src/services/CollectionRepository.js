@@ -42,6 +42,7 @@ export class CollectionRepository {
       nodes: data.nodes.length,
       edges: data.edges.length,
       errors: data.errors.length,
+      connector: data.results.browser?.connector ?? null,
       entities: this.entities(data),
       metrics: {
         pages: data.nodes.filter((node) => node.type === "page" && (!node.evidence.kind || node.evidence.kind === "link")).length,

@@ -25,6 +25,7 @@ export class BackgroundController {
         const settings = await this.settings.load();
         return {
           running: this.analysis.running,
+          progress: this.analysis.progress ?? null,
           connectorEnabled: settings.enabled,
           latest: this.collections.summary(await this.collections.latest()),
         };

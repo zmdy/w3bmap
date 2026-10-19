@@ -7,6 +7,7 @@ export class PopupController {
     this.api = api;
     this.client = new RuntimeClient(api);
     this.view = new DiscoveryPopupView(api);
+    this.analyzing = false;
   }
 
   async start() {
@@ -70,9 +71,9 @@ export class PopupController {
 
   async refresh() {
     const state = await this.client.send("state");
-    this.view.state(state);
+    this.view.state({ ...state, running: state.running || this.analyzing });
     clearTimeout(this.refreshTimer);
-    if (state.running)
+    if (state.running || this.analyzing)
       this.refreshTimer = setTimeout(
         () =>
           this.refresh().catch((error) =>
@@ -84,20 +85,30 @@ export class PopupController {
   }
 
   async analyze() {
+    if (this.analyzing) return;
+    this.analyzing = true;
     this.view.busy(true);
     this.view.notice(
       "Collecting the active page. You may close this popup and reopen it to check the result.",
     );
     try {
-      const result = await this.client.send("analyze");
+      const operation = this.client.send("analyze");
+      // Poll progress while the background service performs the PHP requests.
+      this.refresh().catch(() => {});
+      const result = await operation;
       this.view.notice(
-        result.status === "partial"
+        result.connector?.status === "complete"
+          ? "Browser and PHP checks complete. Open the combined graph or export JSON."
+          : result.connector?.status === "failed"
+          ? "PHP checks failed. Browser findings were saved; expand PHP checks for details."
+          : result.status === "partial"
           ? "Browser findings were collected. Some enrichment modules failed."
-          : "Collection ready. Open its graph or export JSON.",
+          : "Browser collection ready. Configure a PHP connector to include server checks.",
       );
     } catch (error) {
       this.view.notice(error.message, true);
     } finally {
+      this.analyzing = false;
       await this.refresh().catch((error) =>
         this.view.notice(error.message, true),
       );

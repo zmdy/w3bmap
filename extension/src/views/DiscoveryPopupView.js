@@ -1,5 +1,6 @@
 import { EntityClusterModel } from "../../explorer/src/models/EntityClusterModel.js";
 import { GroupedListView } from "../../explorer/src/views/GroupedListView.js";
+import { ConnectorReportView } from "./ConnectorReportView.js";
 import { PopupView } from "./PopupView.js";
 import { PopupAssets } from "../services/PopupAssets.js";
 
@@ -7,6 +8,7 @@ export class DiscoveryPopupView extends PopupView {
   constructor(api) {
     super();
     this.assets = new PopupAssets(api);
+    this.connectorReport = new ConnectorReportView(this.get("php-checks"));
     this.expanded = true;
     this.scan = null;
     this.latest = null;
@@ -159,9 +161,11 @@ export class DiscoveryPopupView extends PopupView {
   state(state) {
     super.state(state);
     this.latest = state.latest;
+    const saved = this.latest?.page === this.page ? this.latest : null;
+    this.connectorReport.render(state.progress?.connector ?? saved?.connector, state.progress);
     this.renderEntities();
     this.get("recent-empty").hidden = Boolean(state.latest);
-    this.get("connector-state").textContent = state.connectorEnabled ? "Your PHP endpoint is configured" : "Browser collection only";
+    this.get("connector-state").textContent = state.connectorEnabled ? "Analyze includes PHP checks" : "Browser collection only";
     this.get("connector-dot").classList.toggle("enabled", state.connectorEnabled);
     this.get("graph-label").textContent = state.latest && state.latest.page !== this.page ? "Open last saved graph" : "Open in Graph Explorer";
     this.get("open-graph").title = state.latest ? `Saved collection: ${state.latest.target}` : "";
