@@ -301,12 +301,27 @@ export class ExplorerController {
   }
 
   select(kind, record) {
+    if (kind === "clear") {
+      this.selection = null;
+      this.graph.clearSelection();
+      this.view.selection(null);
+      this.inspector.empty();
+      return;
+    }
     if (kind === "cluster") {
       this.clusters.setOpen(record, !this.clusters.isOpen(record));
       this.updateClusters();
+      this.selection = null;
+      this.view.selection(null);
+      this.inspector.empty();
+      this.graph.focusGroup(record);
       return;
     }
     if (kind === "aggregate") {
+      this.selection = null;
+      this.view.selection(null);
+      this.inspector.empty();
+      this.graph.focusAggregate(record);
       this.view.notice(`${record.indexes.length} visible relationships summarized. Expand the connected groups to inspect each original relationship.`);
       return;
     }

@@ -43,7 +43,9 @@ final class CrawlHttp implements HttpClient
             '/deep' => ['/deeper'],
             default => [],
         };
-        $body = '<html><script src="/wp-content/app.js"></script>';
+        $signature = parse_url($url, PHP_URL_HOST) === 'outside.example.net' ? '/_nuxt/app.js'
+            : ($path === '/about' ? '/_next/static/app.js' : '/wp-content/app.js');
+        $body = '<html><script src="' . $signature . '"></script>';
         foreach ($links as $link) $body .= '<a href="' . htmlspecialchars($link) . '">Link</a>';
         return new HttpResponse($url, 200, ['content-type' => ['text/html'], 'server' => ['nginx']], $body . '</html>');
     }
@@ -84,6 +86,11 @@ final class CrawlTests
         $this->check(!in_array('https://example.com/file.pdf', $http->requested, true), 'An attachment was fetched.');
         $this->check($resolver->lookups === ['example.com'], 'Host metadata was repeated per page.');
         $this->check($crawl['pages'][1]['technologies'] !== [], 'Page technology evidence is missing.');
+        $rootTechnologies = array_column($crawl['pages'][0]['technologies'], 'id');
+        $aboutTechnologies = array_column($crawl['pages'][1]['technologies'], 'id');
+        $this->check(in_array('wordpress', $rootTechnologies, true) && !in_array('nextjs', $rootTechnologies, true), 'Start-page technologies are incorrect.');
+        $this->check(in_array('nextjs', $aboutTechnologies, true) && !in_array('wordpress', $aboutTechnologies, true), 'Recursive page reused the start-page technologies.');
+        $this->check(count(array_filter($graph['edges'], fn ($edge) => $edge['source'] === 'page:https://example.com/about' && $edge['target'] === 'technology:nextjs' && $edge['evidence']['url'] === 'https://example.com/about')) === 1, 'Recursive technology evidence is not linked to its actual page.');
         $this->check(count(array_filter($graph['edges'], fn ($edge) => $edge['source'] === 'page:https://example.com/about' && $edge['type'] === 'uses')) > 0, 'Page-to-technology relationship is missing.');
         $about = array_values(array_filter($graph['nodes'], fn ($node) => $node['id'] === 'page:https://example.com/about'))[0];
         $this->check($about['evidence']['visited'] === true, 'Visited page was left as an unvisited reference.');
@@ -99,6 +106,9 @@ final class CrawlTests
         $this->check(isset(((array) $sub['results'])['crawl']['hosts']-> {'sub.example.com'}), 'Subdomain scope did not visit the subdomain.');
         [$all] = $this->collect(['scope' => 'all', 'max_hosts' => 3]);
         $this->check(((array) $all['results'])['crawl']['visited_hosts'] === 3, 'All-public scope did not visit external hosts.');
+        $externalPage = array_values(array_filter(((array) $all['results'])['crawl']['pages'], fn ($page) => $page['url'] === 'https://outside.example.net/'))[0];
+        $this->check(in_array('nuxt', array_column($externalPage['technologies'], 'id'), true), 'An external site was not independently fingerprinted.');
+        $this->check(count(array_filter($all['edges'], fn ($edge) => $edge['source'] === 'page:https://outside.example.net/' && $edge['target'] === 'technology:nuxt')) === 1, 'External page-to-technology relationship is missing.');
         [$filter] = $this->collect(['depth' => 3, 'include' => ['https://example.com/docs/*'], 'exclude' => ['*/end']]);
         $filtered = array_column(((array) $filter['results'])['crawl']['pages'], 'requested_url');
         $this->check($filtered === ['https://example.com/', 'https://example.com/docs/start'], 'Include/exclude URL filters failed.');

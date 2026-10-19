@@ -56,7 +56,17 @@ how partial collections are presented. Use **Clear collection** to start empty.
   the visible entities; only relationships between visible endpoints remain.
 - Filter entity types, collection source, minimum confidence, and inferred edges.
   Type counts show the complete collection; the footer shows the visible subset.
-- Choose force-directed, concentric, circle, or grid layout. Use the zoom and fit
+- The default **By category** layout places technologies, pages, domains, IPs,
+  certificates, and sitemaps in separate nearby regions around the target domain.
+  Expanded groups retain their members inside their own boundaries. Positions
+  are deterministic and do not change the collection or exported JSON.
+- Selecting a node highlights its direct incoming and outgoing relationships and
+  their endpoints; unrelated items fade. Selecting an edge highlights that edge
+  and its endpoints. Group selection includes its members and their immediate
+  neighbors. Click the canvas background to clear the highlight. This uses the
+  currently visible graph, including summarized relationships in collapsed groups;
+  it does not recursively highlight every reachable node in the collection.
+- Choose category, force-directed, concentric, circle, or grid layout. Use the zoom and fit
   controls, scroll to zoom, and drag nodes or the background to arrange the view.
 - Open **Collection** to inspect collection status, module errors, and raw module
   results. Large evidence/result previews are truncated; the full data stays in

@@ -1,4 +1,5 @@
 import cytoscape from "../../vendor/cytoscape.js";
+import { CategoryLayoutService } from "../services/CategoryLayoutService.js";
 
 export class GraphView {
   static COLORS = {
@@ -20,7 +21,8 @@ export class GraphView {
 
   constructor(container, onSelect, onZoom, clusters) {
     this.clusters = clusters;
-    this.layoutName = "cose";
+    this.layoutName = "categories";
+    this.categoryLayout = new CategoryLayoutService();
     this.records = new Map();
     this.icons = new Map();
     this.cy = cytoscape({
@@ -96,6 +98,18 @@ export class GraphView {
           style: { "line-style": "dashed", "line-dash-pattern": [5, 4] },
         },
         {
+          selector: "edge.related",
+          style: { width: 2.5, "line-color": "#218d99", "target-arrow-color": "#218d99", opacity: 1 },
+        },
+        {
+          selector: "node.related",
+          style: { "border-width": 2.6, "text-opacity": 1 },
+        },
+        {
+          selector: ".muted",
+          style: { opacity: 0.16, "text-opacity": 0.3 },
+        },
+        {
           selector: "node:selected",
           style: {
             "border-width": 3,
@@ -133,6 +147,7 @@ export class GraphView {
       else onSelect("edge", { ...this.records.get(event.target.id()), index: data.index });
     });
     this.cy.on("zoom", () => onZoom(Math.round(this.cy.zoom() * 100)));
+    this.cy.on("tap", (event) => { if (event.target === this.cy) onSelect("clear", null); });
     this.resizeObserver = new ResizeObserver(() => this.cy.resize());
     this.resizeObserver.observe(container);
   }
@@ -174,6 +189,12 @@ export class GraphView {
       .elements()
       .filter((element) => element.style("display") !== "none");
     if (elements.nodes().empty()) return;
+    if (name === "categories") {
+      const positions = this.categoryLayout.positions(elements.nodes().map((node) => node.data()), `n:domain:${this.document?.target}`);
+      elements.layout({ name: "preset", positions: (node) => positions.get(node.id()),
+        animate: false, fit: true, padding: 65 }).run();
+      return;
+    }
     elements
       .layout({
         name,
@@ -209,13 +230,34 @@ export class GraphView {
 
   select(kind, record) {
     this.clearSelection();
-    this.cy
-      .getElementById(kind === "node" ? `n:${record.id}` : `e:${record.index}`)
-      .select();
+    const selected = this.cy.getElementById(kind === "node" ? `n:${record.id}` : `e:${record.index}`);
+    selected.select();
+    this.highlight(selected);
+  }
+
+  focusGroup(id) {
+    this.clearSelection();
+    const group = this.cy.getElementById(`cluster:${id}`);
+    this.highlight(group.union(group.descendants()));
+  }
+
+  focusAggregate(record) {
+    this.clearSelection();
+    this.highlight(this.cy.getElementById(record.id));
+  }
+
+  highlight(selected) {
+    if (selected.empty()) return;
+    let related = selected.closedNeighborhood().union(selected.edges().connectedNodes());
+    // Parent outlines remain legible; unrelated siblings remain muted.
+    related = related.union(related.nodes().ancestors());
+    this.cy.elements().difference(related).addClass("muted");
+    related.addClass("related");
   }
 
   clearSelection() {
     this.cy.elements().unselect();
+    this.cy.elements().removeClass("muted related");
   }
 
   resize() {

@@ -369,7 +369,7 @@ upstream resource failures may produce partial results, and are reported per mod
 
 ## Recursive analysis
 
-The extension remains at version **0.5.0**. Open **Recursive analysis** below the
+The extension remains at version **0.5.1**. Open **Recursive analysis** below the
 Analyze button, enable **Follow links using the PHP connector**, and choose:
 
 - **Depth**: 0 visits only the start page; 1 follows its links; 2 follows the next
