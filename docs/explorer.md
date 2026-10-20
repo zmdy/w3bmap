@@ -79,13 +79,13 @@ investigation and **Merge reports** to extend the current one.
 - Select a node in **Graph**, an item in **Tree view**, or a button in the
   keyboard-accessible **Entities** list, to view its source, time, confidence,
   evidence, and visible relationships.
-- **Select all** and **Clear all** next to Entity types switch every type filter at
-  once.
+- An entity with an address offers **Open resource**, which opens it in a new tab,
+  and **Copy link**. The Explorer never requests the address itself.
 - **Copy list** in the Entities tab copies the visible entities as grouped plain
   text, in the same order and grouping the tab shows, and says when filters are
   narrowing the list. Use **Export JSON** for the complete collection.
-- An entity with an address offers **Open resource**, which opens it in a new tab,
-  and **Copy link**. The Explorer never requests the address itself.
+- **Select all** and **Clear all** next to Entity types switch every type filter at
+  once.
 - The investigation card shows the target site's favicon, under the same rule as
   the entity icons below.
 - Every selection also shows **Connections**, counting that entity's relationships
@@ -230,7 +230,7 @@ explorer/
 │   ├── models/                   # Graph state, filters, folder tree, sample
 │   ├── views/                    # Canvas, tree, workspace DOM, Inspector
 │   ├── controllers/              # Interaction and import coordination
-│   └── services/                 # Validation, merging, tree, figures, icons, file IO
+│   └── services/                 # Validation, merging, tree, figures, icons, clipboard, file IO
 ├── vendor/                      # Local browser libraries and notices
 ├── scripts/build-vendor.mjs      # Vendor/validator regeneration
 └── tests/                       # Graph, grouping and synthetic UI fixtures
@@ -260,15 +260,18 @@ npm test
 
 The tests cover schema and semantic rejection, resource limits, filtering, export
 preservation, report merging and deduplication, folder tree construction,
-collection figures, sample validity, and interoperability with a PHP-produced
-document.
+per-site splitting and category grouping, collection figures, the copied entity
+list, sample validity, and interoperability with a PHP-produced document.
 The compiled schema snapshot is checked against the repository schema.
 Run `php tests/run.php` from the repository root to check the existing collectors.
 
 Manual browser checks: import a CLI export, reject an invalid file, select nodes
 and edges, search and reset, toggle inferred relationships, inspect module errors,
-switch layouts, browse and expand the Tree view, merge several reports into one
-investigation, export with filters active, and verify desktop and narrow layouts.
+switch layouts, browse and expand the Tree view, split and merge the sites of an
+investigation, copy the entity list, switch all type filters at once, open and
+copy a resource link, merge several reports into one investigation, export with
+filters active, and verify desktop and narrow layouts. Clipboard actions need a
+real click: a browser may refuse a copy that no user gesture started.
 
 ## Current scope
 

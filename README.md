@@ -292,7 +292,7 @@ The architecture illustration uses BoxIcons v2 icons by Aniket Suvarna, obtained
 through [Iconify](https://icon-sets.iconify.design/bx/). See the
 [asset credits and license notices](docs/assets/README.md).
 
-Recursive analysis (version 0.6.1) supports depth, page/host limits, hostname scope,
+Recursive analysis (version 0.6.5) supports depth, page/host limits, hostname scope,
 URL include/exclude patterns, and explicit first-hop URLs. Enable it in the popup
 or run `sh cli/w3bmap.sh --url https://example.com/ --depth 2 --scope host` (Windows:
 `cli\w3bmap.cmd` or `.bat`). See the [recursive CLI guide](docs/cli.md#recursive-analysis)
@@ -301,10 +301,14 @@ detection stays a flat list; entity clusters remain available in Site and Explor
 The Explorer defaults to a category layout and highlights directly related findings
 when an entity or relationship is selected. Click the canvas background to clear focus.
 
-Version 0.6.1 adds the Explorer's **Tree view**, which browses the collection as
-navigable folders built from URL paths, with the Inspector showing folder
-contents, per-entity connection counts, and general collection figures next to any
-selection. Entities carry technology logos, and site favicons when the Explorer is
+Version 0.6.5 adds the Explorer's **Tree view**, which browses the collection as
+navigable folders built from URL paths. A merged investigation gets one folder per
+site, which **Merge sites** flattens into a single path tree; category folders
+reuse the graph's similarity groups. The Inspector shows folder contents,
+per-entity connection counts, general collection figures next to any selection,
+and **Open resource** / **Copy link** for an entity with an address. The Entities
+tab copies its visible list as grouped text, the entity type filters switch all at
+once, and entities carry technology logos and site favicons when the Explorer is
 opened from the extension.
 
 Version 0.6.0 merges several reports into a single investigation. In the Explorer,
