@@ -97,6 +97,7 @@ export class WorkspaceView {
   summary(model) {
     const data = model.document;
     this.get("target-label").textContent = data?.target ?? "No collection";
+    this.investigationIcon(data?.target ?? null);
     this.get("filename-label").textContent =
       model.name || "Import a JSON export to begin";
     const tags = this.get("collection-tags");
@@ -149,6 +150,23 @@ export class WorkspaceView {
       ),
     );
     return button;
+  }
+
+  /** Shows the investigated site's favicon, falling back to the workspace mark. */
+  investigationIcon(target) {
+    const container = this.get("collection-icon");
+    const mark = () => container.replaceChildren(Dom.icon("network"));
+    if (!target || !this.icons) {
+      mark();
+      return;
+    }
+    const image = document.createElement("img");
+    image.width = 20;
+    image.height = 20;
+    image.alt = "";
+    image.addEventListener("error", mark, { once: true });
+    image.src = this.icons.favicon(target);
+    container.replaceChildren(image);
   }
 
   /** A favicon or technology logo when one exists, otherwise the type dot. */

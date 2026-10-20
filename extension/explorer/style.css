@@ -282,6 +282,12 @@ button {
   border-radius: 8px;
   margin-bottom: 13px;
 }
+.collection-icon img {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  object-fit: contain;
+}
 .collection-title {
   font-size: 15px;
   letter-spacing: -0.3px;

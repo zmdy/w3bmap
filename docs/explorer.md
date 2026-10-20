@@ -79,6 +79,8 @@ investigation and **Merge reports** to extend the current one.
 - Select a node in **Graph**, an item in **Tree view**, or a button in the
   keyboard-accessible **Entities** list, to view its source, time, confidence,
   evidence, and visible relationships.
+- The investigation card shows the target site's favicon, under the same rule as
+  the entity icons below.
 - Every selection also shows **Connections**, counting that entity's relationships
   and its neighbours by type, and **Collection at a glance**, counting the
   entities, relationships, hosts, detected links, resource references, inferred
