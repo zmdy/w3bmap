@@ -287,7 +287,7 @@ The architecture illustration uses BoxIcons v2 icons by Aniket Suvarna, obtained
 through [Iconify](https://icon-sets.iconify.design/bx/). See the
 [asset credits and license notices](docs/assets/README.md).
 
-Recursive analysis (version 0.6.0) supports depth, page/host limits, hostname scope,
+Recursive analysis (version 0.6.1) supports depth, page/host limits, hostname scope,
 URL include/exclude patterns, and explicit first-hop URLs. Enable it in the popup
 or run `sh cli/w3bmap.sh --url https://example.com/ --depth 2 --scope host` (Windows:
 `cli\w3bmap.cmd` or `.bat`). See the [recursive CLI guide](docs/cli.md#recursive-analysis)
@@ -295,6 +295,12 @@ and [extension controls](docs/extension.md#recursive-analysis). Browser technolo
 detection stays a flat list; entity clusters remain available in Site and Explorer.
 The Explorer defaults to a category layout and highlights directly related findings
 when an entity or relationship is selected. Click the canvas background to clear focus.
+
+Version 0.6.1 adds the Explorer's **Tree view**, which browses the collection as
+navigable folders built from URL paths, with the Inspector showing folder
+contents, per-entity connection counts, and general collection figures next to any
+selection. Entities carry technology logos, and site favicons when the Explorer is
+opened from the extension.
 
 Version 0.6.0 merges several reports into a single investigation. In the Explorer,
 **Merge reports** adds one or more JSON documents to the active collection, and

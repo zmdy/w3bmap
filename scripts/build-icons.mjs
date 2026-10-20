@@ -40,14 +40,19 @@ export class IconAssetBuilder {
       await this.save(`explorer/assets/icons/graph-${type}.svg`, this.svg(this.catalog.ui[name], color), this.catalog.ui[name]);
     }
     const technologyIcons = {};
-    for (const [id, icon] of Object.entries(this.catalog.technologies)) {
-      technologyIcons[id] = `${id}.svg`;
-      await this.save(`extension/assets/technology-icons/${id}.svg`, this.svg(icon, this.catalog.colors[id] ?? "#325970"), icon);
+    // The Explorer also runs standalone over HTTP, so it keeps its own copy of the logos.
+    for (const directory of ["extension/assets/technology-icons", "explorer/assets/technology-icons"]) {
+      for (const [id, icon] of Object.entries(this.catalog.technologies)) {
+        technologyIcons[id] = `${id}.svg`;
+        await this.save(`${directory}/${id}.svg`, this.svg(icon, this.catalog.colors[id] ?? "#325970"), icon);
+      }
+      await this.save(`${directory}/icons.js`, "// Generated from shared/iconify/catalog.json. Iconify assets only.\nexport const technologyIcons = " + JSON.stringify(technologyIcons, null, 2) + ";\n");
     }
-    await this.save("extension/assets/technology-icons/icons.js", "// Generated from shared/iconify/catalog.json. Iconify assets only.\nexport const technologyIcons = " + JSON.stringify(technologyIcons, null, 2) + ";\n");
     for (const [path, id, color] of [
       ["extension/assets/technology-icons/generic.svg", "bx:code-alt", "#16849c"],
+      ["explorer/assets/technology-icons/generic.svg", "bx:code-alt", "#16849c"],
       ["extension/assets/site-fallback.svg", "bx:globe", "#128099"],
+      ["explorer/assets/site-fallback.svg", "bx:globe", "#128099"],
       ["extension/assets/logo.svg", "bx:network-chart", "#009bb0"],
       ["extension/assets/brand-mark.svg", "bx:network-chart", "#00b8c9"],
       ["explorer/assets/favicon.svg", "bx:network-chart", "#009bb0"],

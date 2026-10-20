@@ -83,6 +83,7 @@ export const technologyIcons = {
   "tailwind": "tailwind.svg",
   "svelte": "svelte.svg",
   "solid": "solid.svg",
+  "qwik": "qwik.svg",
   "remix": "remix.svg",
   "storybook": "storybook.svg",
   "esbuild": "esbuild.svg",
@@ -92,6 +93,5 @@ export const technologyIcons = {
   "docusaurus": "docusaurus.svg",
   "posthog": "posthog.svg",
   "mixpanel": "mixpanel.svg",
-  "umami": "umami.svg",
-  "qwik": "qwik.svg"
+  "umami": "umami.svg"
 };

@@ -15,6 +15,8 @@ php -S 127.0.0.1:8081 -t explorer
 
 Open `http://127.0.0.1:8081/` in a modern browser. The application only needs a
 static HTTP server: PHP is one convenient way to serve it, not a required backend.
+`node scripts/serve-explorer.mjs` serves the same directory on 127.0.0.1:8081 when
+PHP is not available.
 Opening `index.html` directly with `file://` is not supported because the application
 uses JavaScript modules.
 
@@ -74,8 +76,14 @@ investigation and **Merge reports** to extend the current one.
 
 ## Explore
 
-- Select a node in **Graph**, or a button in the keyboard-accessible **Entities**
-  list, to view its source, time, confidence, evidence, and visible relationships.
+- Select a node in **Graph**, an item in **Tree view**, or a button in the
+  keyboard-accessible **Entities** list, to view its source, time, confidence,
+  evidence, and visible relationships.
+- Every selection also shows **Connections**, counting that entity's relationships
+  and its neighbours by type, and **Collection at a glance**, counting the
+  entities, relationships, hosts, detected links, resource references, inferred
+  relationships, module results, and module errors. The figures follow the active
+  filters and say so when a filter is narrowing them.
 - Select a graph edge or a relationship in the Inspector to inspect that edge's
   evidence and jump to either endpoint.
 - Search labels, IDs, and types using literal, case-insensitive text. Search narrows
@@ -103,6 +111,35 @@ investigation and **Merge reports** to extend the current one.
 
 The Inspector shows observation times in the browser's local timezone while the
 original timestamps are preserved in exported JSON.
+
+## Tree view
+
+**Tree view** presents the same collection as navigable folders. The site root
+is the collection target; below it, every page is placed under a folder for each
+segment of its URL path, and each leaf keeps its complete URL. Entities that have
+no URL path — technologies, subdomains, IP addresses, certificates and sitemaps —
+are grouped into their own category folders.
+
+A folder is a URL path prefix, not an ownership claim: pages from different hosts
+can share a path, so the host stays visible on every leaf and the folder's details
+list the hosts it covers. Folders are sorted before entities and both are sorted
+by name, so the same collection always produces the same tree. Large folders
+render their first 25 children with a **+N more** control, and expansion state is
+kept in the workspace, never written into the collection or the export.
+
+Click a folder to inspect its contents and figures, or an entity to inspect it as
+in the Graph view. Selecting an entity anywhere opens every folder on its path.
+**Expand all** and **Collapse all** act on the whole tree. The active filters and
+search apply to the tree exactly as they do to the graph.
+
+## Icons
+
+Entities carry the technology logo from the packaged Iconify catalog, and domains,
+pages and sitemaps carry the site favicon. Favicons are page content, so they come
+from Chrome's favicon cache and are only available when the Explorer is opened
+from the extension. The standalone HTTP Explorer makes no third-party request and
+shows the local fallback mark instead. Any image that fails to load falls back to
+the entity's type dot.
 
 ## Collapsible groups
 
@@ -167,10 +204,10 @@ explorer/
 ├── style.css
 ├── assets/
 ├── src/
-│   ├── models/                   # Graph state, filters, synthetic sample
-│   ├── views/                    # Canvas, workspace DOM, Inspector
+│   ├── models/                   # Graph state, filters, folder tree, sample
+│   ├── views/                    # Canvas, tree, workspace DOM, Inspector
 │   ├── controllers/              # Interaction and import coordination
-│   └── services/                 # Validation, report merging, local file IO
+│   └── services/                 # Validation, merging, tree, figures, icons, file IO
 ├── vendor/                      # Local browser libraries and notices
 ├── scripts/build-vendor.mjs      # Vendor/validator regeneration
 └── tests/                       # Graph, grouping and synthetic UI fixtures
@@ -199,15 +236,16 @@ npm test
 ```
 
 The tests cover schema and semantic rejection, resource limits, filtering, export
-preservation, report merging and deduplication, sample validity, and
-interoperability with a PHP-produced document.
+preservation, report merging and deduplication, folder tree construction,
+collection figures, sample validity, and interoperability with a PHP-produced
+document.
 The compiled schema snapshot is checked against the repository schema.
 Run `php tests/run.php` from the repository root to check the existing collectors.
 
 Manual browser checks: import a CLI export, reject an invalid file, select nodes
 and edges, search and reset, toggle inferred relationships, inspect module errors,
-switch layouts, merge several reports into one investigation, export with filters
-active, and verify desktop and narrow layouts.
+switch layouts, browse and expand the Tree view, merge several reports into one
+investigation, export with filters active, and verify desktop and narrow layouts.
 
 ## Current scope
 

@@ -29,3 +29,7 @@
 .ui-icon[data-icon="extension"] { --icon-url: url("./extension.svg"); }
 .ui-icon[data-icon="terminal"] { --icon-url: url("./terminal.svg"); }
 .ui-icon[data-icon="branch"] { --icon-url: url("./branch.svg"); }
+.ui-icon[data-icon="folder"] { --icon-url: url("./folder.svg"); }
+.ui-icon[data-icon="folder-open"] { --icon-url: url("./folder-open.svg"); }
+.ui-icon[data-icon="tree"] { --icon-url: url("./tree.svg"); }
+.ui-icon[data-icon="link"] { --icon-url: url("./link.svg"); }

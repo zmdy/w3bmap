@@ -197,6 +197,22 @@
       "icon": "bx:git-branch",
       "sha256": "33be382d2a35087b2fa3e42ed3e845bca5f280114ee318f56f5f1fdf451e4cb3"
     },
+    "explorer/assets/icons/folder.svg": {
+      "icon": "bx:bxs-folder",
+      "sha256": "ca526bd0a589f0a3f8433139505234cc72d0decc1c08794047a473393ea5aa68"
+    },
+    "explorer/assets/icons/folder-open.svg": {
+      "icon": "bx:bxs-folder-open",
+      "sha256": "eae37186d8c30191a0f2dd076d332efb1c3f2a4f377a19035a99658b12ee6ddb"
+    },
+    "explorer/assets/icons/tree.svg": {
+      "icon": "bx:network-chart",
+      "sha256": "fcb16865d81d8cbf5357a8673d9371eac322d8fff80250b851b019467bbda0b1"
+    },
+    "explorer/assets/icons/link.svg": {
+      "icon": "bx:link",
+      "sha256": "6f373104f5644be605525338389ccec4a4dd4a5511b7195039c1f485251a827f"
+    },
     "extension/assets/ui-icons/network.svg": {
       "icon": "bx:network-chart",
       "sha256": "fcb16865d81d8cbf5357a8673d9371eac322d8fff80250b851b019467bbda0b1"
@@ -312,6 +328,22 @@
     "extension/assets/ui-icons/branch.svg": {
       "icon": "bx:git-branch",
       "sha256": "33be382d2a35087b2fa3e42ed3e845bca5f280114ee318f56f5f1fdf451e4cb3"
+    },
+    "extension/assets/ui-icons/folder.svg": {
+      "icon": "bx:bxs-folder",
+      "sha256": "ca526bd0a589f0a3f8433139505234cc72d0decc1c08794047a473393ea5aa68"
+    },
+    "extension/assets/ui-icons/folder-open.svg": {
+      "icon": "bx:bxs-folder-open",
+      "sha256": "eae37186d8c30191a0f2dd076d332efb1c3f2a4f377a19035a99658b12ee6ddb"
+    },
+    "extension/assets/ui-icons/tree.svg": {
+      "icon": "bx:network-chart",
+      "sha256": "fcb16865d81d8cbf5357a8673d9371eac322d8fff80250b851b019467bbda0b1"
+    },
+    "extension/assets/ui-icons/link.svg": {
+      "icon": "bx:link",
+      "sha256": "6f373104f5644be605525338389ccec4a4dd4a5511b7195039c1f485251a827f"
     },
     "explorer/assets/icons/graph-domain.svg": {
       "icon": "bx:globe",
@@ -669,55 +701,439 @@
       "icon": "logos:solidjs-icon",
       "sha256": "1123e61b16507ab48972357643e7dbb59ee66e9b5936a9db1f48a808f8c21adf"
     },
+    "extension/assets/technology-icons/qwik.svg": {
+      "icon": "logos:qwik-icon",
+      "sha256": "9d520b1dc91d28d78e554f391a429f4a7ba3e0d25b68f06daf492fb608665247"
+    },
     "extension/assets/technology-icons/remix.svg": {
-      "icon": "simple-icons:remix",
-      "sha256": "9bccede43762309c519fabfa3e1e027c6e02503ad53bfbc858616b112e73f1ac"
+      "icon": "logos:remix-icon",
+      "sha256": "b9ba7f577d462a4429a409be40072570c3ab4ac21a1b8254f1eb12a9e795bd89"
     },
     "extension/assets/technology-icons/storybook.svg": {
       "icon": "logos:storybook-icon",
       "sha256": "2039f70063fcd6249d508d6c5a16ecfd0c479afa6ffd593e3e088460a6cd4b85"
     },
     "extension/assets/technology-icons/esbuild.svg": {
-      "icon": "simple-icons:esbuild",
-      "sha256": "aa49bbc9d1793f3a9d3ad7da980442e564dc291f12818f5726b8893e4aa61984"
+      "icon": "logos:esbuild",
+      "sha256": "6fcf79b0fca3690455dd5980b55e609ca3739581f4a091b9feff90988a8044e8"
     },
     "extension/assets/technology-icons/rollup.svg": {
       "icon": "logos:rollupjs",
       "sha256": "972f6d86c4c5c8f1b3dfbaa31257000bf77d49bd3f4e0c792ea0608afb9e4613"
     },
     "extension/assets/technology-icons/turbopack.svg": {
-      "icon": "bx:code-alt",
-      "sha256": "a2db31a9874cae78c75bba460e6247c1fce7d64afb3d878c208033d036b8dac7"
+      "icon": "logos:turbopack-icon",
+      "sha256": "3a3133c82aef5af66d4eda80d07fdd0c3fd1af1073a080475cd089239d8ef256"
     },
     "extension/assets/technology-icons/vitepress.svg": {
-      "icon": "logos:vite-icon",
-      "sha256": "96cfd9041ebdbc63d35b0bfb42024ba164330b30b08f3d78e86121837d98d96b"
+      "icon": "simple-icons:vitepress",
+      "sha256": "32bb41b5783a4e072c797331d02517d1e2d897aa07543395cc1d85c20dff94cb"
     },
     "extension/assets/technology-icons/docusaurus.svg": {
-      "icon": "bx:code-alt",
-      "sha256": "a2db31a9874cae78c75bba460e6247c1fce7d64afb3d878c208033d036b8dac7"
+      "icon": "logos:docusaurus",
+      "sha256": "b80f45edb6098e7daf00ffb71251994779179a60ed59746a8389b3d46d3f82a5"
     },
     "extension/assets/technology-icons/posthog.svg": {
-      "icon": "simple-icons:posthog",
-      "sha256": "7cc2ac6aaccfcdadee2f55341b97f66984b26058cc601ea0cf0cdf3a4baf43dd"
+      "icon": "logos:posthog-icon",
+      "sha256": "647dece3b376fb5500617ca8424eda074c4fd95cc74eca3149900e0bac285bb0"
     },
     "extension/assets/technology-icons/mixpanel.svg": {
       "icon": "simple-icons:mixpanel",
-      "sha256": "240c64a92b08c4f39358017c5c1f1e4a7be3afb45c6eb741e37a22eba9d98d68"
+      "sha256": "3fd082d22a96f2fc258562e8d9d2110d1a39aa9be817ed590491bd0947d4251d"
     },
     "extension/assets/technology-icons/umami.svg": {
       "icon": "simple-icons:umami",
-      "sha256": "9981f72b85901a7ecbc9836dafff0bb5f6bcea0f13c5c4a58c7a90daa78e0887"
+      "sha256": "de783fd3306d576a764deb97ce9141f98b6790173d250e7f25e780aa5af3f686"
     },
-    "extension/assets/technology-icons/qwik.svg": {
+    "explorer/assets/technology-icons/wordpress.svg": {
+      "icon": "logos:wordpress-icon",
+      "sha256": "641ba1c13a412bb539817287017ec9c58b5a48cf485dea77f0dedfcef7fcca8b"
+    },
+    "explorer/assets/technology-icons/drupal.svg": {
+      "icon": "logos:drupal-icon",
+      "sha256": "8245b1cfd34a8491c5cf6927b2c64b6c7cf872ce31328f3c95c3540575e51491"
+    },
+    "explorer/assets/technology-icons/nextjs.svg": {
+      "icon": "logos:nextjs-icon",
+      "sha256": "b925d4c5c5df358b87f3f67381862bb3ffb466316690ffb3acd84992009d1cd8"
+    },
+    "explorer/assets/technology-icons/nuxt.svg": {
+      "icon": "logos:nuxt-icon",
+      "sha256": "e5f78a2121a8a744b7c2501a76a98bc4b7f2526959fbc1a84cfbf560d9de9398"
+    },
+    "explorer/assets/technology-icons/jquery.svg": {
+      "icon": "simple-icons:jquery",
+      "sha256": "9f4bfa2c33a62c921a50fb9d5dd9fd3d535af7d77bbf8b8074c08c484c1c4085"
+    },
+    "explorer/assets/technology-icons/bootstrap.svg": {
+      "icon": "logos:bootstrap",
+      "sha256": "b33fcf36f72731e23b07f89e6af0e44ae35b33f0370993c9055a02c41c9beea8"
+    },
+    "explorer/assets/technology-icons/react.svg": {
+      "icon": "logos:react",
+      "sha256": "a073f16faf9b047efb14f6ace3968554c4188595fcc750464c63904684be7432"
+    },
+    "explorer/assets/technology-icons/vue.svg": {
+      "icon": "logos:vue",
+      "sha256": "d3e1eaa8fec1f839e4ffe9647ead7ac7170c846fcbcdf8f9bd4469a04e39cd43"
+    },
+    "explorer/assets/technology-icons/angular.svg": {
+      "icon": "logos:angular-icon",
+      "sha256": "28d1ccec8e65c22aa30d3fa6e080a4c2fd7f1dbd50bae8ccc8062766bf3e702d"
+    },
+    "explorer/assets/technology-icons/joomla.svg": {
+      "icon": "logos:joomla",
+      "sha256": "541141dfb00820a35311ede93459502e12dd636d2083ef30c520d99895422aec"
+    },
+    "explorer/assets/technology-icons/ghost.svg": {
+      "icon": "simple-icons:ghost",
+      "sha256": "6fe1fa85b794403a39f99e46c7d9608b3ac2b00746d316a26df536971b77a8d6"
+    },
+    "explorer/assets/technology-icons/wix.svg": {
+      "icon": "simple-icons:wix",
+      "sha256": "77fca56a7157b1e7448e94690f14daa4b7420fd36c1fc657caa7774becbf8213"
+    },
+    "explorer/assets/technology-icons/squarespace.svg": {
+      "icon": "logos:squarespace",
+      "sha256": "d1feb169a4f1da684a996fd50958e54cbf8a94f372bd9c64afbacc69e45c72c4"
+    },
+    "explorer/assets/technology-icons/webflow.svg": {
+      "icon": "simple-icons:webflow",
+      "sha256": "717d00e6e92eb6dff4d1f2eaa90b647e4e41429e0bc53bbf15555801eca22529"
+    },
+    "explorer/assets/technology-icons/framer.svg": {
+      "icon": "logos:framer",
+      "sha256": "7fd6b09a1c5d70312ef34ccb5d42deabd91d52b4cbee59a33b22458de18b4661"
+    },
+    "explorer/assets/technology-icons/shopify.svg": {
+      "icon": "logos:shopify",
+      "sha256": "028ee3e68fc55109d80217ad69665e93a6ba2d58d14f9245ca5137fcb1101740"
+    },
+    "explorer/assets/technology-icons/woocommerce.svg": {
+      "icon": "logos:woocommerce-icon",
+      "sha256": "7351c3a19e7ce239984ef9fa4327ba169c508c75b623bd09200fc86db3b4cff5"
+    },
+    "explorer/assets/technology-icons/prestashop.svg": {
+      "icon": "logos:prestashop-icon",
+      "sha256": "f1ca823037c8b8ffbb0a9c191e0a2266f620b8dc57175383f247e8e40797800a"
+    },
+    "explorer/assets/technology-icons/magento.svg": {
+      "icon": "logos:magento",
+      "sha256": "18e691e579dad1eef5372b0f3f56cbbb96c8aeb8b15d369b489b9ec4ea308afe"
+    },
+    "explorer/assets/technology-icons/bigcommerce.svg": {
+      "icon": "simple-icons:bigcommerce",
+      "sha256": "b6b3593e4c3dc2c02c35bf0c9bb49c4e974fa5a5001f548a9da577353287f921"
+    },
+    "explorer/assets/technology-icons/gatsby.svg": {
+      "icon": "logos:gatsby",
+      "sha256": "e8a2555d4b0822c78beeecc925d6c9b85d81303a89e1bee57adaea92d518baad"
+    },
+    "explorer/assets/technology-icons/astro.svg": {
+      "icon": "logos:astro-icon",
+      "sha256": "4c64e6aa578051555a01d7e3aa1a836904d7f70a031871330ca52a84b2efc0ee"
+    },
+    "explorer/assets/technology-icons/sveltekit.svg": {
+      "icon": "logos:svelte-icon",
+      "sha256": "542df0146fa2a4687edd9e8063f1061f8963ac79bde9cbe3a0a9398bd5b1f138"
+    },
+    "explorer/assets/technology-icons/angularjs.svg": {
+      "icon": "simple-icons:angular",
+      "sha256": "0ac0133547671070ebd5015df9c5fc5f79a675457009e2c55ed20d50e92857b9"
+    },
+    "explorer/assets/technology-icons/alpine.svg": {
+      "icon": "simple-icons:alpinedotjs",
+      "sha256": "78bcee3619b902361b1b39872e60680877ed1e87351df86013f2577220d862c0"
+    },
+    "explorer/assets/technology-icons/htmx.svg": {
+      "icon": "logos:htmx-icon",
+      "sha256": "c5fd223b88b6079216e700cb039a47d3ee23e948d05cd11e2956128624598a1a"
+    },
+    "explorer/assets/technology-icons/ember.svg": {
+      "icon": "logos:ember-tomster",
+      "sha256": "8e8da4b0f37cd00c5d4028671c94b99de51b1f54d7025ef7d320653aec23889e"
+    },
+    "explorer/assets/technology-icons/backbone.svg": {
+      "icon": "logos:backbone-icon",
+      "sha256": "8485922f96ee4e69de4164b185624123193e020cdd6499a8bf902c10ccdf511d"
+    },
+    "explorer/assets/technology-icons/preact.svg": {
+      "icon": "logos:preact",
+      "sha256": "cfeea14a925f2738ba413d8a87d61403b55d3d31fd25d034b3f858eb73ec5ce2"
+    },
+    "explorer/assets/technology-icons/lit.svg": {
+      "icon": "logos:lit-icon",
+      "sha256": "f23359e5b1807cacef9bc172c26b3b278e3ddc949fe2233f0ca1eabc8c1d2818"
+    },
+    "explorer/assets/technology-icons/lodash.svg": {
+      "icon": "logos:lodash",
+      "sha256": "b0226732c0dbff41c6595e8e1070dac212c8579c0f65527efa31a25791364463"
+    },
+    "explorer/assets/technology-icons/moment.svg": {
       "icon": "bx:code-alt",
       "sha256": "a2db31a9874cae78c75bba460e6247c1fce7d64afb3d878c208033d036b8dac7"
+    },
+    "explorer/assets/technology-icons/dayjs.svg": {
+      "icon": "bx:code-alt",
+      "sha256": "a2db31a9874cae78c75bba460e6247c1fce7d64afb3d878c208033d036b8dac7"
+    },
+    "explorer/assets/technology-icons/axios.svg": {
+      "icon": "simple-icons:axios",
+      "sha256": "dd5c1c4970b84615c01c7d2bfd5e838057396e5153f6452761d77ef27f78020e"
+    },
+    "explorer/assets/technology-icons/d3.svg": {
+      "icon": "logos:d3",
+      "sha256": "5358dc3044ab9fca265b09538f7080419f3259ce26321a183aea428013957cdd"
+    },
+    "explorer/assets/technology-icons/chartjs.svg": {
+      "icon": "logos:chartjs",
+      "sha256": "56cc0598f5a5ee5fc784f9a7ca461e5816d6fa567181a6702280f6dee6cd395f"
+    },
+    "explorer/assets/technology-icons/highcharts.svg": {
+      "icon": "logos:highcharts",
+      "sha256": "12e34bdf9605ab84e589d8abe469f5220d99179a3e4f63100b43a62adff9ced3"
+    },
+    "explorer/assets/technology-icons/threejs.svg": {
+      "icon": "logos:threejs",
+      "sha256": "066f8c9f15a61b3c0b77c591297c7ae987334df92b03fecf3f7153bfe06ab693"
+    },
+    "explorer/assets/technology-icons/leaflet.svg": {
+      "icon": "simple-icons:leaflet",
+      "sha256": "14d358ec0a50d49b25b4a478d9942fe44a21ff680c27cea5617496285be7562c"
+    },
+    "explorer/assets/technology-icons/mapbox.svg": {
+      "icon": "logos:mapbox-icon",
+      "sha256": "16c2c8e7b7f5cc0b756290a685ea019b86388b03a3adfdb20af22a7d43424fda"
+    },
+    "explorer/assets/technology-icons/google-maps.svg": {
+      "icon": "logos:google-maps",
+      "sha256": "027dd8784bde6c5561194ae4251f040ce4b16439601542fb15ce3569fd9ac53a"
+    },
+    "explorer/assets/technology-icons/bulma.svg": {
+      "icon": "logos:bulma",
+      "sha256": "d3b31630d08b5c1b2d4ddb12abbff78540757f70257341b01f4f068456da1056"
+    },
+    "explorer/assets/technology-icons/foundation.svg": {
+      "icon": "logos:foundation",
+      "sha256": "7772f5c25d12898c6060002aee1ad37eb4f3761d074fc80aeafc28d94b610a9a"
+    },
+    "explorer/assets/technology-icons/materialize.svg": {
+      "icon": "logos:materializecss",
+      "sha256": "64ee3435d50aecd45bf34c212e23892502043fcd1c0255b33e585982a22f5ece"
+    },
+    "explorer/assets/technology-icons/fontawesome.svg": {
+      "icon": "logos:font-awesome",
+      "sha256": "e979cdbb2e87a44cebc4134af59be9b2b29e1fef68f3c990dbef700640849701"
+    },
+    "explorer/assets/technology-icons/google-fonts.svg": {
+      "icon": "logos:google-fonts-icon",
+      "sha256": "8b3575564bcf3fc5d13376f92e52fca235f6eb753f4b0043f11684946919768a"
+    },
+    "explorer/assets/technology-icons/boxicons.svg": {
+      "icon": "bx:code-alt",
+      "sha256": "a2db31a9874cae78c75bba460e6247c1fce7d64afb3d878c208033d036b8dac7"
+    },
+    "explorer/assets/technology-icons/gtm.svg": {
+      "icon": "logos:google-tag-manager",
+      "sha256": "f793a940140e306fc5dc4193074a5b37e7c04517ccf31af5eedec68a941492ff"
+    },
+    "explorer/assets/technology-icons/google-analytics.svg": {
+      "icon": "logos:google-analytics",
+      "sha256": "99f3715d62fa25deb796a0db6fe189f27c11f976cf192d92db082ece241798d0"
+    },
+    "explorer/assets/technology-icons/matomo.svg": {
+      "icon": "logos:matomo-icon",
+      "sha256": "b3ae4a42deadd2c8da26602d971076db7cb8df3ac4c696e5c51e54b9c940cfaa"
+    },
+    "explorer/assets/technology-icons/plausible.svg": {
+      "icon": "bx:code-alt",
+      "sha256": "a2db31a9874cae78c75bba460e6247c1fce7d64afb3d878c208033d036b8dac7"
+    },
+    "explorer/assets/technology-icons/hotjar.svg": {
+      "icon": "logos:hotjar-icon",
+      "sha256": "9758ba88c0fd31d4b3eaceec5162b64ea1bb880346c37db9940cf3877d8c7c04"
+    },
+    "explorer/assets/technology-icons/clarity.svg": {
+      "icon": "simple-icons:microsoft",
+      "sha256": "3ad5bc37feee08ccd190c1c3946b495ae66f99a9913819b4af30df0b780e2122"
+    },
+    "explorer/assets/technology-icons/fathom.svg": {
+      "icon": "simple-icons:fathom",
+      "sha256": "393a10f24f08890c9a366f4d87f3941669c1848d356211f110e3556c27d908eb"
+    },
+    "explorer/assets/technology-icons/segment.svg": {
+      "icon": "logos:segment-icon",
+      "sha256": "12887628d85116b2ce195ae49abbee457fdb2a1c80a4100fd5ab69e82ec8a321"
+    },
+    "explorer/assets/technology-icons/sentry.svg": {
+      "icon": "logos:sentry-icon",
+      "sha256": "5f04242c40f3417199160063a64cf4077c8b19877116d0a15f81fb5909c94579"
+    },
+    "explorer/assets/technology-icons/newrelic.svg": {
+      "icon": "simple-icons:newrelic",
+      "sha256": "e005d1b8d96a4a1a677d1ae6b9225b101837fcd61e1fdbab21006cad7d3de6e1"
+    },
+    "explorer/assets/technology-icons/datadog.svg": {
+      "icon": "logos:datadog-icon",
+      "sha256": "88e4f7fdcdfa3db64aada61c40a3db2956239c028e97e02c6f2a51d31279b63a"
+    },
+    "explorer/assets/technology-icons/stripe.svg": {
+      "icon": "simple-icons:stripe",
+      "sha256": "48f910b051d6b7cc85f4f4147693f86f0a3d5b44ff85a408424c74a6ae3b86a1"
+    },
+    "explorer/assets/technology-icons/paypal.svg": {
+      "icon": "logos:paypal",
+      "sha256": "b7182c31b2a552e6dc344d9fdd3541eb73be42a174c3a1ef1dc96a17af234b51"
+    },
+    "explorer/assets/technology-icons/recaptcha.svg": {
+      "icon": "logos:recaptcha",
+      "sha256": "e5f29f177d53b707f164779b170848bc2914d110ec0faa3dfa615d42d2d7c1db"
+    },
+    "explorer/assets/technology-icons/hcaptcha.svg": {
+      "icon": "logos:hcaptcha-icon",
+      "sha256": "c3ac58acb147c60e7f55ffd038fee881f1436ba7139325ee0c9856c3a878c8ff"
+    },
+    "explorer/assets/technology-icons/turnstile.svg": {
+      "icon": "simple-icons:cloudflare",
+      "sha256": "7de64fbdb9ae90107767e5dc49afccc6fa62fd8aecbb48e9b1f2aa767e3bb6e5"
+    },
+    "explorer/assets/technology-icons/intercom.svg": {
+      "icon": "logos:intercom-icon",
+      "sha256": "dd51344ae1471d7a4b5d6974f97fa2fc6c962e46df11416496a8316e7c85ad38"
+    },
+    "explorer/assets/technology-icons/crisp.svg": {
+      "icon": "bx:code-alt",
+      "sha256": "a2db31a9874cae78c75bba460e6247c1fce7d64afb3d878c208033d036b8dac7"
+    },
+    "explorer/assets/technology-icons/zendesk.svg": {
+      "icon": "logos:zendesk-icon",
+      "sha256": "a1f2adef5a307ac19e3dcd3f09ca9c1172e4cf11b40e7e0a1e19c59f3d9fcba4"
+    },
+    "explorer/assets/technology-icons/tawk.svg": {
+      "icon": "bx:code-alt",
+      "sha256": "a2db31a9874cae78c75bba460e6247c1fce7d64afb3d878c208033d036b8dac7"
+    },
+    "explorer/assets/technology-icons/hubspot.svg": {
+      "icon": "simple-icons:hubspot",
+      "sha256": "a5e5cfe66fe5a91a997236a2bb8c26eef0271175021f040f1c16baf901685b87"
+    },
+    "explorer/assets/technology-icons/mailchimp.svg": {
+      "icon": "logos:mailchimp-freddie",
+      "sha256": "9c534f8ed893f8eff18a7327adc7c0333ea5ca3b7235422e77b2e2ba8bf67b91"
+    },
+    "explorer/assets/technology-icons/youtube.svg": {
+      "icon": "logos:youtube-icon",
+      "sha256": "53f89547b258778fcb1c2f9088d03edec82beab3d2a6e9afc39a1512605829cf"
+    },
+    "explorer/assets/technology-icons/vimeo.svg": {
+      "icon": "logos:vimeo-icon",
+      "sha256": "c21d37854f531d4ea953842dd006560a28f5ebc14fac7e5da083874b7332d022"
+    },
+    "explorer/assets/technology-icons/videojs.svg": {
+      "icon": "bx:code-alt",
+      "sha256": "a2db31a9874cae78c75bba460e6247c1fce7d64afb3d878c208033d036b8dac7"
+    },
+    "explorer/assets/technology-icons/swiper.svg": {
+      "icon": "simple-icons:swiper",
+      "sha256": "37eddeea3cd8146ee8ec82b149cf9e443516358e7798b84526e123cdea7d2106"
+    },
+    "explorer/assets/technology-icons/aos.svg": {
+      "icon": "bx:code-alt",
+      "sha256": "a2db31a9874cae78c75bba460e6247c1fce7d64afb3d878c208033d036b8dac7"
+    },
+    "explorer/assets/technology-icons/gsap.svg": {
+      "icon": "simple-icons:gsap",
+      "sha256": "2904dd0abf0107059cfd57a875219cf8ecd5381597a1604260000956d8ceaeb9"
+    },
+    "explorer/assets/technology-icons/requirejs.svg": {
+      "icon": "bx:code-alt",
+      "sha256": "a2db31a9874cae78c75bba460e6247c1fce7d64afb3d878c208033d036b8dac7"
+    },
+    "explorer/assets/technology-icons/webpack.svg": {
+      "icon": "logos:webpack",
+      "sha256": "1476b3d34c9268655b15768a9360ae3695d889402100eb7a1068a527bccbe0e0"
+    },
+    "explorer/assets/technology-icons/vite.svg": {
+      "icon": "logos:vite-icon",
+      "sha256": "96cfd9041ebdbc63d35b0bfb42024ba164330b30b08f3d78e86121837d98d96b"
+    },
+    "explorer/assets/technology-icons/onetrust.svg": {
+      "icon": "bx:code-alt",
+      "sha256": "a2db31a9874cae78c75bba460e6247c1fce7d64afb3d878c208033d036b8dac7"
+    },
+    "explorer/assets/technology-icons/cookiebot.svg": {
+      "icon": "bx:code-alt",
+      "sha256": "a2db31a9874cae78c75bba460e6247c1fce7d64afb3d878c208033d036b8dac7"
+    },
+    "explorer/assets/technology-icons/tailwind.svg": {
+      "icon": "logos:tailwindcss-icon",
+      "sha256": "b84718c7016b810ad1afb744ceea13998d89403128009467132f6787a714c3fc"
+    },
+    "explorer/assets/technology-icons/svelte.svg": {
+      "icon": "logos:svelte-icon",
+      "sha256": "542df0146fa2a4687edd9e8063f1061f8963ac79bde9cbe3a0a9398bd5b1f138"
+    },
+    "explorer/assets/technology-icons/solid.svg": {
+      "icon": "logos:solidjs-icon",
+      "sha256": "1123e61b16507ab48972357643e7dbb59ee66e9b5936a9db1f48a808f8c21adf"
+    },
+    "explorer/assets/technology-icons/qwik.svg": {
+      "icon": "logos:qwik-icon",
+      "sha256": "9d520b1dc91d28d78e554f391a429f4a7ba3e0d25b68f06daf492fb608665247"
+    },
+    "explorer/assets/technology-icons/remix.svg": {
+      "icon": "logos:remix-icon",
+      "sha256": "b9ba7f577d462a4429a409be40072570c3ab4ac21a1b8254f1eb12a9e795bd89"
+    },
+    "explorer/assets/technology-icons/storybook.svg": {
+      "icon": "logos:storybook-icon",
+      "sha256": "2039f70063fcd6249d508d6c5a16ecfd0c479afa6ffd593e3e088460a6cd4b85"
+    },
+    "explorer/assets/technology-icons/esbuild.svg": {
+      "icon": "logos:esbuild",
+      "sha256": "6fcf79b0fca3690455dd5980b55e609ca3739581f4a091b9feff90988a8044e8"
+    },
+    "explorer/assets/technology-icons/rollup.svg": {
+      "icon": "logos:rollupjs",
+      "sha256": "972f6d86c4c5c8f1b3dfbaa31257000bf77d49bd3f4e0c792ea0608afb9e4613"
+    },
+    "explorer/assets/technology-icons/turbopack.svg": {
+      "icon": "logos:turbopack-icon",
+      "sha256": "3a3133c82aef5af66d4eda80d07fdd0c3fd1af1073a080475cd089239d8ef256"
+    },
+    "explorer/assets/technology-icons/vitepress.svg": {
+      "icon": "simple-icons:vitepress",
+      "sha256": "32bb41b5783a4e072c797331d02517d1e2d897aa07543395cc1d85c20dff94cb"
+    },
+    "explorer/assets/technology-icons/docusaurus.svg": {
+      "icon": "logos:docusaurus",
+      "sha256": "b80f45edb6098e7daf00ffb71251994779179a60ed59746a8389b3d46d3f82a5"
+    },
+    "explorer/assets/technology-icons/posthog.svg": {
+      "icon": "logos:posthog-icon",
+      "sha256": "647dece3b376fb5500617ca8424eda074c4fd95cc74eca3149900e0bac285bb0"
+    },
+    "explorer/assets/technology-icons/mixpanel.svg": {
+      "icon": "simple-icons:mixpanel",
+      "sha256": "3fd082d22a96f2fc258562e8d9d2110d1a39aa9be817ed590491bd0947d4251d"
+    },
+    "explorer/assets/technology-icons/umami.svg": {
+      "icon": "simple-icons:umami",
+      "sha256": "de783fd3306d576a764deb97ce9141f98b6790173d250e7f25e780aa5af3f686"
     },
     "extension/assets/technology-icons/generic.svg": {
       "icon": "bx:code-alt",
       "sha256": "351cfdc690074f30ef338d4ae7bcccb04196d2c22e16950951b8f18a8675caea"
     },
+    "explorer/assets/technology-icons/generic.svg": {
+      "icon": "bx:code-alt",
+      "sha256": "351cfdc690074f30ef338d4ae7bcccb04196d2c22e16950951b8f18a8675caea"
+    },
     "extension/assets/site-fallback.svg": {
+      "icon": "bx:globe",
+      "sha256": "78c415ededc2eeee6cd4532e95285412691dcbb415073956e3ab330b0b9a7290"
+    },
+    "explorer/assets/site-fallback.svg": {
       "icon": "bx:globe",
       "sha256": "78c415ededc2eeee6cd4532e95285412691dcbb415073956e3ab330b0b9a7290"
     },

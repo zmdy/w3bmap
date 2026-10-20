@@ -1,10 +1,23 @@
 import { Dom } from "./WorkspaceView.js";
 import { GraphView } from "./GraphView.js";
+import { CollectionStatsService } from "../services/CollectionStatsService.js";
 
 export class InspectorView {
-  constructor(details, collection) {
+  static ICONS = {
+    page: "file",
+    certificate: "shield",
+    technology: "code",
+    ip: "server",
+    sitemap: "sitemap",
+    domain: "globe",
+  };
+
+  constructor(details, collection, icons, stats = new CollectionStatsService()) {
     this.details = details;
     this.collection = collection;
+    this.icons = icons;
+    this.stats = stats;
+    this.model = null;
   }
 
   empty() {
@@ -15,10 +28,60 @@ export class InspectorView {
       Dom.element(
         "p",
         "",
-        "Select an entity or relationship to inspect its source and evidence.",
+        "Select an entity, folder, or relationship to inspect its source and evidence.",
       ),
     );
     this.details.replaceChildren(wrapper);
+    this.glance();
+  }
+
+  /** General figures for the loaded collection, shown with any selection. */
+  glance() {
+    const overview = this.stats.overview(
+      this.model?.document,
+      this.model?.visible(),
+    );
+    if (!overview) return;
+    const section = this.section(this.details, "Collection at a glance");
+    this.figures(section, [
+      ["Entities", overview.entities],
+      ["Relationships", overview.relationships],
+      ...Object.entries(CollectionStatsService.TYPE_LABELS).map(
+        ([type, label]) => [label, overview.types[type]],
+      ),
+      ["Hosts", overview.hosts],
+      ["Links detected", overview.links],
+      ["Resource references", overview.resources],
+      ["Inferred relationships", overview.inferred],
+      ["Module results", overview.modules],
+      ["Module errors", overview.errors],
+    ]);
+    section.append(
+      Dom.element(
+        "p",
+        "inspector-subtitle",
+        overview.filtered
+          ? "Counted from the entities and relationships visible under the current filters."
+          : "Counted from the complete loaded collection.",
+      ),
+    );
+  }
+
+  figures(parent, entries) {
+    const grid = Dom.element("div", "figure-grid");
+    for (const [label, value] of entries) {
+      const cell = Dom.element("div", "figure-cell");
+      cell.append(
+        Dom.element(
+          "strong",
+          "",
+          typeof value === "number" ? value.toLocaleString("en-US") : String(value),
+        ),
+        Dom.element("span", "", label),
+      );
+      grid.append(cell);
+    }
+    parent.append(grid);
   }
 
   section(parent, title) {
@@ -52,24 +115,117 @@ export class InspectorView {
     );
   }
 
+  /** Builds the coloured header with a favicon, a technology logo, or an icon. */
+  avatar(type, node = null) {
+    const avatar = Dom.element("div", "entity-avatar");
+    const source = node ? this.icons?.forNode(node) : null;
+    if (source) {
+      const image = document.createElement("img");
+      image.width = 24;
+      image.height = 24;
+      image.alt = "";
+      image.src = source;
+      image.addEventListener(
+        "error",
+        () => {
+          image.replaceWith(
+            Dom.icon(InspectorView.ICONS[type] ?? "network"),
+          );
+        },
+        { once: true },
+      );
+      avatar.append(image);
+    } else avatar.append(Dom.icon(InspectorView.ICONS[type] ?? "network"));
+    return avatar;
+  }
+
+  /** Details for a Tree view folder: a URL path prefix, not an ownership claim. */
+  folder(folder, model) {
+    this.model = model;
+    this.details.replaceChildren();
+    const header = Dom.element("div");
+    header.style.setProperty("--type-color", GraphView.COLORS[folder.type]);
+    const avatar = Dom.element("div", "entity-avatar");
+    avatar.append(Dom.icon("folder"));
+    header.append(
+      avatar,
+      Dom.element("div", "inspector-type", "Folder"),
+      Dom.element("h3", "inspector-title", folder.label),
+      Dom.element("div", "inspector-subtitle", folder.path.join(" › ")),
+    );
+    this.details.append(header);
+    const figures = this.stats.forFolder(model.document, folder);
+    const properties = this.section(this.details, "Folder");
+    this.figures(properties, [
+      ["Entities", figures.items],
+      ["Subfolders", figures.folders],
+      ["Hosts", figures.hosts],
+      ["Linked technologies", figures.technologies.length],
+    ]);
+    this.row(properties, "Path", folder.path.join("/") || "/");
+    this.row(
+      properties,
+      "Sources",
+      figures.sources.join(", ") || "Not reported",
+    );
+    if (figures.first) this.row(properties, "First collected", Dom.date(figures.first));
+    if (figures.last) this.row(properties, "Last collected", Dom.date(figures.last));
+    properties.append(
+      Dom.element(
+        "p",
+        "inspector-subtitle",
+        "Folders group entities by URL path. A shared path does not prove that the hosts below it are related.",
+      ),
+    );
+    if (figures.technologies.length) {
+      const technologies = this.section(this.details, "Related technologies");
+      for (const id of figures.technologies.slice(0, 30)) {
+        const entity = model.document.nodes.find((item) => item.id === id);
+        if (!entity) continue;
+        const button = Dom.element("button", "relationship-link");
+        button.dataset.nodeId = id;
+        const label = Dom.element("span", "", entity.label);
+        button.append(this.avatar(entity.type, entity), label);
+        technologies.append(button);
+      }
+    }
+    const contents = this.section(this.details, `Contents (${folder.children.length})`);
+    for (const child of folder.children.slice(0, 30)) {
+      if (child.kind === "folder") {
+        const row = Dom.element("div", "relationship-link static");
+        row.append(
+          Dom.icon("folder"),
+          Dom.element("span", "", `${child.label} (${child.count})`),
+        );
+        contents.append(row);
+        continue;
+      }
+      const button = Dom.element("button", "relationship-link");
+      button.dataset.nodeId = child.node.id;
+      const label = Dom.element("span", "", child.url ?? child.label);
+      label.append(Dom.element("small", "", child.type));
+      button.append(Dom.dot(child.type), label);
+      contents.append(button);
+    }
+    if (folder.children.length > 30)
+      contents.append(
+        Dom.element(
+          "p",
+          "inspector-subtitle",
+          `Showing 30 of ${folder.children.length} items.`,
+        ),
+      );
+    this.glance();
+  }
+
   selected(kind, record, model) {
+    this.model = model;
     this.details.replaceChildren();
     const node = kind === "node";
     const type = node ? record.type : "domain";
     const header = Dom.element("div");
     header.style.setProperty("--type-color", GraphView.COLORS[type]);
-    const avatar = Dom.element("div", "entity-avatar");
-    avatar.append(
-      Dom.icon(
-        node
-          ? record.type === "page"
-            ? "file"
-            : record.type === "certificate"
-              ? "shield"
-              : "network"
-          : "network",
-      ),
-    );
+    const avatar = this.avatar(type, node ? record : null);
     header.append(
       avatar,
       Dom.element("div", "inspector-type", node ? record.type : "Relationship"),
@@ -99,6 +255,17 @@ export class InspectorView {
     bar.append(fill);
     properties.append(bar);
     if (!node) this.row(properties, "Verification", record.verification);
+    if (node) {
+      const figures = this.stats.forNode(model.document, record);
+      this.figures(this.section(this.details, "Connections"), [
+        ["Relationships", figures.relationships],
+        ["Connected entities", figures.neighbours],
+        ["Technologies", figures.types.technology],
+        ["Pages", figures.types.page],
+        ["Domains", figures.types.domain],
+        ["Links", figures.links],
+      ]);
+    }
     this.evidence(this.section(this.details, "Evidence"), record.evidence);
     const relations = this.section(
       this.details,
@@ -150,9 +317,11 @@ export class InspectorView {
         relations.append(button);
       }
     }
+    this.glance();
   }
 
   overview(model) {
+    this.model = model;
     this.collection.replaceChildren();
     const data = model.document;
     if (!data) {

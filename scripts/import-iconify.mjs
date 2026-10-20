@@ -11,11 +11,13 @@ class IconifyCatalogImporter {
       chartjs: "chartjs", threejs: "threejs", "google-analytics": "google-analytics", "google-maps": "google-maps",
       "google-fonts": "google-fonts", gtm: "google-tag-manager", fontawesome: "font-awesome", newrelic: "new-relic",
       datadog: "datadog-icon", sentry: "sentry-icon", stripe: "stripe", lit: "lit-icon", mailchimp: "mailchimp-freddie",
-      recaptcha: "recaptcha", turnstile: "cloudflare-icon", magento: "magento", videojs: "videojs", materialize: "materializecss" };
+      recaptcha: "recaptcha", turnstile: "cloudflare-icon", magento: "magento", videojs: "videojs", materialize: "materializecss",
+      tailwind: "tailwindcss-icon", solid: "solidjs-icon", rollup: "rollupjs" };
     const ui = { network: "network-chart", settings: "cog", more: "dots-vertical-rounded", chevron: "chevron-down",
       play: "play", external: "link-external", download: "download", upload: "upload", file: "file", globe: "globe", sitemap: "sitemap",
       refresh: "refresh", right: "chevron-right", up: "up-arrow-alt", down: "down-arrow-alt", search: "search", fit: "fullscreen",
-      grid: "grid-alt", list: "list-ul", info: "info-circle", close: "x", shield: "check-shield", code: "code-alt", server: "server", plus: "plus", minus: "minus", extension: "extension", terminal: "terminal", branch: "git-branch" };
+      grid: "grid-alt", list: "list-ul", info: "info-circle", close: "x", shield: "check-shield", code: "code-alt", server: "server", plus: "plus", minus: "minus", extension: "extension", terminal: "terminal", branch: "git-branch",
+      folder: "bxs-folder", "folder-open": "bxs-folder-open", tree: "network-chart", link: "link" };
     const selected = {};
     const resolve = (id) => {
       const [prefix, name] = id.split(":");

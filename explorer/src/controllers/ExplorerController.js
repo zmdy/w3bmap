@@ -1,12 +1,15 @@
 import { EntityClusterModel } from "../models/EntityClusterModel.js";
 import { GraphModel } from "../models/GraphModel.js";
 import { SampleFactory } from "../models/SampleFactory.js";
+import { TreeModel } from "../models/TreeModel.js";
 import { DocumentValidator } from "../services/DocumentValidator.js";
 import { CollectionMerger } from "../services/CollectionMerger.js";
 import { FileService } from "../services/FileService.js";
+import { IconService } from "../services/IconService.js";
 import { GraphView } from "../views/GraphView.js";
 import { WorkspaceView } from "../views/WorkspaceView.js";
 import { InspectorView } from "../views/InspectorView.js";
+import { TreeView } from "../views/TreeView.js";
 
 export class ExplorerController {
   constructor() {
@@ -14,11 +17,25 @@ export class ExplorerController {
     this.validator = new DocumentValidator();
     this.merger = new CollectionMerger(this.validator);
     this.files = new FileService();
+    this.icons = new IconService();
     this.clusters = new EntityClusterModel();
-    this.view = new WorkspaceView(this.clusters, () => this.updateClusters(false));
+    this.tree = new TreeModel();
+    this.view = new WorkspaceView(
+      this.clusters,
+      () => this.updateClusters(false),
+      this.icons,
+    );
     this.inspector = new InspectorView(
       this.view.get("details-panel"),
       this.view.get("collection-panel"),
+      this.icons,
+    );
+    this.treeView = new TreeView(
+      this.view.get("tree-panel"),
+      this.tree,
+      this.icons,
+      (kind, id) => this.selectTree(kind, id),
+      (id) => this.toggleFolder(id),
     );
     this.graph = new GraphView(
       this.view.get("graph"),
@@ -30,6 +47,7 @@ export class ExplorerController {
     );
     this.workspaceTab = "graph";
     this.selection = null;
+    this.folder = null;
     this.importVersion = 0;
     this.dragDepth = 0;
     this.bind();
@@ -91,8 +109,12 @@ export class ExplorerController {
     on("zoom-out", "click", () => this.graph.zoom(1 / 1.2));
     on("fit-button", "click", () => this.graph.fit());
     on("graph-tab", "click", () => this.setWorkspaceTab("graph"));
+    on("tree-tab", "click", () => this.setWorkspaceTab("tree"));
     on("entities-tab", "click", () => this.setWorkspaceTab("entities"));
     on("graph-nav", "click", () => this.setWorkspaceTab("graph"));
+    on("tree-nav", "click", () => this.setWorkspaceTab("tree"));
+    on("expand-tree", "click", () => this.setAllFolders(true));
+    on("collapse-tree", "click", () => this.setAllFolders(false));
     on("details-tab", "click", () => this.view.tab("inspector", "details"));
     on("collection-tab", "click", () =>
       this.view.tab("inspector", "collection"),
@@ -101,7 +123,7 @@ export class ExplorerController {
       on(id, "click", (event) => this.inspectButton(event));
     on("help-button", "click", () => this.view.get("help-dialog").showModal());
     on("close-help", "click", () => this.view.get("help-dialog").close());
-    this.bindTabKeyboard(["graph", "entities"], (name) =>
+    this.bindTabKeyboard(["graph", "tree", "entities"], (name) =>
       this.setWorkspaceTab(name),
     );
     this.bindTabKeyboard(["details", "collection"], (name) =>
@@ -253,6 +275,8 @@ export class ExplorerController {
     clearTimeout(this.searchTimer);
     this.model.load(document, name, isSample);
     this.selection = null;
+    this.folder = null;
+    this.tree.expanded = new Set();
     this.view.resetFilters();
     this.view.summary(this.model);
     this.clusters.load(this.model.document.nodes);
@@ -286,6 +310,8 @@ export class ExplorerController {
     this.view.busy(false);
     this.model.clear();
     this.selection = null;
+    this.folder = null;
+    this.tree.expanded = new Set();
     this.view.resetFilters();
     this.view.summary(this.model);
     this.clusters.load([]);
@@ -312,6 +338,7 @@ export class ExplorerController {
       Boolean(this.model.document),
       this.workspaceTab === "graph",
     );
+    this.renderTree(visible);
     if (this.selection) {
       const { kind, record } = this.selection;
       const exists =
@@ -322,12 +349,62 @@ export class ExplorerController {
         this.graph.select(kind, record);
         this.inspector.selected(kind, record, this.model);
         this.view.selection(kind === "node" ? record.id : null);
+        this.treeView.selection(kind === "node" ? record.id : null);
       } else {
         this.selection = null;
         this.graph.clearSelection();
         this.inspector.empty();
       }
+    } else if (this.folder) {
+      const folder = this.tree.find(this.folder.id);
+      if (folder) this.inspector.folder(folder, this.model);
+      else {
+        this.folder = null;
+        this.inspector.empty();
+      }
     }
+  }
+
+  renderTree(visible) {
+    this.tree.build(visible.nodes, this.model.document?.target ?? "");
+    this.treeView.render();
+    this.view.get("tree-actions").hidden =
+      this.workspaceTab !== "tree" || !this.model.document;
+    this.treeView.selection(
+      this.folder?.id ??
+        (this.selection?.kind === "node" ? this.selection.record.id : null),
+    );
+  }
+
+  toggleFolder(id) {
+    this.tree.toggle(id);
+    this.treeView.render();
+    this.treeView.selection(
+      this.folder?.id ??
+        (this.selection?.kind === "node" ? this.selection.record.id : null),
+    );
+  }
+
+  setAllFolders(open) {
+    this.tree.setAll(open);
+    this.treeView.render();
+  }
+
+  selectTree(kind, id) {
+    if (kind === "folder") {
+      const folder = this.tree.find(id);
+      if (!folder) return;
+      this.selection = null;
+      this.folder = folder;
+      this.graph.clearSelection();
+      this.view.selection(null);
+      this.treeView.selection(id);
+      this.inspector.folder(folder, this.model);
+      this.view.tab("inspector", "details");
+      return;
+    }
+    const node = this.model.document?.nodes.find((item) => item.id === id);
+    if (node) this.select("node", node);
   }
 
   setWorkspaceTab(name) {
@@ -338,6 +415,8 @@ export class ExplorerController {
       Boolean(this.model.document),
       name === "graph",
     );
+    this.view.get("tree-actions").hidden =
+      name !== "tree" || !this.model.document;
     this.view.selection(
       this.selection?.kind === "node" ? this.selection.record.id : null,
     );
@@ -401,6 +480,7 @@ export class ExplorerController {
       return;
     }
     if (!record) return;
+    this.folder = null;
     const expandedBefore = this.clusters.expanded.size;
     if (kind === "node") this.clusters.expandNode(record.id);
     else { this.clusters.expandNode(record.source); this.clusters.expandNode(record.target); }
@@ -411,6 +491,8 @@ export class ExplorerController {
     this.selection = { kind, record };
     this.graph.select(kind, record);
     this.view.selection(kind === "node" ? record.id : null);
+    if (kind === "node" && this.tree.revealNode(record.id)) this.treeView.render();
+    this.treeView.selection(kind === "node" ? record.id : null);
     this.inspector.selected(kind, record, this.model);
     this.view.tab("inspector", "details");
   }

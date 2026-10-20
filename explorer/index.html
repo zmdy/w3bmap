@@ -35,6 +35,14 @@
       </button>
       <button
         class="rail-button"
+        id="tree-nav"
+        aria-label="Show tree view"
+        title="Tree view"
+      >
+        <span class="ui-icon" data-icon="folder" aria-hidden="true"></span>
+      </button>
+      <button
+        class="rail-button"
         id="help-button"
         aria-label="Open Explorer guide"
         title="Explorer guide"
@@ -42,7 +50,7 @@
         <span class="ui-icon" data-icon="info" aria-hidden="true"></span>
       </button>
       <span class="rail-spacer"></span>
-      <span class="rail-version">0.6.0</span>
+      <span class="rail-version">0.6.1</span>
     </aside>
     <div class="application">
       <header class="app-header">
@@ -172,6 +180,14 @@
                 >
                   <span class="ui-icon" data-icon="network" aria-hidden="true"></span>Graph</button
                 ><button
+                  id="tree-tab"
+                  role="tab"
+                  aria-selected="false"
+                  aria-controls="tree-panel"
+                  tabindex="-1"
+                >
+                  <span class="ui-icon" data-icon="folder" aria-hidden="true"></span>Tree view</button
+                ><button
                   id="entities-tab"
                   role="tab"
                   aria-selected="false"
@@ -188,6 +204,12 @@
                   placeholder="Search entities…"
                   aria-label="Search entities"
               /></label>
+              <div id="tree-actions" class="tree-actions" hidden>
+                <button id="expand-tree" class="text-button">Expand all</button
+                ><button id="collapse-tree" class="text-button">
+                  Collapse all
+                </button>
+              </div>
               <select
                 id="layout-select"
                 class="layout-select"
@@ -208,6 +230,13 @@
                   aria-label="Interactive discovery graph. Use the Entities tab for keyboard-accessible inspection."
                 ></div>
               </div>
+              <div
+                id="tree-panel"
+                class="tree-view"
+                role="tabpanel"
+                aria-labelledby="tree-tab"
+                hidden
+              ></div>
               <div
                 id="entities-panel"
                 role="tabpanel"
@@ -340,6 +369,7 @@
       <ol>
         <li>Use the filters and search to narrow the graph.</li>
         <li>Select an entity or relationship to inspect evidence.</li>
+        <li>Use Tree view to browse pages and findings as folders.</li>
         <li>Use the Entities tab for keyboard navigation.</li>
         <li>Use Merge reports to combine additional findings into the active view.</li>
         <li>Open Collection to inspect module results and errors.</li>

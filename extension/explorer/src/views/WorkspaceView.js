@@ -45,7 +45,8 @@ export class WorkspaceView {
     sitemap: "Sitemaps",
   };
 
-  constructor(clusters, onToggle) {
+  constructor(clusters, onToggle, icons = null) {
+    this.icons = icons;
     this.groupedList = new GroupedListView(document.getElementById("entity-list"), clusters, (node) => this.entityRow(node), onToggle);
     this.typeCheckboxes = new Map();
     const filters = this.get("type-filters");
@@ -138,7 +139,7 @@ export class WorkspaceView {
       Dom.element("small", "", node.type),
     );
     button.append(
-      Dom.dot(node.type),
+      this.entityMark(node),
       label,
       Dom.element(
         "span",
@@ -149,9 +150,32 @@ export class WorkspaceView {
     return button;
   }
 
+  /** A favicon or technology logo when one exists, otherwise the type dot. */
+  entityMark(node) {
+    const source = this.icons?.forNode(node);
+    if (!source) return Dom.dot(node.type);
+    const image = document.createElement("img");
+    image.className = "entity-image";
+    image.width = 18;
+    image.height = 18;
+    image.alt = "";
+    image.loading = "lazy";
+    image.src = source;
+    image.addEventListener(
+      "error",
+      () => {
+        image.replaceWith(Dom.dot(node.type));
+      },
+      { once: true },
+    );
+    return image;
+  }
+
   tab(group, active) {
     const tabs =
-      group === "workspace" ? ["graph", "entities"] : ["details", "collection"];
+      group === "workspace"
+        ? ["graph", "tree", "entities"]
+        : ["details", "collection"];
     for (const name of tabs) {
       const selected = name === active;
       const button = this.get(`${name}-tab`);
