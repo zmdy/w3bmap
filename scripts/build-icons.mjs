@@ -35,7 +35,8 @@ export class IconAssetBuilder {
       await this.save(`${directory}/icons.css`, css.join("\n") + "\n");
     }
     const graph = { domain: ["globe", "#168b92"], ip: ["server", "#8b6dc5"], page: ["file", "#5e8cc7"],
-      technology: ["code", "#c58d43"], certificate: ["shield", "#4d9a7a"], sitemap: ["sitemap", "#b66e97"] };
+      asset: ["code", "#7a8aa0"], technology: ["code", "#c58d43"], certificate: ["shield", "#4d9a7a"],
+      sitemap: ["sitemap", "#b66e97"] };
     for (const [type, [name, color]] of Object.entries(graph)) {
       await this.save(`explorer/assets/icons/graph-${type}.svg`, this.svg(this.catalog.ui[name], color), this.catalog.ui[name]);
     }

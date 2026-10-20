@@ -181,3 +181,27 @@ test("entity and folder figures summarize their own neighbourhood", () => {
   assert.equal(folder.first, "2026-10-16T12:00:00Z");
   assert.equal(folder.last, "2026-10-18T12:00:00Z");
 });
+
+test("assets share the page tree by path and remain a separate entity type", () => {
+  const nodes = [
+    { id: "page:https://example.com/docs/guide", type: "page", label: "/docs/guide" },
+    { id: "asset:https://example.com/docs/guide.pdf", type: "asset", label: "/docs/guide.pdf" },
+    { id: "asset:https://cdn.example.com/js/app.js", type: "asset", label: "/js/app.js" },
+    { id: "technology:react", type: "technology", label: "React" },
+  ];
+  const [site] = new SiteTreeBuilder().build(nodes, "example.com");
+  const docs = site.folders.find((folder) => folder.label === "docs");
+  // A final segment with an extension names a file and stays in its parent folder.
+  assert.deepEqual(
+    docs.children.map((child) => `${child.kind}:${child.label}`),
+    ["folder:guide", "entity:/docs/guide.pdf"],
+  );
+  assert.equal(site.count, 3, "assets are counted in the site tree");
+  const stats = new CollectionStatsService();
+  const overview = stats.overview({ nodes, edges: [], errors: [], results: {} });
+  assert.equal(overview.types.asset, 2);
+  assert.equal(overview.types.page, 1);
+  assert.equal(overview.hosts, 2);
+  assert.ok("Assets" in Object.values(CollectionStatsService.TYPE_LABELS).reduce(
+    (all, label) => ({ ...all, [label]: true }), {}));
+});

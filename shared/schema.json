@@ -6,7 +6,7 @@
   "required": ["schema_version", "tool", "target", "source", "collected_at", "status", "nodes", "edges", "results", "errors"],
   "additionalProperties": false,
   "properties": {
-    "schema_version": { "const": "1.0" },
+    "schema_version": { "enum": ["1.0", "1.1"] },
     "tool": { "const": "w3bm@p" },
     "target": { "type": "string", "minLength": 1 },
     "source": { "enum": ["cli", "probe", "extension"] },
@@ -36,7 +36,7 @@
       "required": ["id", "type", "label", "source", "collected_at", "evidence", "confidence"],
       "properties": {
         "id": { "type": "string", "minLength": 1 },
-        "type": { "enum": ["domain", "ip", "page", "technology", "certificate", "sitemap"] },
+        "type": { "enum": ["domain", "ip", "page", "asset", "technology", "certificate", "sitemap"] },
         "label": { "type": "string" },
         "source": { "enum": ["cli", "probe", "extension"] },
         "collected_at": { "type": "string", "format": "date-time" },

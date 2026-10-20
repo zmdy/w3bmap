@@ -40,6 +40,7 @@ export class WorkspaceView {
     domain: "Domains",
     ip: "IP addresses",
     page: "Pages",
+    asset: "Assets",
     technology: "Technologies",
     certificate: "Certificates",
     sitemap: "Sitemaps",

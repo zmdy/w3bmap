@@ -1,6 +1,6 @@
 /** Computes deterministic category regions without modifying collection records. */
 export class CategoryLayoutService {
-  static SLOTS = { technology: [-1, -1], page: [1, -1], domain: [1, 0],
+  static SLOTS = { technology: [-1, -1], page: [1, -1], domain: [1, 0], asset: [1, 1],
     certificate: [-1, 0], ip: [-1, 1], sitemap: [0, 1] };
 
   positions(nodes, rootId) {

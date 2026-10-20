@@ -5,6 +5,7 @@ import { CollectionStatsService } from "../services/CollectionStatsService.js";
 export class InspectorView {
   static ICONS = {
     page: "file",
+    asset: "code",
     certificate: "shield",
     technology: "code",
     ip: "server",

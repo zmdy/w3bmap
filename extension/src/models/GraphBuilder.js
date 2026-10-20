@@ -1,3 +1,5 @@
+import { ResourceClassifier } from "../services/ResourceClassifier.js";
+
 export class GraphBuilder {
   build(snapshot, technologies) {
     const page = new URL(snapshot.url);
@@ -29,24 +31,37 @@ export class GraphBuilder {
           verification: confidence === 1 ? "observed" : "inferred",
         });
     };
-    const registerPage = (value, evidence) => {
+    // Pages are documents; stylesheets, scripts, media and downloads are assets.
+    const register = (value, evidence, kind = "") => {
       const url = new URL(value);
+      const type = ResourceClassifier.classify(value, kind);
+      const id = `${type}:${value}`;
       node(`domain:${url.hostname}`, "domain", url.hostname, { url: value });
       node(
-        `page:${value}`,
-        "page",
+        id,
+        type,
         url.pathname === "/" ? url.hostname : `${url.hostname}${url.pathname}`,
-        evidence,
+        { ...evidence, resource_type: type },
       );
-      edge(`domain:${url.hostname}`, `page:${value}`, "contains", evidence);
-      return url;
+      edge(`domain:${url.hostname}`, id, "contains", evidence);
+      return { url, id, type };
     };
-    registerPage(snapshot.url, { url: snapshot.url, title: snapshot.title });
+    const current = register(
+      snapshot.url,
+      { url: snapshot.url, title: snapshot.title },
+      "document",
+    ).id;
     for (const link of snapshot.links) {
-      registerPage(link.url, { discovered_on: snapshot.url, kind: "link" });
-      edge(`page:${snapshot.url}`, `page:${link.url}`, "links_to", {
+      const target = register(link.url, {
         discovered_on: snapshot.url,
+        kind: "link",
       });
+      edge(
+        current,
+        target.id,
+        target.type === "asset" ? "references_resource" : "links_to",
+        { discovered_on: snapshot.url },
+      );
     }
     for (const resource of snapshot.resources) {
       const observedRequest = resource.observed_via?.includes("performance");
@@ -55,17 +70,17 @@ export class GraphBuilder {
         kind: resource.kind,
         observed_via: resource.observed_via ?? "dom",
       };
-      const resourceUrl = registerPage(resource.url, evidence);
+      const target = register(resource.url, evidence, resource.kind);
       edge(
-        `page:${snapshot.url}`,
-        `page:${resource.url}`,
+        current,
+        target.id,
         observedRequest ? "requests_resource" : "references_resource",
         evidence,
       );
-      if (resourceUrl.hostname !== page.hostname) {
+      if (target.url.hostname !== page.hostname) {
         edge(
           `domain:${page.hostname}`,
-          `domain:${resourceUrl.hostname}`,
+          `domain:${target.url.hostname}`,
           observedRequest
             ? "requests_resources_from"
             : "references_resources_from",
@@ -90,7 +105,7 @@ export class GraphBuilder {
       );
     }
     return {
-      schema_version: "1.0",
+      schema_version: "1.1",
       tool: "w3bm@p",
       target: page.hostname,
       source: "extension",
@@ -110,7 +125,7 @@ export class GraphBuilder {
             note: "Technology and version indicators are inferred. Missing versions are unknown; implied dependencies carry no version.",
           },
           limits: { links: 250, resources: 250 },
-          note: "URL queries and fragments are omitted. Resources are represented as page entities with kind evidence.",
+          note: "URL queries and fragments are omitted. Subresources are asset entities; documents are page entities.",
         },
       },
       errors: [],

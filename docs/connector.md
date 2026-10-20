@@ -212,7 +212,7 @@ requires cURL and `proc_open`; it never installs into the real deployment.
 
 ## Recursive analysis
 
-Authenticated `POST ?action=crawl` returns the existing schema 1.0 graph. The
+Authenticated `POST ?action=crawl` returns the existing schema 1.1 graph. The
 capabilities response includes `crawl.supported` and its hard limits. Example:
 
 ```json

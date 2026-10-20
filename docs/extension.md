@@ -265,8 +265,24 @@ Performance entries produce `requests_resource` relationships, with matching
 domain relationships and `observed_via` evidence. A request observation does not
 prove a successful response or that a particular framework is executing.
 
-Resources use the existing `page` node type with resource-kind evidence so output
-remains compatible with schema 1.0. Technology matches from
+### Pages and assets
+
+Since schema 1.1 a discovered URL becomes either a `page` or an `asset`. A page
+is a document a person can navigate to; an asset is a file the page loads or
+links to: stylesheets, scripts, images, media, fonts, data files and downloads.
+
+The element or Performance initiator kind decides first, because it states how
+the URL was used: an `iframe`, a frame and a navigation entry are documents,
+while `script`, `img`, `css`, media, font and fetch kinds are assets. When only
+the URL is known, as with an anchor or a `link` element, the file extension
+decides, so a linked `.pdf` or `.css` is an asset and `/about`, `/index.html` or
+`/item.php` stay pages. A linked asset produces a `references_resource`
+relationship instead of `links_to`. Entity IDs carry the type, so the same URL
+never appears as both a page and an asset.
+
+The classification reads the URL and the request kind only; it never fetches the
+resource or inspects its bytes, so an extensionless asset served from an
+unrecorded kind can still be classified as a page. Technology matches from
 `shared/fingerprints.json` are heuristic and have confidence below 1. Versions
 are recorded only when explicitly observed. Header-based
 signals are available through PHP enrichment; the extension does not intercept

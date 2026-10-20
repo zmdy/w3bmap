@@ -147,20 +147,25 @@ Collectors share versioned JSON containing entities (`nodes`), relationships
 (`edges`), collection metadata, module results, and errors. Discoveries record
 source, collection time, evidence, and confidence; relationships distinguish
 observed findings from inferred associations. The contract is defined in
-[shared/schema.json](shared/schema.json). Cross-run correlation is still planned.
+[shared/schema.json](shared/schema.json). Entities are domains, IP addresses,
+pages, assets, technologies, certificates, and sitemaps. Documents are pages;
+stylesheets, scripts, images, media, fonts and downloads are assets, which
+schema 1.1 introduced. Readers accept both 1.0 and 1.1 documents.
+Cross-run correlation is still planned.
 
 Simplified excerpt (full documents also include metadata, status, evidence,
 confidence, module results, and errors):
 
 ```json
 {
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "tool": "w3bm@p",
   "target": "example.com",
   "source": "extension",
   "nodes": [
     { "id": "domain:example.com", "type": "domain", "label": "example.com" },
-    { "id": "page:https://example.com/about", "type": "page", "label": "/about" }
+    { "id": "page:https://example.com/about", "type": "page", "label": "/about" },
+    { "id": "asset:https://example.com/app.js", "type": "asset", "label": "/app.js" }
   ],
   "edges": [
     {

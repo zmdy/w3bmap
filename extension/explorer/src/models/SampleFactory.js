@@ -19,6 +19,9 @@ export class SampleFactory {
       ["certificate:sample-origin", "certificate", "Origin TLS"],
       ["certificate:sample-assets", "certificate", "Assets TLS"],
       ["sitemap:https://example.com/sitemap.xml", "sitemap", "sitemap.xml"],
+      ["asset:https://assets.example.com/css/site.css", "asset", "/css/site.css"],
+      ["asset:https://assets.example.com/js/app.js", "asset", "/js/app.js"],
+      ["asset:https://example.com/img/logo.png", "asset", "/img/logo.png"],
     ];
     const nodes = definitions.map(([id, type, label]) => ({
       id,
@@ -72,6 +75,18 @@ export class SampleFactory {
       ["page:https://example.com/blog", "technology:wordpress", "uses"],
       ["page:https://example.com/", "technology:bootstrap", "uses"],
       ["domain:assets.example.com", "technology:nginx", "uses"],
+      ...nodes
+        .filter((node) => node.type === "asset")
+        .map((node) => [
+          node.id.startsWith("asset:https://assets.")
+            ? "domain:assets.example.com"
+            : root,
+          node.id,
+          "contains",
+        ]),
+      ...nodes
+        .filter((node) => node.type === "asset")
+        .map((node) => ["page:https://example.com/", node.id, "references_resource"]),
     ];
     const edges = relations.map(([source, target, type]) => ({
       source,
@@ -87,7 +102,7 @@ export class SampleFactory {
       verification: type === "uses" ? "inferred" : "observed",
     }));
     return {
-      schema_version: "1.0",
+      schema_version: "1.1",
       tool: "w3bm@p",
       target: "example.com",
       source: "cli",

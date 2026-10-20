@@ -1,6 +1,9 @@
 import { ConnectorSettings } from "../models/ConnectorSettings.js";
 
 export class ConnectorClient {
+  // 1.0 connectors predate asset entities and remain compatible.
+  static SCHEMA_VERSIONS = ["1.0", "1.1"];
+
   constructor(api, fetcher = fetch) {
     this.api = api;
     // Native browser fetch requires its Window or WorkerGlobalScope receiver.
@@ -114,7 +117,7 @@ export class ConnectorClient {
     const data = await this.request(settings, "capabilities");
     if (
       data.api_version !== "1.0" ||
-      data.schema_version !== "1.0" ||
+      !ConnectorClient.SCHEMA_VERSIONS.includes(data.schema_version) ||
       !Array.isArray(data.modules) ||
       data.modules.some((module) => !ConnectorSettings.MODULES.includes(module))
     ) {

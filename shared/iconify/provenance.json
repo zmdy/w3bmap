@@ -357,6 +357,10 @@
       "icon": "bx:file",
       "sha256": "ffe7fae1c2cb8dbe56f6dc1b639fffc1368c6c793b58b59190e963786cf9a29e"
     },
+    "explorer/assets/icons/graph-asset.svg": {
+      "icon": "bx:code-alt",
+      "sha256": "a98418c88bcbbc003ef41fa305c1b57ad458411ac43a8c8784151a0c6e5eb72b"
+    },
     "explorer/assets/icons/graph-technology.svg": {
       "icon": "bx:code-alt",
       "sha256": "e28a7826a1b1bba2503c297c4719a0903fbbc5c988afc2c8cb455abf53bdcbf9"

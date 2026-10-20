@@ -3,6 +3,7 @@ export class GraphFilters {
     "domain",
     "ip",
     "page",
+    "asset",
     "technology",
     "certificate",
     "sitemap",

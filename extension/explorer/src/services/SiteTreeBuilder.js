@@ -6,6 +6,7 @@
  * path stays visible. Nothing here is written back into the collection.
  */
 export class SiteTreeBuilder {
+  static PATH_TYPES = new Set(["page", "asset"]);
   static CATEGORIES = [
     ["technology", "Technologies"],
     ["domain", "Subdomains"],
@@ -37,6 +38,11 @@ export class SiteTreeBuilder {
     }
   }
 
+  /** A final segment with an extension names a file, not another folder. */
+  static isFileName(segment) {
+    return /^[^.].*\.[a-z0-9]{1,8}$/i.test(segment);
+  }
+
   static readable(segment) {
     try {
       return decodeURIComponent(segment).slice(0, 80);
@@ -61,7 +67,9 @@ export class SiteTreeBuilder {
 
   /** Returns the ordered root folders for the supplied visible entities. */
   build(nodes, target = "") {
-    const pages = nodes.filter((node) => node.type === "page");
+    const pages = nodes.filter((node) =>
+      SiteTreeBuilder.PATH_TYPES.has(node.type),
+    );
     const root = this.folder(
       "tree:site",
       target || "Collection",
@@ -72,7 +80,10 @@ export class SiteTreeBuilder {
       const location = SiteTreeBuilder.location(node);
       let folder = root;
       root.hosts.add(location?.host ?? "unknown host");
-      for (const segment of location?.segments ?? []) {
+      const segments = location?.segments ?? [];
+      if (segments.length && SiteTreeBuilder.isFileName(segments.at(-1)))
+        segments.pop();
+      for (const segment of segments) {
         if (!folder.folders.has(segment)) {
           folder.folders.set(
             segment,

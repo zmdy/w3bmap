@@ -10,6 +10,7 @@ import { SettingsRepository } from "../src/services/SettingsRepository.js";
 import { CollectionRepository } from "../src/services/CollectionRepository.js";
 import { ConnectorClient } from "../src/services/ConnectorClient.js";
 import { GraphMerger } from "../src/services/GraphMerger.js";
+import { ResourceClassifier } from "../src/services/ResourceClassifier.js";
 import { AnalysisService } from "../src/services/AnalysisService.js";
 import { BackgroundController } from "../src/controllers/BackgroundController.js";
 import { OptionsController } from "../src/controllers/OptionsController.js";
@@ -629,4 +630,56 @@ test("background operations reject untrusted senders and open only the packaged 
     api.opened[0].url,
     api.runtime.getURL("explorer/index.html") + "#collection=" + record.id,
   );
+});
+
+test("subresources become asset entities while documents stay pages", () => {
+  const snapshot = fixture.snapshot();
+  snapshot.links = [
+    { url: "https://example.com/contact" },
+    { url: "https://example.com/files/report.pdf" },
+    { url: "https://example.com/data/index.json" },
+  ];
+  snapshot.resources = [
+    { url: "https://cdn.example/app.js", kind: "script", observed_via: "performance" },
+    { url: "https://cdn.example/site.css", kind: "link", observed_via: "dom" },
+    { url: "https://cdn.example/logo.png", kind: "img", observed_via: "dom" },
+    { url: "https://example.com/embedded", kind: "iframe", observed_via: "dom" },
+    { url: "https://cdn.example/brand", kind: "link", observed_via: "dom" },
+  ];
+  const graph = new GraphBuilder().build(snapshot, []);
+  assert.equal(validator.validate(graph), true);
+  const typed = (id) => graph.nodes.find((node) => node.id === id)?.type;
+  for (const url of ["https://cdn.example/app.js", "https://cdn.example/site.css",
+    "https://cdn.example/logo.png", "https://example.com/files/report.pdf",
+    "https://example.com/data/index.json"])
+    assert.equal(typed(`asset:${url}`), "asset", `${url} should be an asset`);
+  // An iframe is a document, and a <link> without an asset extension is a page relation.
+  assert.equal(typed("page:https://example.com/embedded"), "page");
+  assert.equal(typed("page:https://cdn.example/brand"), "page");
+  assert.equal(typed("page:https://example.com/about"), "page");
+  assert.equal(typed("page:https://example.com/contact"), "page");
+  assert.equal(graph.nodes.some((node) => node.id.startsWith("page:https://cdn.example/app.js")), false);
+  // A linked download is a reference, not navigation.
+  const from = (target) =>
+    graph.edges.find(
+      (edge) => edge.source === "page:https://example.com/about" && edge.target === target,
+    ).type;
+  assert.equal(from("asset:https://example.com/files/report.pdf"), "references_resource");
+  assert.equal(from("page:https://example.com/contact"), "links_to");
+  assert.equal(graph.schema_version, "1.1");
+});
+
+test("resource classification prefers the request kind and falls back to the extension", () => {
+  assert.equal(ResourceClassifier.classify("https://example.com/app.js", "script"), "asset");
+  assert.equal(ResourceClassifier.classify("https://example.com/page", "iframe"), "page");
+  assert.equal(ResourceClassifier.classify("https://example.com/style", "css"), "asset");
+  assert.equal(ResourceClassifier.classify("https://example.com/report.pdf"), "asset");
+  assert.equal(ResourceClassifier.classify("https://example.com/about"), "page");
+  assert.equal(ResourceClassifier.classify("https://example.com/index.html"), "page");
+  assert.equal(ResourceClassifier.classify("https://example.com/shop/item.php"), "page");
+  // A dotted directory name is not an extension, and a dotfile is not an asset.
+  assert.equal(ResourceClassifier.classify("https://example.com/v1.2/guide"), "page");
+  assert.equal(ResourceClassifier.classify("https://example.com/.well-known/x"), "page");
+  assert.equal(ResourceClassifier.classify("not a url", "script"), "asset");
+  assert.equal(ResourceClassifier.classify("not a url"), "page");
 });

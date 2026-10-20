@@ -115,10 +115,12 @@ original timestamps are preserved in exported JSON.
 ## Tree view
 
 **Tree view** presents the same collection as navigable folders. The site root
-is the collection target; below it, every page is placed under a folder for each
-segment of its URL path, and each leaf keeps its complete URL. Entities that have
-no URL path — technologies, subdomains, IP addresses, certificates and sitemaps —
-are grouped into their own category folders.
+is the collection target; below it, every page and asset is placed under a folder
+for each segment of its URL path, and each leaf keeps its complete URL and its
+type tag. A final path segment that carries a file extension names the entity
+itself, so `/css/site.css` sits inside a `css` folder instead of creating one.
+Entities that have no URL path — technologies, subdomains, IP addresses,
+certificates and sitemaps — are grouped into their own category folders.
 
 A folder is a URL path prefix, not an ownership claim: pages from different hosts
 can share a path, so the host stays visible on every leaf and the folder's details
@@ -153,6 +155,7 @@ Groups with one member keep their normal individual graph node.
 | --- | --- |
 | Domains | Registrable-domain boundary, then the longest suffix shared by the discovered hosts |
 | Pages | Exact hostname of the page URL |
+| Assets | Exact hostname of the asset URL |
 | Technologies | Observed category; missing categories use Other technologies |
 | IP addresses | IPv4 /24 or IPv6 /48 prefix |
 | Certificates | Issuer organization or common name, when recorded |

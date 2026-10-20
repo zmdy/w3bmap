@@ -2,7 +2,7 @@ import { parse } from "../../vendor/domain-parser.js";
 
 /** Presentation-only similarity groups. Never establishes ownership or evidence. */
 export class EntityGroupingService {
-  static LABELS = { domain: "Domains", page: "Pages", technology: "Technologies",
+  static LABELS = { domain: "Domains", page: "Pages", asset: "Assets", technology: "Technologies",
     ip: "IP addresses", certificate: "Certificates", sitemap: "Sitemaps" };
 
   hostname(value) {
@@ -65,8 +65,8 @@ export class EntityGroupingService {
     for (const node of unique.filter((node) => node.type !== "domain")) {
       let label;
       switch (node.type) {
-        case "page": case "sitemap":
-          label = this.hostname(node.evidence?.url || node.id.replace(/^(page|sitemap):/, "")) || "Other sites";
+        case "page": case "asset": case "sitemap":
+          label = this.hostname(node.evidence?.url || node.id.replace(/^(page|asset|sitemap):/, "")) || "Other sites";
           break;
         case "technology": label = node.evidence?.category || "Other technologies"; break;
         case "ip": label = this.ipPrefix(node.id.replace(/^ip:/, "")); break;

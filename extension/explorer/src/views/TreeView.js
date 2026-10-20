@@ -6,6 +6,7 @@ export class TreeView {
     domain: "Domain",
     ip: "IP",
     page: "Page",
+    asset: "Asset",
     technology: "Technology",
     certificate: "Certificate",
     sitemap: "Sitemap",

@@ -418,6 +418,45 @@ final class Url
     }
 }
 
+/**
+ * Separates documents from subresource assets. A page is a document a person
+ * can navigate to; an asset is a file the page loads or links to. The element
+ * or request kind decides when it is known, and the file extension decides for
+ * anchors, where only the URL is available.
+ */
+final class ResourceType
+{
+    private const DOCUMENT_KINDS = ['iframe', 'frame', 'document', 'navigation'];
+    private const ASSET_KINDS = ['script', 'img', 'image', 'css', 'video', 'audio',
+        'source', 'track', 'embed', 'object', 'font', 'beacon', 'xmlhttprequest', 'fetch'];
+    private const ASSET_EXTENSIONS = ['css', 'js', 'mjs', 'cjs', 'map', 'json', 'xml', 'rss',
+        'atom', 'wasm', 'png', 'jpg', 'jpeg', 'gif', 'webp', 'avif', 'svg', 'ico', 'bmp',
+        'tiff', 'woff', 'woff2', 'ttf', 'otf', 'eot', 'mp4', 'webm', 'ogg', 'ogv', 'mp3',
+        'wav', 'flac', 'm4a', 'avi', 'mov', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt',
+        'pptx', 'csv', 'txt', 'rtf', 'zip', 'gz', 'tgz', 'bz2', 'rar', '7z', 'tar', 'apk',
+        'dmg', 'exe'];
+
+    public static function extension(string $url): string
+    {
+        $path = (string) parse_url($url, PHP_URL_PATH);
+        $name = substr($path, strrpos($path, '/') === false ? 0 : (int) strrpos($path, '/') + 1);
+        $dot = strrpos($name, '.');
+        return $dot === false || $dot === 0 ? '' : strtolower(substr($name, $dot + 1));
+    }
+
+    public static function classify(string $url, string $kind = ''): string
+    {
+        $kind = strtolower($kind);
+        if (in_array($kind, self::DOCUMENT_KINDS, true)) {
+            return 'page';
+        }
+        if (in_array($kind, self::ASSET_KINDS, true)) {
+            return 'asset';
+        }
+        return in_array(self::extension($url), self::ASSET_EXTENSIONS, true) ? 'asset' : 'page';
+    }
+}
+
 final class CurlHttpClient implements HttpClient
 {
     private array $cache = [];
@@ -579,7 +618,7 @@ final class GraphDocument
 
     public function toArray(): array
     {
-        return ['schema_version' => '1.0', 'tool' => 'w3bm@p', 'target' => $this->target,
+        return ['schema_version' => '1.1', 'tool' => 'w3bm@p', 'target' => $this->target,
             'source' => $this->source, 'collected_at' => $this->collectedAt,
             'status' => $this->errors === [] ? 'complete' : ($this->results === [] ? 'failed' : 'partial'),
             'nodes' => array_values($this->nodes), 'edges' => array_values($this->edges),
@@ -768,8 +807,11 @@ final class WebCollector implements Collector
         $graph->node('page:' . $response->url, 'page', $response->url, ['url' => $response->url]);
         $graph->edge('domain:' . $domain, 'page:' . $response->url, 'contains', ['url' => $response->url]);
         foreach ($urls as $entry) {
-            $graph->node('page:' . $entry['url'], 'page', $entry['url'], ['discovered_on' => $response->url]);
-            $graph->edge('page:' . $response->url, 'page:' . $entry['url'], 'links_to', ['discovered_on' => $response->url]);
+            $type = ResourceType::classify($entry['url']);
+            $graph->node($type . ':' . $entry['url'], $type, $entry['url'],
+                ['discovered_on' => $response->url, 'resource_type' => $type]);
+            $graph->edge('page:' . $response->url, $type . ':' . $entry['url'],
+                $type === 'asset' ? 'references_resource' : 'links_to', ['discovered_on' => $response->url]);
         }
         $graph->result('links', ['url' => $response->url, 'links' => array_values($urls), 'limit' => 250]);
     }
@@ -797,7 +839,7 @@ final class WebCollector implements Collector
             $url = Url::resolve($response->url, (string) $entry);
             if ($url !== null) {
                 $urls[] = $url;
-                $type = $isIndex ? 'sitemap' : 'page';
+                $type = $isIndex ? 'sitemap' : ResourceType::classify($url);
                 $graph->node($type . ':' . $url, $type, $url, ['sitemap' => $response->url]);
                 $graph->edge('domain:' . $domain, $type . ':' . $url, 'declares', ['sitemap' => $response->url]);
             }
@@ -1233,7 +1275,7 @@ final class ProbeController
         $parameters = $request->parameters();
         $action = $parameters['action'] ?? 'capabilities';
         if ($action === 'capabilities') {
-            return ['tool' => 'w3bm@p', 'api_version' => '1.0', 'schema_version' => '1.0',
+            return ['tool' => 'w3bm@p', 'api_version' => '1.0', 'schema_version' => '1.1',
                 'crawl' => ['supported' => extension_loaded('curl') && extension_loaded('dom'), 'max_depth' => 5, 'max_pages' => 50, 'max_hosts' => 10, 'max_seconds' => 20, 'scopes' => ['host', 'subdomains', 'all']],
                 'modules' => $this->collection->available(), 'environment_enabled' => $this->config->enableEnvironment,
                 'limits' => ['requests_per_minute' => $this->config->rateLimit, 'timeout_seconds' => $this->config->timeout,

@@ -16,6 +16,7 @@ use W3bmap\JsonView;
 use W3bmap\NetworkPolicy;
 use W3bmap\ProbeController;
 use W3bmap\ProbeRequest;
+use W3bmap\ResourceType;
 use W3bmap\Resolver;
 use W3bmap\Url;
 use W3bmap\WebCollector;
@@ -65,6 +66,7 @@ final class FixtureHttpClient implements HttpClient
         return new HttpResponse($url, 200, ['server' => ['nginx/1.0']],
             '<html><head><base href="/docs/"></head><body><script src="/wp-content/app.js"></script>'
             . '<a href="../about#team">About</a><a href="https://external.example/path">External</a>'
+            . '<a href="/files/report.pdf">Report</a><a href="/assets/theme.css">Stylesheet</a>'
             . '<a href="javascript:alert(1)">Invalid</a><a href="mailto:test@example.com">Mail</a>'
             . '<a href="https://user:password@example.com/">Credentials</a></body></html>');
     }
@@ -203,9 +205,20 @@ final class TestSuite
         $result = $service->analyze('example.com', ['dns', 'headers', 'technologies', 'links', 'sitemap', 'robots', 'rdap'], 'cli');
         $this->check($result['status'] === 'complete', 'Fixture collection failed.');
         $data = json_decode((new JsonView())->encode($result), true, 128, JSON_THROW_ON_ERROR);
-        $this->check(count($data['results']['links']['links']) === 2, 'Unsafe links were not filtered.');
+        $this->check(count($data['results']['links']['links']) === 4, 'Unsafe links were not filtered.');
         $this->check($data['results']['links']['links'][0]['url'] === 'https://example.com/about', 'HTML base resolution failed.');
         $this->check($data['results']['sitemap']['urls'] === ['https://example.com/about'], 'Namespaced sitemap parsing failed.');
+        $this->check($data['schema_version'] === '1.1', 'The collection must declare the current schema version.');
+        $byId = array_column($data['nodes'], 'type', 'id');
+        $this->check(($byId['asset:https://example.com/files/report.pdf'] ?? null) === 'asset', 'A linked download must be an asset.');
+        $this->check(($byId['asset:https://example.com/assets/theme.css'] ?? null) === 'asset', 'A linked stylesheet must be an asset.');
+        $this->check(($byId['page:https://example.com/about'] ?? null) === 'page', 'A linked document must stay a page.');
+        $this->check(!isset($byId['page:https://example.com/files/report.pdf']), 'An asset must not also exist as a page.');
+        $assetEdge = array_values(array_filter($data['edges'], fn ($edge) => $edge['target'] === 'asset:https://example.com/files/report.pdf'))[0];
+        $this->check($assetEdge['type'] === 'references_resource', 'A linked asset must be a reference, not navigation.');
+        $this->check(ResourceType::classify('https://example.com/shop/item.php') === 'page', 'A dynamic page must not be an asset.');
+        $this->check(ResourceType::classify('https://example.com/app', 'script') === 'asset', 'The request kind must classify extensionless assets.');
+        $this->check(ResourceType::classify('https://example.com/v1.2/guide') === 'page', 'A dotted path segment is not an extension.');
         $this->check(count($data['results']['technologies']['matches']) === 2, 'Technology detection failed.');
         $ids = array_column($data['nodes'], 'id');
         $this->check(count($ids) === count(array_unique($ids)), 'Duplicate nodes found.');

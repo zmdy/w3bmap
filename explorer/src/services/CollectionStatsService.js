@@ -13,6 +13,7 @@ export class CollectionStatsService {
     domain: "Domains",
     ip: "IP addresses",
     page: "Pages",
+    asset: "Assets",
     technology: "Technologies",
     certificate: "Certificates",
     sitemap: "Sitemaps",
@@ -31,7 +32,7 @@ export class CollectionStatsService {
     const hosts = new Set();
     for (const node of nodes) {
       if (node.type === "domain") hosts.add(node.label);
-      if (node.type !== "page") continue;
+      if (!["page", "asset", "sitemap"].includes(node.type)) continue;
       try {
         hosts.add(new URL(node.id.slice(node.id.indexOf(":") + 1)).host);
       } catch {
