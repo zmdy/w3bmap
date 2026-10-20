@@ -25,8 +25,9 @@ class TreeFixture {
     ];
   }
 
-  roots() {
-    return new SiteTreeBuilder().build(this.nodes, "example.com");
+  /** Most checks describe the merged path tree, so splitting is opt-in here. */
+  roots(byHost = false) {
+    return new SiteTreeBuilder().build(this.nodes, "example.com", byHost);
   }
 }
 
@@ -86,6 +87,7 @@ test("hostile labels and unparsable page identifiers do not break the tree", () 
       { id: "page:https://example.com/%E2%9C%93/ok", type: "page", label: "/ok" },
     ],
     "example.com",
+    false,
   );
   const [site] = roots;
   assert.equal(site.count, 2);
@@ -117,6 +119,7 @@ test("folder expansion is kept outside the export and bounds very large folders"
 test("selecting an entity opens every folder on its path", () => {
   const fixture = new TreeFixture();
   const model = new TreeModel();
+  model.setByHost(false);
   model.build(fixture.nodes, "example.com");
   assert.equal(model.isOpen("tree:site/support/contact"), false);
   const folder = model.revealNode("page:https://api.example.com/support/contact");
@@ -169,7 +172,7 @@ test("entity and folder figures summarize their own neighbourhood", () => {
   const entity = stats.forNode(document, fixture.nodes[0]);
   assert.equal(entity.relationships, 1);
   assert.equal(entity.types.ip, 1);
-  const [site] = new SiteTreeBuilder().build(fixture.nodes, "example.com");
+  const [site] = new SiteTreeBuilder().build(fixture.nodes, "example.com", false);
   const support = site.folders.find((folder) => folder.label === "support");
   const folder = stats.forFolder(document, support);
   assert.equal(folder.items, 3);
@@ -189,7 +192,7 @@ test("assets share the page tree by path and remain a separate entity type", () 
     { id: "asset:https://cdn.example.com/js/app.js", type: "asset", label: "/js/app.js" },
     { id: "technology:react", type: "technology", label: "React" },
   ];
-  const [site] = new SiteTreeBuilder().build(nodes, "example.com");
+  const [site] = new SiteTreeBuilder().build(nodes, "example.com", false);
   const docs = site.folders.find((folder) => folder.label === "docs");
   // A final segment with an extension names a file and stays in its parent folder.
   assert.deepEqual(
@@ -236,4 +239,41 @@ test("category folders reuse the graph's similarity groups", () => {
     technologies.folders.map((folder) => folder.label),
     ["JavaScript frameworks"],
   );
+});
+
+test("a multi-site investigation gets one folder per site, and splitting can be turned off", () => {
+  const fixture = new TreeFixture();
+  const model = new TreeModel();
+  model.build(fixture.nodes, "Investigation: example.com, api.example.com");
+  assert.equal(model.multiSite, true);
+  const [site] = model.roots;
+  assert.equal(site.splitHosts, true);
+  assert.deepEqual(
+    site.folders.map((folder) => `${folder.label} (${folder.count})`),
+    ["api.example.com (1)", "example.com (3)"],
+  );
+  assert.ok(site.folders.every((folder) => folder.site));
+  assert.equal(model.find("tree:site/example.com/support").count, 2);
+  assert.equal(model.find("tree:site/api.example.com/support/contact").count, 1);
+  assert.equal(site.count, 4, "every page is still counted once");
+
+  model.setByHost(false);
+  model.build(fixture.nodes, "Investigation");
+  const [merged] = model.roots;
+  assert.equal(merged.splitHosts, false);
+  assert.deepEqual(merged.folders.map((folder) => folder.label), ["support"]);
+  assert.equal(model.find("tree:site/support/contact").count, 2);
+  assert.equal(merged.count, 4);
+});
+
+test("a single-site collection never gains a site folder level", () => {
+  const nodes = [
+    { id: "page:https://example.com/", type: "page", label: "/" },
+    { id: "page:https://example.com/docs", type: "page", label: "/docs" },
+  ];
+  const model = new TreeModel();
+  model.build(nodes, "example.com");
+  assert.equal(model.multiSite, false);
+  assert.equal(model.roots[0].splitHosts, false);
+  assert.deepEqual(model.roots[0].folders.map((folder) => folder.label), ["docs"]);
 });

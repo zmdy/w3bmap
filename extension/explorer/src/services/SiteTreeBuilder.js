@@ -72,7 +72,12 @@ export class SiteTreeBuilder {
   }
 
   /** Returns the ordered root folders for the supplied visible entities. */
-  build(nodes, target = "") {
+  /**
+   * `byHost` places each site of a merged investigation in its own folder. It
+   * applies only when the collection actually covers more than one host, so a
+   * single-site collection never gains a folder level that explains nothing.
+   */
+  build(nodes, target = "", byHost = true) {
     const pages = nodes.filter((node) =>
       SiteTreeBuilder.PATH_TYPES.has(node.type),
     );
@@ -82,10 +87,29 @@ export class SiteTreeBuilder {
       "domain",
       target ? [target] : [],
     );
+    const hosts = new Set(
+      pages.map((node) => SiteTreeBuilder.location(node)?.host ?? "unknown host"),
+    );
+    const splitHosts = byHost && hosts.size > 1;
     for (const node of pages) {
       const location = SiteTreeBuilder.location(node);
+      const host = location?.host ?? "unknown host";
       let folder = root;
-      root.hosts.add(location?.host ?? "unknown host");
+      root.hosts.add(host);
+      if (splitHosts) {
+        if (!folder.folders.has(host)) {
+          const site = this.folder(
+            `${folder.id}/${host}`,
+            host,
+            "domain",
+            [...folder.path, host],
+          );
+          site.site = true;
+          folder.folders.set(host, site);
+        }
+        folder = folder.folders.get(host);
+        folder.hosts.add(host);
+      }
       const segments = location?.segments ?? [];
       if (segments.length && SiteTreeBuilder.isFileName(segments.at(-1)))
         segments.pop();
@@ -102,11 +126,13 @@ export class SiteTreeBuilder {
           );
         }
         folder = folder.folders.get(segment);
-        folder.hosts.add(location?.host ?? "unknown host");
+        folder.hosts.add(host);
       }
       folder.entities.push(node);
     }
-    const roots = pages.length ? [{ ...this.finish(root), site: true }] : [];
+    const roots = pages.length
+      ? [{ ...this.finish(root), site: true, splitHosts, hosts: [...hosts].sort() }]
+      : [];
     for (const [type, label] of SiteTreeBuilder.CATEGORIES) {
       const members = nodes.filter(
         (node) =>

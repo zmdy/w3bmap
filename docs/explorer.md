@@ -126,6 +126,13 @@ subdomains of one registrable domain share a `*.example.com` folder, technologie
 share their category, addresses share their prefix and certificates share their
 issuer. A group of one stays a direct child instead of a folder holding one item.
 
+When a collection covers more than one site, as a merged investigation does, each
+site gets its own folder under the root and its paths nest inside it. **Merge
+sites** combines them into a single path tree, where one folder can hold pages
+from several hosts, and **Split by site** restores the per-site folders. The
+control appears only for a collection with more than one site; a single-site
+collection never gains that folder level.
+
 A folder is a URL path prefix, not an ownership claim: pages from different hosts
 can share a path, so the host stays visible on every leaf and the folder's details
 list the hosts it covers. Folders are sorted before entities and both are sorted

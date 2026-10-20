@@ -6,6 +6,7 @@ export class TreeModel {
 
   constructor(builder = new SiteTreeBuilder()) {
     this.builder = builder;
+    this.byHost = true;
     this.roots = [];
     this.expanded = new Set();
     this.revealed = new Set();
@@ -14,7 +15,7 @@ export class TreeModel {
 
   build(nodes, target) {
     const openBefore = this.expanded;
-    this.roots = this.builder.build(nodes, target);
+    this.roots = this.builder.build(nodes, target, this.byHost);
     this.index = new Map();
     for (const root of this.roots) this.register(root);
     // Keep folders the user opened, and open the site root on a first build.
@@ -26,6 +27,15 @@ export class TreeModel {
     );
     if (!openBefore.size && this.roots.length) this.expanded.add(this.roots[0].id);
     return this.roots;
+  }
+
+  /** True when the collection covers more than one site, so splitting applies. */
+  get multiSite() {
+    return (this.roots[0]?.hosts.length ?? 0) > 1;
+  }
+
+  setByHost(value) {
+    this.byHost = value;
   }
 
   register(folder) {

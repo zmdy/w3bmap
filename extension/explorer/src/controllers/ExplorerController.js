@@ -113,6 +113,7 @@ export class ExplorerController {
     on("entities-tab", "click", () => this.setWorkspaceTab("entities"));
     on("graph-nav", "click", () => this.setWorkspaceTab("graph"));
     on("tree-nav", "click", () => this.setWorkspaceTab("tree"));
+    on("split-hosts", "click", () => this.toggleHostSplit());
     on("expand-tree", "click", () => this.setAllFolders(true));
     on("collapse-tree", "click", () => this.setAllFolders(false));
     on("details-tab", "click", () => this.view.tab("inspector", "details"));
@@ -370,10 +371,22 @@ export class ExplorerController {
     this.treeView.render();
     this.view.get("tree-actions").hidden =
       this.workspaceTab !== "tree" || !this.model.document;
+    const split = this.view.get("split-hosts");
+    split.hidden = !this.tree.multiSite;
+    split.setAttribute("aria-pressed", String(this.tree.byHost));
+    split.textContent = this.tree.byHost ? "Merge sites" : "Split by site";
     this.treeView.selection(
       this.folder?.id ??
         (this.selection?.kind === "node" ? this.selection.record.id : null),
     );
+  }
+
+  /** Switches between one folder per site and a single merged path tree. */
+  toggleHostSplit() {
+    this.tree.setByHost(!this.tree.byHost);
+    this.folder = null;
+    this.renderTree(this.model.visible());
+    this.inspector.empty();
   }
 
   toggleFolder(id) {
