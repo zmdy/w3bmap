@@ -83,15 +83,22 @@ export class WorkspaceView {
     notice.setAttribute("role", error ? "alert" : "status");
   }
 
+  /** Reflects the model's selected types and the all/none toggle label. */
+  setTypeFilters(types) {
+    this.typeCheckboxes.forEach((input, type) => {
+      input.checked = types.has(type);
+    });
+    this.get("toggle-types").textContent =
+      types.size === this.typeCheckboxes.size ? "Clear all" : "Select all";
+  }
+
   resetFilters() {
     this.get("search-input").value = "";
     this.get("confidence-filter").value = "0";
     this.get("confidence-value").textContent = "0%";
     this.get("inferred-filter").checked = true;
     this.get("source-filter").value = "all";
-    this.typeCheckboxes.forEach((input) => {
-      input.checked = true;
-    });
+    this.setTypeFilters(new Set(this.typeCheckboxes.keys()));
   }
 
   summary(model) {

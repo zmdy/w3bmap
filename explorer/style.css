@@ -488,6 +488,12 @@ select {
   display: block;
   margin: 17px auto 0;
 }
+.sidebar .section-heading .text-button {
+  display: inline;
+  margin: 0 0 0 auto;
+  padding-right: 10px;
+  font-size: 10px;
+}
 .tree-actions .text-button {
   display: inline-flex;
   align-items: center;

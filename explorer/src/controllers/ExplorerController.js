@@ -1,5 +1,5 @@
 import { EntityClusterModel } from "../models/EntityClusterModel.js";
-import { GraphModel } from "../models/GraphModel.js";
+import { GraphFilters, GraphModel } from "../models/GraphModel.js";
 import { SampleFactory } from "../models/SampleFactory.js";
 import { TreeModel } from "../models/TreeModel.js";
 import { DocumentValidator } from "../services/DocumentValidator.js";
@@ -91,6 +91,7 @@ export class ExplorerController {
       if (!type) return;
       if (event.target.checked) this.model.filters.types.add(type);
       else this.model.filters.types.delete(type);
+      this.view.setTypeFilters(this.model.filters.types);
       this.refresh();
     });
     on("inferred-filter", "change", (event) => {
@@ -118,6 +119,7 @@ export class ExplorerController {
     on("graph-nav", "click", () => this.setWorkspaceTab("graph"));
     on("tree-nav", "click", () => this.setWorkspaceTab("tree"));
     on("copy-entities", "click", () => this.copyEntities());
+    on("toggle-types", "click", () => this.toggleAllTypes());
     on("split-hosts", "click", () => this.toggleHostSplit());
     on("expand-tree", "click", () => this.setAllFolders(true));
     on("collapse-tree", "click", () => this.setAllFolders(false));
@@ -405,6 +407,13 @@ export class ExplorerController {
         "The clipboard is not available in this browser context. Use Export JSON to save the complete collection.",
         true,
       );
+  }
+
+  toggleAllTypes() {
+    const select = this.model.filters.types.size < GraphFilters.TYPES.length;
+    this.model.filters.types = new Set(select ? GraphFilters.TYPES : []);
+    this.view.setTypeFilters(this.model.filters.types);
+    this.refresh();
   }
 
   /** Switches between one folder per site and a single merged path tree. */
