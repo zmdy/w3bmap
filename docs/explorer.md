@@ -79,6 +79,9 @@ investigation and **Merge reports** to extend the current one.
 - Select a node in **Graph**, an item in **Tree view**, or a button in the
   keyboard-accessible **Entities** list, to view its source, time, confidence,
   evidence, and visible relationships.
+- **Copy list** in the Entities tab copies the visible entities as grouped plain
+  text, in the same order and grouping the tab shows, and says when filters are
+  narrowing the list. Use **Export JSON** for the complete collection.
 - An entity with an address offers **Open resource**, which opens it in a new tab,
   and **Copy link**. The Explorer never requests the address itself.
 - The investigation card shows the target site's favicon, under the same rule as

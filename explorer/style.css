@@ -488,6 +488,15 @@ select {
   display: block;
   margin: 17px auto 0;
 }
+.tree-actions .text-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.tree-actions .ui-icon {
+  width: 13px;
+  height: 13px;
+}
 .inspector-actions {
   display: flex;
   flex-wrap: wrap;

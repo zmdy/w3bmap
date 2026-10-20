@@ -3,6 +3,8 @@ import assert from "node:assert/strict";
 import { SiteTreeBuilder } from "../src/services/SiteTreeBuilder.js";
 import { CollectionStatsService } from "../src/services/CollectionStatsService.js";
 import { TreeModel } from "../src/models/TreeModel.js";
+import { EntityClusterModel } from "../src/models/EntityClusterModel.js";
+import { EntityReportService } from "../src/services/EntityReportService.js";
 import { GraphModel } from "../src/models/GraphModel.js";
 import { SampleFactory } from "../src/models/SampleFactory.js";
 
@@ -276,4 +278,38 @@ test("a single-site collection never gains a site folder level", () => {
   assert.equal(model.multiSite, false);
   assert.equal(model.roots[0].splitHosts, false);
   assert.deepEqual(model.roots[0].folders.map((folder) => folder.label), ["docs"]);
+});
+
+test("the copied entity list reports the visible grouping and nothing more", () => {
+  const nodes = [
+    { id: "domain:api.example.com", type: "domain", label: "api.example.com", confidence: 1 },
+    { id: "domain:cdn.example.com", type: "domain", label: "cdn.example.com", confidence: 1 },
+    { id: "technology:react", type: "technology", label: "React", evidence: { category: "JavaScript frameworks" }, confidence: 0.9 },
+  ];
+  const clusters = new EntityClusterModel();
+  clusters.load(nodes);
+  const text = new EntityReportService().text(clusters.visible(nodes), {
+    target: "example.com",
+    total: nodes.length,
+    filtered: true,
+  });
+  assert.equal(
+    text,
+    [
+      "w3bm@p · example.com",
+      "3 entities visible under the current filters",
+      "",
+      "Domains *.example.com (2)",
+      "- api.example.com",
+      "- cdn.example.com",
+      "",
+      "Technologies JavaScript frameworks (1)",
+      "- React",
+      "",
+    ].join("\n"),
+  );
+  assert.equal(
+    new EntityReportService().text([], { target: "example.com", total: 0 }),
+    "w3bm@p · example.com\n0 entities\n\nNo entities match the current filters.\n",
+  );
 });

@@ -6,6 +6,8 @@ import { DocumentValidator } from "../services/DocumentValidator.js";
 import { CollectionMerger } from "../services/CollectionMerger.js";
 import { FileService } from "../services/FileService.js";
 import { IconService } from "../services/IconService.js";
+import { EntityReportService } from "../services/EntityReportService.js";
+import { ClipboardService } from "../services/ClipboardService.js";
 import { GraphView } from "../views/GraphView.js";
 import { WorkspaceView } from "../views/WorkspaceView.js";
 import { InspectorView } from "../views/InspectorView.js";
@@ -18,6 +20,8 @@ export class ExplorerController {
     this.merger = new CollectionMerger(this.validator);
     this.files = new FileService();
     this.icons = new IconService();
+    this.report = new EntityReportService();
+    this.clipboard = new ClipboardService();
     this.clusters = new EntityClusterModel();
     this.tree = new TreeModel();
     this.view = new WorkspaceView(
@@ -113,6 +117,7 @@ export class ExplorerController {
     on("entities-tab", "click", () => this.setWorkspaceTab("entities"));
     on("graph-nav", "click", () => this.setWorkspaceTab("graph"));
     on("tree-nav", "click", () => this.setWorkspaceTab("tree"));
+    on("copy-entities", "click", () => this.copyEntities());
     on("split-hosts", "click", () => this.toggleHostSplit());
     on("expand-tree", "click", () => this.setAllFolders(true));
     on("collapse-tree", "click", () => this.setAllFolders(false));
@@ -375,10 +380,31 @@ export class ExplorerController {
     split.hidden = !this.tree.multiSite;
     split.setAttribute("aria-pressed", String(this.tree.byHost));
     split.textContent = this.tree.byHost ? "Merge sites" : "Split by site";
+    this.view.get("entities-actions").hidden =
+      this.workspaceTab !== "entities" || !this.model.document;
     this.treeView.selection(
       this.folder?.id ??
         (this.selection?.kind === "node" ? this.selection.record.id : null),
     );
+  }
+
+  /** Copies the visible entity list, grouped exactly as the Entities tab shows it. */
+  async copyEntities() {
+    const visible = this.model.visible();
+    const text = this.report.text(this.clusters.visible(visible.nodes), {
+      target: this.model.document?.target ?? "",
+      total: visible.nodes.length,
+      filtered: visible.nodes.length !== (this.model.document?.nodes.length ?? 0),
+    });
+    if (await this.clipboard.write(text))
+      this.view.notice(
+        `${visible.nodes.length.toLocaleString("en-US")} visible entities copied as a grouped list.`,
+      );
+    else
+      this.view.notice(
+        "The clipboard is not available in this browser context. Use Export JSON to save the complete collection.",
+        true,
+      );
   }
 
   /** Switches between one folder per site and a single merged path tree. */
@@ -430,6 +456,8 @@ export class ExplorerController {
     );
     this.view.get("tree-actions").hidden =
       name !== "tree" || !this.model.document;
+    this.view.get("entities-actions").hidden =
+      name !== "entities" || !this.model.document;
     this.view.selection(
       this.selection?.kind === "node" ? this.selection.record.id : null,
     );
