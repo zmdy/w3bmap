@@ -370,6 +370,9 @@ export class ExplorerController {
         this.folder = null;
         this.inspector.empty();
       }
+    } else {
+      // Keeps the general figures in step with the filters without a selection.
+      this.inspector.empty();
     }
   }
 
