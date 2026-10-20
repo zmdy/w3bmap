@@ -205,3 +205,35 @@ test("assets share the page tree by path and remain a separate entity type", () 
   assert.ok("Assets" in Object.values(CollectionStatsService.TYPE_LABELS).reduce(
     (all, label) => ({ ...all, [label]: true }), {}));
 });
+
+test("category folders reuse the graph's similarity groups", () => {
+  const nodes = [
+    { id: "domain:example.com", type: "domain", label: "example.com" },
+    { id: "domain:api.example.com", type: "domain", label: "api.example.com" },
+    { id: "domain:cdn.example.com", type: "domain", label: "cdn.example.com" },
+    { id: "domain:ns.other.example", type: "domain", label: "ns.other.example" },
+    { id: "technology:react", type: "technology", label: "React", evidence: { category: "JavaScript frameworks" } },
+    { id: "technology:vue", type: "technology", label: "Vue", evidence: { category: "JavaScript frameworks" } },
+  ];
+  const roots = new SiteTreeBuilder().build(nodes, "example.com");
+  const subdomains = roots.find((folder) => folder.label === "Subdomains");
+  assert.deepEqual(
+    subdomains.folders.map((folder) => `${folder.label} (${folder.count})`),
+    ["*.example.com (2)"],
+  );
+  assert.deepEqual(
+    subdomains.folders[0].entities.map((entity) => entity.label),
+    ["api.example.com", "cdn.example.com"],
+  );
+  // A group of one stays a direct child instead of a folder holding one item.
+  assert.deepEqual(
+    subdomains.entities.map((entity) => entity.label),
+    ["ns.other.example"],
+  );
+  assert.equal(subdomains.count, 3);
+  const technologies = roots.find((folder) => folder.label === "Technologies");
+  assert.deepEqual(
+    technologies.folders.map((folder) => folder.label),
+    ["JavaScript frameworks"],
+  );
+});

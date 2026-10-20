@@ -1,3 +1,5 @@
+import { EntityGroupingService } from "./EntityGroupingService.js";
+
 /**
  * Builds the navigable folder tree shown in the Tree view.
  *
@@ -7,6 +9,10 @@
  */
 export class SiteTreeBuilder {
   static PATH_TYPES = new Set(["page", "asset"]);
+  constructor(grouping = new EntityGroupingService()) {
+    this.grouping = grouping;
+  }
+
   static CATEGORIES = [
     ["technology", "Technologies"],
     ["domain", "Subdomains"],
@@ -108,10 +114,36 @@ export class SiteTreeBuilder {
       );
       if (!members.length) continue;
       const category = this.folder(`tree:${type}`, label, type, [label]);
-      category.entities = members;
+      this.fill(category, members);
       roots.push(this.finish(category));
     }
     return roots;
+  }
+
+  /**
+   * Places a category's entities under the same similarity groups the graph
+   * uses, so related subdomains, technology categories, address prefixes and
+   * certificate issuers share a folder. A group of one needs no folder.
+   */
+  fill(category, members) {
+    for (const group of this.grouping.groups(members)) {
+      if (group.members.length < 2) {
+        category.entities.push(...group.members);
+        continue;
+      }
+      const folder = this.folder(
+        `${category.id}/${group.id}`,
+        group.label,
+        group.type,
+        [...category.path, group.label],
+      );
+      folder.entities = group.members;
+      for (const node of group.members) {
+        const host = SiteTreeBuilder.location(node)?.host;
+        if (host) folder.hosts.add(host);
+      }
+      category.folders.set(group.id, folder);
+    }
   }
 
   /** Sorts each level, counts descendants, and replaces working maps with arrays. */

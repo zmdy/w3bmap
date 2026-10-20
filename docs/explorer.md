@@ -120,7 +120,11 @@ for each segment of its URL path, and each leaf keeps its complete URL and its
 type tag. A final path segment that carries a file extension names the entity
 itself, so `/css/site.css` sits inside a `css` folder instead of creating one.
 Entities that have no URL path — technologies, subdomains, IP addresses,
-certificates and sitemaps — are grouped into their own category folders.
+certificates and sitemaps — are grouped into their own category folders. Inside a
+category, entities are placed under the same similarity groups the graph uses, so
+subdomains of one registrable domain share a `*.example.com` folder, technologies
+share their category, addresses share their prefix and certificates share their
+issuer. A group of one stays a direct child instead of a folder holding one item.
 
 A folder is a URL path prefix, not an ownership claim: pages from different hosts
 can share a path, so the host stays visible on every leaf and the folder's details
