@@ -79,5 +79,19 @@ export const technologyIcons = {
   "webpack": "webpack.svg",
   "vite": "vite.svg",
   "onetrust": "onetrust.svg",
-  "cookiebot": "cookiebot.svg"
+  "cookiebot": "cookiebot.svg",
+  "tailwind": "tailwind.svg",
+  "svelte": "svelte.svg",
+  "solid": "solid.svg",
+  "remix": "remix.svg",
+  "storybook": "storybook.svg",
+  "esbuild": "esbuild.svg",
+  "rollup": "rollup.svg",
+  "turbopack": "turbopack.svg",
+  "vitepress": "vitepress.svg",
+  "docusaurus": "docusaurus.svg",
+  "posthog": "posthog.svg",
+  "mixpanel": "mixpanel.svg",
+  "umami": "umami.svg",
+  "qwik": "qwik.svg"
 };

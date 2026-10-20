@@ -169,7 +169,7 @@ export class DiscoveryPopupView extends PopupView {
     if (this.get("menu-append-page")) {
       this.get("menu-append-page").disabled = !(state.latest && this.page);
     }
-    this.get("connector-state").textContent = state.connectorEnabled ? "Analyze includes PHP checks" : "Browser collection only";
+    this.get("connector-state").textContent = state.connectorEnabled ? "Analyze includes server checks" : "Browser collection only";
     this.get("connector-dot").classList.toggle("enabled", state.connectorEnabled);
     this.get("graph-label").textContent = state.latest && state.latest.page !== this.page ? "Open last saved graph" : "Open in Graph Explorer";
     this.get("open-graph").title = state.latest ? `Saved collection: ${state.latest.target}` : "";

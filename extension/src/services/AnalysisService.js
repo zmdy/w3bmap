@@ -90,7 +90,7 @@ export class AnalysisService {
       }
       const enriched = await this.enrichment.enrich(document, settings, (connector) => {
         this.progress = { stage: "connector", message: connector.connection === "checking"
-          ? "Testing the PHP connection…" : connector.crawl?.status === "running" ? "Recursively analyzing linked pages…" : "Running PHP checks…", connector };
+          ? "Testing the PHP connection…" : connector.crawl?.status === "running" ? "Recursively analyzing linked pages…" : "Running server checks…", connector };
       });
       document = enriched.document;
       document.results.browser.connector = enriched.report;

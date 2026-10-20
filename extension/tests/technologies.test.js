@@ -52,8 +52,8 @@ const fixture = new DetectionFixture();
 
 test("the independent catalog has unique IDs, safe metadata, valid patterns, and bounded collection plans", () => {
   assert.equal(catalog.license, "MIT");
-  assert.equal(catalog.technologies.length, 80);
-  assert.equal(new Set(catalog.technologies.map((item) => item.id)).size, 80);
+  assert.equal(catalog.technologies.length, 94);
+  assert.equal(new Set(catalog.technologies.map((item) => item.id)).size, 94);
   const known = new Set(catalog.technologies.map((item) => item.id));
   for (const technology of catalog.technologies) {
     assert.match(technology.website, /^https:\/\//);
@@ -193,4 +193,47 @@ test("navigation resets tab badges so counts from the previous page do not persi
     action: { setBadgeText: async (options) => updates.push(options) } }, {}, {}, {}, {});
   listener(7, { status: "loading" });
   assert.deepEqual(updates, [{ tabId: 7, text: "" }]);
+});
+
+test("each technology added in 0.6 is detected from its own representative markers", () => {
+  const cases = {
+    tailwind: { resources: [{ url: "https://cdn.tailwindcss.com/3.4.1", kind: "script" }] },
+    svelte: { js: { __svelte: "present" } },
+    solid: { js: { _$HY: "present" } },
+    qwik: { dom: { "qwik-root": ["present"] } },
+    remix: { js: { __remixContext: "present" } },
+    storybook: { resources: [{ url: "https://example.com/sb-manager/runtime.js", kind: "script" }] },
+    esbuild: { resources: [{ url: "https://example.com/node_modules/.vite/deps/chunk-ABCD1234.js", kind: "script" }] },
+    rollup: { resources: [{ url: "https://example.com/assets/index-DeadBeef.js", kind: "script" }] },
+    turbopack: { resources: [{ url: "https://example.com/_next/static/chunks/_e69f0d32._.js", kind: "script" }] },
+    vitepress: { generators: ["VitePress v1.6.3"] },
+    docusaurus: { generators: ["Docusaurus v3.7.0"] },
+    posthog: { resources: [{ url: "https://us.i.posthog.com/static/array.js", kind: "script" }] },
+    mixpanel: { resources: [{ url: "https://cdn.mxpnl.com/libs/mixpanel-2-latest.min.js", kind: "script" }] },
+    umami: { resources: [{ url: "https://analytics.example.com/umami.js", kind: "script" }] },
+  };
+  for (const [id, snapshot] of Object.entries(cases)) {
+    const match = fixture.detect(snapshot).find((item) => item.id === id);
+    assert.ok(match, `${id} was not detected from its representative markers`);
+    assert.equal(match.evidence.detection_type, "direct");
+  }
+  assert.equal(fixture.detect(cases.vitepress).find((item) => item.id === "vitepress").version, "1.6.3");
+  assert.equal(fixture.detect(cases.docusaurus).find((item) => item.id === "docusaurus").version, "3.7.0");
+  assert.ok(fixture.detect({ generators: ["Docusaurus"] }).some((item) => item.id === "docusaurus"));
+});
+
+test("build and style markers shared by unrelated pipelines do not claim a technology", () => {
+  const ids = (extra) => fixture.detect(extra).map((item) => item.id);
+  // A Vercel deployment identifier is not Turbopack output.
+  assert.ok(!ids({ resources: [{ url: "https://example.com/_next/static/chunks/main-app.js?dpl=deadbeef", kind: "script" }] }).includes("turbopack"));
+  // Generic endpoints and hashed chunk names belong to no single tool.
+  assert.deepEqual(ids({ resources: [
+    { url: "https://example.com/api/send", kind: "script" },
+    { url: "https://example.com/chunk-ABCD1234.js", kind: "script" },
+    { url: "https://example.com/assets/site.css", kind: "link" },
+  ] }), []);
+  // Utility classes and theme attributes are too common to fingerprint.
+  for (const marker of PageCollector.plan(catalog).dom) {
+    assert.doesNotMatch(marker.selector, /class\*=|data-theme/);
+  }
 });

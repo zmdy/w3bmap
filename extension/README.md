@@ -20,7 +20,7 @@ Choose **Analyze current page** to save the complete collection, including links
 resources, and optional PHP enrichment. Use **Open graph** or **Export JSON** when
 the collection is ready. Quick detection never replaces the last saved graph.
 
-The local catalog includes 80 independently authored technology definitions.
+The local catalog includes 94 independently authored technology definitions.
 The redesigned popup includes the active site's favicon, Iconify technology
 logos with Iconify fallbacks, four discovery tabs, counters, and fixed graph/export
 actions. Updating to this version adds Chrome's `favicon` permission.

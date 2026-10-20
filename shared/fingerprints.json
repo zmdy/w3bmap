@@ -1454,6 +1454,280 @@
           "regex": "^present$"
         }
       ]
+    },
+    {
+      "id": "tailwind",
+      "name": "Tailwind CSS",
+      "category": "UI frameworks",
+      "website": "https://tailwindcss.com",
+      "confidence": 0.8,
+      "patterns": [
+        {
+          "source": "resource",
+          "regex": "/tailwind(?:[.-](?:min|[0-9]+(?:\\.[0-9]+){1,2}))?\\.css(?:$|[?#])"
+        },
+        {
+          "source": "script",
+          "regex": "^https://cdn\\.tailwindcss\\.com/"
+        }
+      ]
+    },
+    {
+      "id": "svelte",
+      "name": "Svelte",
+      "category": "JavaScript frameworks",
+      "website": "https://svelte.dev",
+      "confidence": 0.8,
+      "patterns": [
+        {
+          "source": "resource",
+          "regex": "/svelte(?:[.-][a-z0-9]+)*\\.js(?:$|[?#])"
+        },
+        {
+          "source": "js",
+          "key": "__svelte",
+          "regex": "^present$"
+        }
+      ]
+    },
+    {
+      "id": "solid",
+      "name": "SolidJS",
+      "category": "JavaScript frameworks",
+      "website": "https://solidjs.com",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "resource",
+          "regex": "/solid-js(?:[/-][a-z0-9]+)*\\.js(?:$|[?#])"
+        },
+        {
+          "source": "js",
+          "key": "_$HY",
+          "regex": "^present$"
+        },
+        {
+          "source": "script",
+          "regex": "/solid-js(?:[/-](?:web|store))?(?:\\.min)?\\.js(?:$|[?#])"
+        }
+      ]
+    },
+    {
+      "id": "qwik",
+      "name": "Qwik",
+      "category": "JavaScript frameworks",
+      "website": "https://qwik.dev",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "resource",
+          "regex": "/q-[a-z0-9]{8}\\.js(?:$|[?#])"
+        },
+        {
+          "source": "dom",
+          "key": "qwik-root",
+          "selector": "[q\\:container]",
+          "equals": "present"
+        },
+        {
+          "source": "js",
+          "key": "qwikevents",
+          "regex": "^present$"
+        }
+      ]
+    },
+    {
+      "id": "remix",
+      "name": "Remix",
+      "category": "Web frameworks",
+      "website": "https://remix.run",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "resource",
+          "regex": "/build/root-[a-f0-9]{8,}\\.js(?:$|[?#])"
+        },
+        {
+          "source": "js",
+          "key": "__remixContext",
+          "regex": "^present$"
+        },
+        {
+          "source": "dom",
+          "key": "remix-root",
+          "selector": "script[type='module'][src*='/build/root-']",
+          "equals": "present"
+        }
+      ]
+    },
+    {
+      "id": "storybook",
+      "name": "Storybook",
+      "category": "Build tools",
+      "website": "https://storybook.js.org",
+      "confidence": 0.9,
+      "patterns": [
+        {
+          "source": "resource",
+          "regex": "/(?:storybook/static|sb-manager|sb-preview|sb-addons)/[a-z]"
+        },
+        {
+          "source": "js",
+          "key": "STORYBOOK_ENV",
+          "regex": "^present$"
+        }
+      ]
+    },
+    {
+      "id": "esbuild",
+      "name": "esbuild",
+      "category": "Build tools",
+      "website": "https://esbuild.github.io",
+      "confidence": 0.65,
+      "patterns": [
+        {
+          "source": "resource",
+          "regex": "/\\.vite/deps/[^/]+\\.js(?:$|[?#])"
+        },
+        {
+          "source": "script",
+          "regex": "/\\.vite/deps/chunk-[A-Z0-9]{8}\\.js(?:$|[?#])"
+        }
+      ]
+    },
+    {
+      "id": "rollup",
+      "name": "Rollup",
+      "category": "Build tools",
+      "website": "https://rollupjs.org",
+      "confidence": 0.65,
+      "patterns": [
+        {
+          "source": "script",
+          "regex": "/assets/[a-z0-9]+(?:\\.[a-z0-9]+)*-[A-Za-z0-9_-]{8}\\.js(?:$|[?#])"
+        }
+      ]
+    },
+    {
+      "id": "turbopack",
+      "name": "Turbopack",
+      "category": "Build tools",
+      "website": "https://turbo.build",
+      "confidence": 0.8,
+      "patterns": [
+        {
+          "source": "resource",
+          "regex": "/_next/static/chunks/[^/]*\\._\\.js(?:$|[?#])"
+        },
+        {
+          "source": "js",
+          "key": "__turbopack_require__",
+          "regex": "^present$"
+        }
+      ]
+    },
+    {
+      "id": "vitepress",
+      "name": "VitePress",
+      "category": "Web frameworks",
+      "website": "https://vitepress.dev",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "resource",
+          "regex": "/vitepress/dist/client|/assets/chunks/framework\\.[A-Za-z0-9_-]{8}\\.js"
+        },
+        {
+          "source": "generator",
+          "regex": "^VitePress(?:\\s+v?([0-9]+(?:\\.[0-9]+){0,2}))?",
+          "versionGroup": 1
+        },
+        {
+          "source": "dom",
+          "key": "vitepress-content",
+          "selector": "#VPContent",
+          "equals": "present"
+        }
+      ]
+    },
+    {
+      "id": "docusaurus",
+      "name": "Docusaurus",
+      "category": "Web frameworks",
+      "website": "https://docusaurus.io",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "resource",
+          "regex": "/assets/js/docusaurus\\."
+        },
+        {
+          "source": "generator",
+          "regex": "^Docusaurus(?:\\s+v?([0-9]+(?:\\.[0-9]+){0,2}))?",
+          "versionGroup": 1
+        },
+        {
+          "source": "dom",
+          "key": "docusaurus-root",
+          "selector": "#__docusaurus",
+          "equals": "present"
+        }
+      ]
+    },
+    {
+      "id": "posthog",
+      "name": "PostHog",
+      "category": "Analytics",
+      "website": "https://posthog.com",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "resource",
+          "regex": "^https://(?:[a-z0-9-]+\\.)*posthog\\.com/"
+        },
+        {
+          "source": "js",
+          "key": "posthog",
+          "regex": "^present$"
+        }
+      ]
+    },
+    {
+      "id": "mixpanel",
+      "name": "Mixpanel",
+      "category": "Analytics",
+      "website": "https://mixpanel.com",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "resource",
+          "regex": "^https://cdn\\.mxpnl\\.com/"
+        },
+        {
+          "source": "js",
+          "key": "mixpanel",
+          "regex": "^present$"
+        }
+      ]
+    },
+    {
+      "id": "umami",
+      "name": "Umami",
+      "category": "Analytics",
+      "website": "https://umami.is",
+      "confidence": 0.85,
+      "patterns": [
+        {
+          "source": "resource",
+          "regex": "/umami(?:[.-][a-z0-9]+)*\\.js(?:$|[?#])"
+        },
+        {
+          "source": "dom",
+          "key": "umami-script",
+          "selector": "script[src][data-website-id]",
+          "equals": "present"
+        }
+      ]
     }
   ]
 }

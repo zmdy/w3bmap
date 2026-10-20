@@ -90,10 +90,13 @@ required. Quick detection stays local, does not call PHP, and does not overwrite
 the latest saved graph. To keep these technologies in an export, run **Analyze
 current page**, which performs a new snapshot and saves the full collection.
 
-The bundled catalog contains **80 technology definitions**, including CMS,
-ecommerce platforms, frameworks, libraries, analytics, payments, maps, security,
-and support tools. Examples include WordPress, Shopify, Next.js, React, Vue,
-Angular, jQuery, Bootstrap, Google Analytics, Stripe, and Cloudflare Turnstile.
+The bundled catalog contains **94 technology definitions**, including CMS,
+ecommerce platforms, frameworks, libraries, build tools, analytics, payments,
+maps, security, and support tools. Examples include WordPress, Shopify, Next.js,
+React, Vue, Angular, jQuery, Bootstrap, Google Analytics, Stripe, and Cloudflare
+Turnstile. Version 0.6.0 added Tailwind CSS, Svelte, SolidJS, Qwik, Remix,
+VitePress, Docusaurus, Storybook, esbuild, Rollup, Turbopack, PostHog, Mixpanel,
+and Umami.
 This is a curated catalog, not Wappalyzer's full database or an equivalent
 coverage guarantee. Minified applications that hide their markers/globals may
 remain undetected. Resource URLs show references, not necessarily executing code.
@@ -121,7 +124,9 @@ The detection approach references the
 [WebAppAnalyzer specification](https://github.com/enthec/webappanalyzer), the
 community continuation of Wappalyzer. Its source and fingerprint database use
 GPL-3.0. This project does not bundle or copy that code/database; the matcher and
-80 definitions are independently authored under this repository's MIT license.
+94 definitions are independently authored under this repository's MIT license.
+[unbuilt.app](https://github.com/yavorsky/unbuilt.app) was consulted as a public
+reference for build-tool and modern framework markers; no code or data was copied.
 The catalog is packaged locally and never downloads rules or executable code at
 runtime. See [the catalog format](technology-catalog.md) to add definitions.
 
@@ -166,8 +171,16 @@ or vulnerability scan. Unavailable modules are reported individually while
 available checks still run. If the connector fails, local findings are retained
 in a `partial` collection with an error; individual PHP errors are also retained.
 
-In the **PHP** tab, the collapsible **PHP checks** report shows connection and per-module
-status, including errors. While Analyze runs, background-state polling updates
+### Server probe results
+
+Connector findings live in the **Server** tab, renamed in 0.6.0 from **PHP**. The
+tab is displayed only while a connector endpoint is configured, so browser-only
+installations no longer show an empty panel; it reappears as soon as settings are
+saved and disappears after **Forget connector**, returning the popup to another tab
+if the Server panel was open.
+
+In this tab, the collapsible **Server checks** report shows connection and
+per-module status, including errors. While Analyze runs, background-state polling updates
 its current phase. Close and reopen the popup to see progress or the saved report.
 The saved report is included under `results.browser.connector` without credentials
 or the connector URL. Module results, evidence, and relationships are available in
@@ -262,8 +275,23 @@ network headers or reload the page to capture them.
 When browser and PHP entities share IDs, they are deduplicated and both evidence
 observations are retained. The outer document keeps `source: extension`; remote
 entities/relationships retain probe attribution where they are the chosen finding.
-Collection merging is limited to this local-plus-connector run; this is not a
-general multi-file or cross-run correlation engine.
+
+### Unified investigations
+
+Since 0.6.0 the saved collection can grow across runs instead of being replaced.
+The popup's options menu offers:
+
+- **Append page to collection**, which analyzes the current page and merges its
+  findings into the saved collection, available once a collection exists.
+- **Merge JSON reports…**, which adds one or more exported documents, from the CLI,
+  the connector, or another browser, to the saved collection.
+
+**Analyze this page** still starts a new collection. Merging uses the same
+`CollectionMerger` as the Explorer, so entities are deduplicated by ID, evidence is
+combined, `observed` relationships outrank inferred ones, and the result is
+revalidated against the shared schema before it is stored. An invalid document is
+rejected and the saved collection is left unchanged. Correlation is limited to
+shared entity IDs; this is not a general cross-run correlation engine.
 
 Requests time out after 25 seconds and response bodies are capped at 4 MiB.
 Oversized or incompatible enrichment falls back to the local graph. The existing
@@ -385,7 +413,7 @@ upstream resource failures may produce partial results, and are reported per mod
 
 ## Recursive analysis
 
-The extension remains at version **0.5.1**. Open **Recursive analysis** below the
+The extension is at version **0.6.0**. Open **Recursive analysis** below the
 Analyze button, enable **Follow links using the PHP connector**, and choose:
 
 - **Depth**: 0 visits only the start page; 1 follows its links; 2 follows the next
@@ -417,7 +445,7 @@ of a crawl, even if only host modules were selected. The extension's initial
 page capture retains its richer DOM/runtime detection; PHP does not execute
 JavaScript or reuse the user's authenticated browser session on other pages.
 
-**PHP checks** shows the number of visited pages and hosts and the stop reason.
+**Server checks** shows the number of visited pages and hosts and the stop reason.
 The combined graph/export contains per-page URL, depth, HTTP status, technologies,
 links, module results and errors under `results.crawl`, plus host results. See
 [recursive engine boundaries](connector.md#recursive-analysis) for limits,

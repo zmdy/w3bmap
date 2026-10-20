@@ -46,6 +46,32 @@ The initial **Sample data** collection is synthetic, uses documentation domains
 and IP ranges, and makes no network requests. Its deliberate example error shows
 how partial collections are presented. Use **Clear collection** to start empty.
 
+## Merging reports
+
+A single investigation can combine reports produced by the CLI, the extension, and
+the PHP connector, including runs against different targets.
+
+1. Click **Merge reports** and select one or more JSON documents, or drop several
+   files into the workspace at once.
+2. Every document is validated before anything is merged. An invalid file aborts
+   the operation, names its position, and leaves the open collection untouched.
+3. The merged graph becomes the active collection and the header shows
+   **INVESTIGATION** while more than one report is combined.
+
+Entities are deduplicated by ID: confidence keeps the highest value, evidence fields
+are combined, the most recent collection timestamp wins, and the more descriptive
+label is preserved. Relationships are deduplicated by source, type, and target;
+`observed` verification outranks `inferred`, and relationships whose endpoints are
+absent from the merged graph are dropped. Module results are merged per module,
+recursive traversal counters are summed with pages deduplicated by URL, and
+identical errors are collapsed. The merged target lists the combined targets, the
+status is `complete` only when every report is complete and `failed` only when all
+of them failed, and the result is validated against the shared schema again before
+it is displayed.
+
+**Import collection** still replaces the open collection, so use it to start a new
+investigation and **Merge reports** to extend the current one.
+
 ## Explore
 
 - Select a node in **Graph**, or a button in the keyboard-accessible **Entities**
@@ -144,14 +170,14 @@ explorer/
 │   ├── models/                   # Graph state, filters, synthetic sample
 │   ├── views/                    # Canvas, workspace DOM, Inspector
 │   ├── controllers/              # Interaction and import coordination
-│   └── services/                 # Validation and local file IO
+│   └── services/                 # Validation, report merging, local file IO
 ├── vendor/                      # Local browser libraries and notices
 ├── scripts/build-vendor.mjs      # Vendor/validator regeneration
 └── tests/                       # Graph, grouping and synthetic UI fixtures
 ```
 
-Project application code uses classes and MVC. Grouping, validator and file services are
-dependencies of the controller, not separate MVC applications. Vendored libraries
+Project application code uses classes and MVC. Grouping, merging, validator and file
+services are dependencies of the controller, not separate MVC applications. Vendored libraries
 and generated code preserve their upstream structure.
 
 ## Maintenance and verification
@@ -173,19 +199,22 @@ npm test
 ```
 
 The tests cover schema and semantic rejection, resource limits, filtering, export
-preservation, sample validity, and interoperability with a PHP-produced document.
+preservation, report merging and deduplication, sample validity, and
+interoperability with a PHP-produced document.
 The compiled schema snapshot is checked against the repository schema.
 Run `php tests/run.php` from the repository root to check the existing collectors.
 
 Manual browser checks: import a CLI export, reject an invalid file, select nodes
 and edges, search and reset, toggle inferred relationships, inspect module errors,
-switch layouts, export with filters active, and verify desktop and narrow layouts.
+switch layouts, merge several reports into one investigation, export with filters
+active, and verify desktop and narrow layouts.
 
 ## Current scope
 
-Each import opens one collection. Multiple-file merging, automatic cross-run
-correlation, persistence of graph positions, PNG export, and direct connector
-queries inside the Explorer are not implemented. The Chrome extension packages
+**Import collection** opens one collection and **Merge reports** combines several
+into one investigation. Automatic cross-run correlation beyond shared entity IDs,
+persistence of graph positions, PNG export, and direct connector queries inside the
+Explorer are not implemented. The Chrome extension packages
 this interface and opens a collection from trusted `chrome.storage.session` using
 a random ID in the URL fragment. It validates and loads the document locally;
 an expired ID shows an error rather than opening a different collection. The

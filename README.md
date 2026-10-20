@@ -66,7 +66,7 @@ import limits, and development commands.
 To use the Chrome extension, open `chrome://extensions/`, enable **Developer mode**,
 choose **Load unpacked**, and select this repository's `extension/` directory.
 Its Explorer and fingerprints are already included. Open an HTTP/HTTPS page and
-click the extension to detect technologies automatically. The popup groups 80
+click the extension to detect technologies automatically. The popup groups 94
 supported technologies by category, shows explicit versions and evidence, and
 supports filtering. The popup displays the site's favicon and local technology
 logos, with discovery tabs and counters. All application and technology icons
@@ -287,7 +287,7 @@ The architecture illustration uses BoxIcons v2 icons by Aniket Suvarna, obtained
 through [Iconify](https://icon-sets.iconify.design/bx/). See the
 [asset credits and license notices](docs/assets/README.md).
 
-Recursive analysis (version 0.5.1) supports depth, page/host limits, hostname scope,
+Recursive analysis (version 0.6.0) supports depth, page/host limits, hostname scope,
 URL include/exclude patterns, and explicit first-hop URLs. Enable it in the popup
 or run `sh cli/w3bmap.sh --url https://example.com/ --depth 2 --scope host` (Windows:
 `cli\w3bmap.cmd` or `.bat`). See the [recursive CLI guide](docs/cli.md#recursive-analysis)
@@ -295,3 +295,12 @@ and [extension controls](docs/extension.md#recursive-analysis). Browser technolo
 detection stays a flat list; entity clusters remain available in Site and Explorer.
 The Explorer defaults to a category layout and highlights directly related findings
 when an entity or relationship is selected. Click the canvas background to clear focus.
+
+Version 0.6.0 merges several reports into a single investigation. In the Explorer,
+**Merge reports** adds one or more JSON documents to the active collection, and
+dropping multiple files at once combines them; entities and relationships are
+deduplicated, and a plain import still replaces the current view. In the extension,
+saved collections can be appended to the current investigation instead of replacing
+it. The former PHP tab is now **Server**, and it appears only while the self-hosted
+connector is enabled. See the [Explorer guide](docs/explorer.md#merging-reports) and
+the [extension guide](docs/extension.md#server-probe-results).

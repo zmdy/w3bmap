@@ -657,6 +657,62 @@
       "icon": "bx:code-alt",
       "sha256": "a2db31a9874cae78c75bba460e6247c1fce7d64afb3d878c208033d036b8dac7"
     },
+    "extension/assets/technology-icons/tailwind.svg": {
+      "icon": "logos:tailwindcss-icon",
+      "sha256": "b84718c7016b810ad1afb744ceea13998d89403128009467132f6787a714c3fc"
+    },
+    "extension/assets/technology-icons/svelte.svg": {
+      "icon": "logos:svelte-icon",
+      "sha256": "542df0146fa2a4687edd9e8063f1061f8963ac79bde9cbe3a0a9398bd5b1f138"
+    },
+    "extension/assets/technology-icons/solid.svg": {
+      "icon": "logos:solidjs-icon",
+      "sha256": "1123e61b16507ab48972357643e7dbb59ee66e9b5936a9db1f48a808f8c21adf"
+    },
+    "extension/assets/technology-icons/remix.svg": {
+      "icon": "simple-icons:remix",
+      "sha256": "9bccede43762309c519fabfa3e1e027c6e02503ad53bfbc858616b112e73f1ac"
+    },
+    "extension/assets/technology-icons/storybook.svg": {
+      "icon": "logos:storybook-icon",
+      "sha256": "2039f70063fcd6249d508d6c5a16ecfd0c479afa6ffd593e3e088460a6cd4b85"
+    },
+    "extension/assets/technology-icons/esbuild.svg": {
+      "icon": "simple-icons:esbuild",
+      "sha256": "aa49bbc9d1793f3a9d3ad7da980442e564dc291f12818f5726b8893e4aa61984"
+    },
+    "extension/assets/technology-icons/rollup.svg": {
+      "icon": "logos:rollupjs",
+      "sha256": "972f6d86c4c5c8f1b3dfbaa31257000bf77d49bd3f4e0c792ea0608afb9e4613"
+    },
+    "extension/assets/technology-icons/turbopack.svg": {
+      "icon": "bx:code-alt",
+      "sha256": "a2db31a9874cae78c75bba460e6247c1fce7d64afb3d878c208033d036b8dac7"
+    },
+    "extension/assets/technology-icons/vitepress.svg": {
+      "icon": "logos:vite-icon",
+      "sha256": "96cfd9041ebdbc63d35b0bfb42024ba164330b30b08f3d78e86121837d98d96b"
+    },
+    "extension/assets/technology-icons/docusaurus.svg": {
+      "icon": "bx:code-alt",
+      "sha256": "a2db31a9874cae78c75bba460e6247c1fce7d64afb3d878c208033d036b8dac7"
+    },
+    "extension/assets/technology-icons/posthog.svg": {
+      "icon": "simple-icons:posthog",
+      "sha256": "7cc2ac6aaccfcdadee2f55341b97f66984b26058cc601ea0cf0cdf3a4baf43dd"
+    },
+    "extension/assets/technology-icons/mixpanel.svg": {
+      "icon": "simple-icons:mixpanel",
+      "sha256": "240c64a92b08c4f39358017c5c1f1e4a7be3afb45c6eb741e37a22eba9d98d68"
+    },
+    "extension/assets/technology-icons/umami.svg": {
+      "icon": "simple-icons:umami",
+      "sha256": "9981f72b85901a7ecbc9836dafff0bb5f6bcea0f13c5c4a58c7a90daa78e0887"
+    },
+    "extension/assets/technology-icons/qwik.svg": {
+      "icon": "bx:code-alt",
+      "sha256": "a2db31a9874cae78c75bba460e6247c1fce7d64afb3d878c208033d036b8dac7"
+    },
     "extension/assets/technology-icons/generic.svg": {
       "icon": "bx:code-alt",
       "sha256": "351cfdc690074f30ef338d4ae7bcccb04196d2c22e16950951b8f18a8675caea"

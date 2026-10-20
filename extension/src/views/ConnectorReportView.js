@@ -15,7 +15,7 @@ export class ConnectorReportView {
     arrow.dataset.icon = "right";
     arrow.setAttribute("aria-hidden", "true");
     const heading = document.createElement("strong");
-    heading.textContent = "PHP checks";
+    heading.textContent = "Server checks";
     const status = document.createElement("span");
     status.className = "php-status";
     status.textContent = progress ? "Running" : ConnectorReportView.STATUS[report?.status] ?? "Unknown";

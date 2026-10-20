@@ -3,7 +3,10 @@
 `shared/fingerprints.json` is the canonical, independently authored MIT-licensed
 catalog. Run `npm run build` from `extension/` after edits and commit the generated
 copy. No remote rules are loaded. The current format version is `2.0`; exported
-graphs continue to use schema `1.0`.
+graphs continue to use schema `1.0`. It holds **94 definitions** as of version
+0.6.0, which added Tailwind CSS, Svelte, SolidJS, Qwik, Remix, VitePress,
+Docusaurus, Storybook, esbuild, Rollup, Turbopack, PostHog, Mixpanel, and Umami.
+Every definition needs a matching entry in `shared/iconify/catalog.json`.
 
 Each technology defines `id`, `name`, `category`, `website`, `confidence`, and a
 `patterns` array. IDs must be unique. Use an official HTTPS website and confidence
@@ -61,7 +64,18 @@ a general dependency resolver. Do not infer backend software without appropriate
 evidence. Unsupported fields from other fingerprint databases are not silently
 treated as implemented: this format is not a Wappalyzer database importer.
 
+Build tooling is the hardest category to fingerprint from a page, because hashed
+chunk names and utility class names are shared by unrelated pipelines. Prefer a
+marker the tool alone emits, such as a documented runtime global or a reserved path,
+and lower the confidence when only a naming convention is available. Deployment
+query parameters, dev-server-only URLs, and generic endpoints are not evidence of a
+specific tool.
+
 Run `npm test` from `extension/` for catalog, serialized-probe, privacy, matcher,
 version, graph, and integration checks. Add both a positive signal and a similar
-negative example for new patterns, then check a real target page in Chrome.
-Do not copy third-party catalogs without reviewing their license and provenance.
+negative example for new patterns, then check a real target page in Chrome. Public
+references consulted for marker research include the
+[WebAppAnalyzer specification](https://github.com/enthec/webappanalyzer) and
+[unbuilt.app](https://github.com/yavorsky/unbuilt.app); both are read as references
+only. Do not copy third-party catalogs without reviewing their license and
+provenance.

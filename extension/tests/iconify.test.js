@@ -23,7 +23,7 @@ test("all generated icon assets retain original Iconify geometry and recorded ha
   assert.equal(catalog.source, "https://github.com/iconify/icon-sets");
   assert.match(catalog.revision, /^[0-9a-f]{40}$/);
   assert.equal(provenance.revision, catalog.revision);
-  assert.equal(Object.keys(catalog.technologies).length, 80);
+  assert.equal(Object.keys(catalog.technologies).length, 94);
   assert.ok(Object.keys(provenance.assets).length > 140);
   for (const [path, entry] of Object.entries(provenance.assets)) {
     const bytes = await readFile(new URL(path, root));
