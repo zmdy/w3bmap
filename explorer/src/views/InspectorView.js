@@ -1,6 +1,7 @@
 import { Dom } from "./WorkspaceView.js";
 import { GraphView } from "./GraphView.js";
 import { CollectionStatsService } from "../services/CollectionStatsService.js";
+import { ClipboardService } from "../services/ClipboardService.js";
 
 export class InspectorView {
   static ICONS = {
@@ -13,7 +14,14 @@ export class InspectorView {
     domain: "globe",
   };
 
-  constructor(details, collection, icons, stats = new CollectionStatsService()) {
+  constructor(
+    details,
+    collection,
+    icons,
+    stats = new CollectionStatsService(),
+    clipboard = new ClipboardService(),
+  ) {
+    this.clipboard = clipboard;
     this.details = details;
     this.collection = collection;
     this.icons = icons;
@@ -140,6 +148,42 @@ export class InspectorView {
     return avatar;
   }
 
+  /** The address an entity points at, when it has one. */
+  static address(node) {
+    const value = node.id.slice(node.id.indexOf(":") + 1);
+    if (/^https?:\/\//i.test(value)) return value;
+    if (node.type === "domain") return `https://${node.label}/`;
+    return null;
+  }
+
+  /** Opens or copies the selected entity's address. */
+  resourceActions(parent, node) {
+    const address = InspectorView.address(node);
+    if (!address) return;
+    const actions = Dom.element("div", "inspector-actions");
+    const open = document.createElement("a");
+    open.className = "resource-link";
+    open.href = address;
+    open.target = "_blank";
+    open.rel = "noopener noreferrer";
+    open.title = address;
+    open.append(Dom.icon("external"), Dom.element("span", "", "Open resource"));
+    const copy = Dom.element("button", "resource-link");
+    // The icon is itself a span, so the label keeps its own reference.
+    const label = Dom.element("span", "", "Copy link");
+    copy.append(Dom.icon("file"), label);
+    copy.addEventListener("click", async () => {
+      label.textContent = (await this.clipboard.write(address))
+        ? "Link copied"
+        : "Copy failed";
+      setTimeout(() => {
+        label.textContent = "Copy link";
+      }, 1600);
+    });
+    actions.append(open, copy);
+    parent.append(actions);
+  }
+
   /** Details for a Tree view folder: a URL path prefix, not an ownership claim. */
   folder(folder, model) {
     this.model = model;
@@ -241,6 +285,7 @@ export class InspectorView {
         node ? record.id : `${record.source} → ${record.target}`,
       ),
     );
+    if (node) this.resourceActions(header, record);
     this.details.append(header);
     const properties = this.section(this.details, "Discovery");
     this.row(properties, "Source", node ? record.source : record.source_tool);
