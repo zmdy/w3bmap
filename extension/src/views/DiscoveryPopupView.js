@@ -161,6 +161,14 @@ export class DiscoveryPopupView extends PopupView {
     this.connectorReport.render(state.progress?.connector ?? this.latest?.connector, state.progress);
     this.renderEntities();
     this.get("recent-empty").hidden = Boolean(state.latest);
+    const connectorActive = Boolean(state.connectorEnabled);
+    this.get("tab-php").hidden = !connectorActive;
+    if (!connectorActive && !this.get("panel-php").hidden) {
+      this.selectTab("page");
+    }
+    if (this.get("menu-append-page")) {
+      this.get("menu-append-page").disabled = !(state.latest && this.page);
+    }
     this.get("connector-state").textContent = state.connectorEnabled ? "Analyze includes PHP checks" : "Browser collection only";
     this.get("connector-dot").classList.toggle("enabled", state.connectorEnabled);
     this.get("graph-label").textContent = state.latest && state.latest.page !== this.page ? "Open last saved graph" : "Open in Graph Explorer";
@@ -191,6 +199,9 @@ export class DiscoveryPopupView extends PopupView {
   }
 
   selectTab(name, focus = false) {
+    if (name === "php" && this.get("tab-php").hidden) {
+      name = "page";
+    }
     for (const tab of ["page", "site", "related", "php", "recent"]) {
       const selected = tab === name;
       this.get(`tab-${tab}`).setAttribute("aria-selected", String(selected));

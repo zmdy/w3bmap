@@ -10,9 +10,9 @@ export class ProbeResultsView {
     const model = new ProbeResultsModel().load(savedDocument);
     this.context.textContent = savedDocument
       ? `Latest saved collection: ${model.target} · ${new Date(model.collectedAt).toLocaleString()}. Data remains available when you change browser tabs.`
-      : "No saved PHP results. Configure a PHP connector and analyze a page to collect server findings.";
+      : "No saved server probe results. Configure a connector and analyze a page to collect server findings.";
     if (!savedDocument) return;
-    if (!model.modules.length) this.text(this.container, "p", "This collection has no PHP module data. Configure a connector and analyze again.");
+    if (!model.modules.length) this.text(this.container, "p", "This collection has no server module data. Configure a connector and analyze again.");
     for (const entry of model.modules) {
       const section = this.disclosure(this.container,
         `${ConnectorReportView.MODULES[entry.module] ?? "Recursive analysis"} · ${ConnectorReportView.STATUS[entry.status] ?? entry.status} · ${entry.sources.length} source${entry.sources.length === 1 ? "" : "s"}`);

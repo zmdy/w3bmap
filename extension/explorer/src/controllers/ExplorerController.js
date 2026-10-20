@@ -2,6 +2,7 @@ import { EntityClusterModel } from "../models/EntityClusterModel.js";
 import { GraphModel } from "../models/GraphModel.js";
 import { SampleFactory } from "../models/SampleFactory.js";
 import { DocumentValidator } from "../services/DocumentValidator.js";
+import { CollectionMerger } from "../services/CollectionMerger.js";
 import { FileService } from "../services/FileService.js";
 import { GraphView } from "../views/GraphView.js";
 import { WorkspaceView } from "../views/WorkspaceView.js";
@@ -11,6 +12,7 @@ export class ExplorerController {
   constructor() {
     this.model = new GraphModel();
     this.validator = new DocumentValidator();
+    this.merger = new CollectionMerger(this.validator);
     this.files = new FileService();
     this.clusters = new EntityClusterModel();
     this.view = new WorkspaceView(this.clusters, () => this.updateClusters(false));
@@ -40,9 +42,16 @@ export class ExplorerController {
     for (const id of ["import-button", "empty-import"])
       on(id, "click", () => this.view.get("file-input").click());
     on("file-input", "change", (event) => {
-      const file = event.target.files[0];
+      const files = Array.from(event.target.files);
       event.target.value = "";
-      if (file) this.import(file);
+      if (files.length === 1) this.import(files[0]);
+      else if (files.length > 1) this.importMultiple(files);
+    });
+    on("merge-button", "click", () => this.view.get("merge-input").click());
+    on("merge-input", "change", (event) => {
+      const files = Array.from(event.target.files);
+      event.target.value = "";
+      if (files.length > 0) this.mergeFiles(files);
     });
     for (const id of ["load-sample", "sample-button"])
       on(id, "click", () => this.sample());
@@ -141,14 +150,19 @@ export class ExplorerController {
       event.preventDefault();
       this.dragDepth = 0;
       this.view.get("drop-overlay").hidden = true;
-      if (event.dataTransfer.files.length !== 1) {
+      const files = Array.from(event.dataTransfer.files).filter((file) => file.name.endsWith(".json") || file.type === "application/json");
+      if (files.length === 0) {
         this.view.notice(
-          "Import one collection at a time. The current collection has been kept.",
+          "Please drop JSON collection files. The current collection has been kept.",
           true,
         );
         return;
       }
-      this.import(event.dataTransfer.files[0]);
+      if (files.length === 1) {
+        this.import(files[0]);
+      } else {
+        this.importMultiple(files);
+      }
     });
   }
 
@@ -169,6 +183,67 @@ export class ExplorerController {
           `${error.message} The current collection has been kept.`,
           true,
         );
+    } finally {
+      if (version === this.importVersion) this.view.busy(false);
+    }
+  }
+
+  async importMultiple(files) {
+    if (!files || files.length === 0) return;
+    if (files.length === 1) return this.import(files[0]);
+
+    const version = ++this.importVersion;
+    this.view.busy(true);
+    try {
+      const documents = [];
+      for (const file of files) {
+        const text = await this.files.read(file);
+        if (version !== this.importVersion) return;
+        documents.push(this.validator.parse(text));
+      }
+      const merged = this.merger.merge(documents);
+      this.load(merged, `Investigation (${files.length} reports)`);
+      this.view.notice(
+        `${files.length} reports merged into a single investigation (${merged.nodes.length} entities, ${merged.edges.length} relationships).`,
+      );
+    } catch (error) {
+      if (version === this.importVersion) {
+        this.view.notice(
+          `${error.message} The current collection has been kept.`,
+          true,
+        );
+      }
+    } finally {
+      if (version === this.importVersion) this.view.busy(false);
+    }
+  }
+
+  async mergeFiles(files) {
+    if (!files || files.length === 0) return;
+    if (!this.model.document || this.model.isSample) {
+      return this.importMultiple(files);
+    }
+    const version = ++this.importVersion;
+    this.view.busy(true);
+    try {
+      const documents = [this.model.document];
+      for (const file of files) {
+        const text = await this.files.read(file);
+        if (version !== this.importVersion) return;
+        documents.push(this.validator.parse(text));
+      }
+      const merged = this.merger.merge(documents);
+      this.load(merged, merged.target);
+      this.view.notice(
+        `Merged ${files.length} report(s) into current investigation. Total: ${merged.nodes.length} entities, ${merged.edges.length} relationships.`,
+      );
+    } catch (error) {
+      if (version === this.importVersion) {
+        this.view.notice(
+          `${error.message} The current collection has been kept.`,
+          true,
+        );
+      }
     } finally {
       if (version === this.importVersion) this.view.busy(false);
     }

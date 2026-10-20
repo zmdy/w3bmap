@@ -42,7 +42,7 @@
         <span class="ui-icon" data-icon="info" aria-hidden="true"></span>
       </button>
       <span class="rail-spacer"></span>
-      <span class="rail-version">0.5.1</span>
+      <span class="rail-version">0.6.0</span>
     </aside>
     <div class="application">
       <header class="app-header">
@@ -54,6 +54,9 @@
           <span class="privacy-pill"><span></span> Local workspace</span>
           <button id="export-button" class="button secondary" disabled>
             <span class="ui-icon" data-icon="download" aria-hidden="true"></span>Export JSON
+          </button>
+          <button id="merge-button" class="button secondary" title="Merge additional JSON reports into the investigation">
+            <span class="ui-icon" data-icon="plus" aria-hidden="true"></span>Merge reports
           </button>
           <button id="import-button" class="button primary">
             <span class="ui-icon" data-icon="upload" aria-hidden="true"></span>Import collection
@@ -254,8 +257,8 @@
                 SCROLL TO ZOOM · DRAG TO EXPLORE
               </div>
               <div id="drop-overlay" class="drop-overlay" hidden>
-                <span class="ui-icon" data-icon="upload" aria-hidden="true"></span><strong>Drop your collection here</strong
-                ><span>One JSON file · up to 16 MiB</span>
+                <span class="ui-icon" data-icon="upload" aria-hidden="true"></span><strong>Drop your collection(s) here</strong
+                ><span>One or more JSON files to combine into an investigation</span>
               </div>
             </div>
             <div class="graph-footer">
@@ -320,7 +323,8 @@
         </aside>
       </main>
     </div>
-    <input id="file-input" type="file" accept=".json,application/json" hidden />
+    <input id="file-input" type="file" accept=".json,application/json" multiple hidden />
+    <input id="merge-input" type="file" accept=".json,application/json" multiple hidden />
     <dialog id="help-dialog">
       <div class="dialog-heading">
         <h2>Your discovery workspace</h2>
@@ -329,21 +333,22 @@
         </button>
       </div>
       <p>
-        Import a JSON export from the w3bm@p CLI or PHP Connector. Every file is
-        validated against the shared schema before it replaces your current
-        collection.
+        Import a JSON export from the w3bm@p CLI, Extension, or PHP Connector.
+        Select or drop multiple files to combine them into a single comprehensive
+        investigation without duplicate entities or relationships.
       </p>
       <ol>
         <li>Use the filters and search to narrow the graph.</li>
         <li>Select an entity or relationship to inspect evidence.</li>
         <li>Use the Entities tab for keyboard navigation.</li>
+        <li>Use Merge reports to combine additional findings into the active view.</li>
         <li>Open Collection to inspect module results and errors.</li>
         <li>Export JSON to save the complete, original collection.</li>
       </ol>
       <p>
-        Imports replace the current collection. Filters never remove data from
-        your export. Data stays in memory and is cleared when you reload. The
-        initial sample is synthetic.
+        Imports replace the current collection unless you choose Merge reports.
+        Filters never remove data from your export. Data stays in memory and is
+        cleared when you reload. The initial sample is synthetic.
       </p>
       <div class="guide-note">
         Limits: 16 MiB · 5,000 entities · 15,000 relationships. Chrome extension

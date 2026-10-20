@@ -29,6 +29,16 @@ export class PopupController {
     this.view.get("export-json").addEventListener("click", () => this.export());
     this.view.get("rescan-button").addEventListener("click", () => this.detect());
     this.view.get("technology-search").addEventListener("input", (event) => this.view.filterTechnologies(event.target.value));
+    this.view.get("menu-append-page")?.addEventListener("click", () => this.appendCurrent());
+    this.view.get("menu-merge-reports")?.addEventListener("click", () => {
+      this.view.menu(false);
+      this.view.get("popup-merge-input")?.click();
+    });
+    this.view.get("popup-merge-input")?.addEventListener("change", (event) => {
+      const files = Array.from(event.target.files);
+      event.target.value = "";
+      if (files.length) this.mergeReports(files);
+    });
     const [tab] = await this.api.tabs.query({
       active: true,
       currentWindow: true,
@@ -44,8 +54,21 @@ export class PopupController {
       const button = this.view.get(`tab-${name}`);
       button.addEventListener("click", () => this.view.selectTab(name));
       button.addEventListener("keydown", (event) => {
-        const next = event.key === "ArrowRight" ? (index + 1) % tabs.length : event.key === "ArrowLeft" ? (index + tabs.length - 1) % tabs.length : event.key === "Home" ? 0 : event.key === "End" ? tabs.length - 1 : null;
-        if (next !== null) { event.preventDefault(); this.view.selectTab(tabs[next], true); }
+        const visibleTabs = tabs.filter((t) => !this.view.get(`tab-${t}`).hidden);
+        const currentIndex = visibleTabs.indexOf(name);
+        const next = event.key === "ArrowRight"
+          ? (currentIndex + 1) % visibleTabs.length
+          : event.key === "ArrowLeft"
+            ? (currentIndex + visibleTabs.length - 1) % visibleTabs.length
+            : event.key === "Home"
+              ? 0
+              : event.key === "End"
+                ? visibleTabs.length - 1
+                : null;
+        if (next !== null && currentIndex !== -1) {
+          event.preventDefault();
+          this.view.selectTab(visibleTabs[next], true);
+        }
       });
     }
     this.view.get("view-technologies").addEventListener("click", () => this.view.toggleTechnologies());
@@ -90,38 +113,66 @@ export class PopupController {
     this.probeCollectionId = id;
     this.view.probes.render(null);
     if (!id) return;
-    this.view.get("probe-context").textContent = "Loading saved PHP results…";
+    this.view.get("probe-context").textContent = "Loading saved server probe results…";
     try {
       const document = await this.client.send("collection");
       if (this.probeCollectionId === id) this.view.probes.render(document);
     } catch (error) {
       if (this.probeCollectionId === id) {
         this.probeCollectionId = undefined;
-        this.view.get("probe-context").textContent = `Could not load saved PHP results: ${error.message}`;
+        this.view.get("probe-context").textContent = `Could not load saved server probe results: ${error.message}`;
       }
     }
   }
 
-  async analyze() {
+  async appendCurrent() {
+    this.view.menu(false);
+    await this.analyze(true);
+  }
+
+  async mergeReports(files) {
+    this.view.menu(false);
+    this.view.notice("Reading and merging collection files…");
+    try {
+      const documents = [];
+      const fileService = new FileService();
+      for (const file of files) {
+        const text = await fileService.read(file);
+        documents.push(JSON.parse(text));
+      }
+      await this.client.send("merge", { documents, includeExisting: true });
+      await this.refresh();
+      this.view.notice(`Merged ${files.length} report(s) into unified investigation.`);
+      this.view.selectTab("recent");
+    } catch (error) {
+      this.view.notice(`Merge failed: ${error.message}`, true);
+    }
+  }
+
+  async analyze(append = false) {
     if (this.analyzing) return;
     this.analyzing = true;
     this.view.busy(true);
     this.view.notice(
-      "Collecting the active page. You may close this popup and reopen it to check the result.",
+      append
+        ? "Appending this page to the active investigation…"
+        : "Collecting the active page. You may close this popup and reopen it to check the result.",
     );
     try {
-      const operation = this.client.send("analyze", { crawl: this.view.readCrawl() });
+      const operation = this.client.send("analyze", { crawl: this.view.readCrawl(), append });
       // Poll progress while the background service performs the PHP requests.
       this.refresh().catch(() => {});
       const result = await operation;
       this.view.notice(
-        result.connector?.status === "complete"
-          ? "Browser and PHP checks complete. Open the combined graph or export JSON."
+        append
+          ? "Page findings merged into active investigation. Open the combined graph or export JSON."
+          : result.connector?.status === "complete"
+          ? "Browser and server checks complete. Open the combined graph or export JSON."
           : result.connector?.status === "failed"
-          ? "PHP checks failed. Browser findings were saved; open the PHP tab for details."
+          ? "Server checks failed. Browser findings were saved; open the Server tab for details."
           : result.status === "partial"
           ? "Browser findings were collected. Some enrichment modules failed."
-          : "Browser collection ready. Configure a PHP connector to include server checks.",
+          : "Browser collection ready. Configure a connector to include server checks.",
       );
     } catch (error) {
       this.view.notice(error.message, true);

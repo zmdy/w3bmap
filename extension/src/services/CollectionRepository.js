@@ -1,7 +1,10 @@
+import { CollectionMerger } from "../../explorer/src/services/CollectionMerger.js";
+
 export class CollectionRepository {
   static MAX_BYTES = 4 * 1024 * 1024;
   constructor(api) {
     this.api = api;
+    this.merger = new CollectionMerger();
   }
 
   checkSize(document) {
@@ -20,6 +23,18 @@ export class CollectionRepository {
     const record = { id: crypto.randomUUID(), document };
     await this.api.storage.session.set({ collection: record });
     return record;
+  }
+
+  async merge(documents) {
+    const merged = this.merger.merge(documents);
+    return this.save(merged);
+  }
+
+  async append(document) {
+    const current = await this.latest();
+    if (!current?.document) return this.save(document);
+    const merged = this.merger.merge([current.document, document]);
+    return this.save(merged);
   }
 
   async latest() {

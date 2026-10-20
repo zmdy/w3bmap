@@ -71,7 +71,7 @@ export class AnalysisService {
       relatedDomains: domains.filter((host) => host !== new URL(snapshot.url).hostname) };
   }
 
-  async analyze(crawlOverride) {
+  async analyze(crawlOverride, append = false) {
     if (this.running)
       throw new Error(
         "A page analysis is already running. Reopen the popup to see its result.",
@@ -96,7 +96,9 @@ export class AnalysisService {
       document.results.browser.connector = enriched.report;
       this.progress = { stage: "saving", message: "Saving the combined collection…", connector: enriched.report };
       this.validator.validate(document);
-      const record = await this.collections.save(document);
+      const record = append
+        ? await this.collections.append(document)
+        : await this.collections.save(document);
       return this.collections.summary(record);
     } finally {
       this.running = false;

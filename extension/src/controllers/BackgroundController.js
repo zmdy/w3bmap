@@ -32,9 +32,22 @@ export class BackgroundController {
         };
       }
       case "analyze":
-        return this.analysis.analyze(message.crawl);
+        return this.analysis.analyze(message.crawl, message.append === true);
       case "collection":
         return (await this.collections.latest())?.document ?? null;
+      case "merge": {
+        const documents = Array.isArray(message.documents) ? [...message.documents] : [];
+        if (message.includeExisting) {
+          const current = await this.collections.latest();
+          if (current?.document) documents.unshift(current.document);
+        }
+        const record = await this.collections.merge(documents);
+        return this.collections.summary(record);
+      }
+      case "appendCollection": {
+        const record = await this.collections.append(message.document);
+        return this.collections.summary(record);
+      }
       case "clear":
         if (this.analysis.running)
           throw new Error(
