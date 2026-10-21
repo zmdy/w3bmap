@@ -83,6 +83,17 @@ export class WorkspaceView {
     notice.setAttribute("role", error ? "alert" : "status");
   }
 
+  /** Swaps the investigation title for its rename field. */
+  rename(editing, current = "") {
+    this.get("rename-form").hidden = !editing;
+    this.get("rename-button").hidden = editing || !this.get("target-label").textContent;
+    if (!editing) return;
+    const input = this.get("rename-input");
+    input.value = current;
+    input.focus();
+    input.select();
+  }
+
   /** Lists the added search terms with the number of entities each one matches. */
   terms(model) {
     const container = this.get("filter-terms");
@@ -136,6 +147,8 @@ export class WorkspaceView {
   summary(model) {
     const data = model.document;
     this.get("target-label").textContent = data?.target ?? "No collection";
+    this.get("rename-button").hidden = !data;
+    this.rename(false);
     this.investigationIcon(data?.target ?? null);
     this.get("filename-label").textContent =
       model.name || "Import a JSON export to begin";

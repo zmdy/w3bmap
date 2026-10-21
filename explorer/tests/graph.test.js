@@ -237,3 +237,17 @@ test("several search terms filter independently and report their own matches", (
   assert.deepEqual(model.filters.terms, []);
   assert.equal(model.visible().nodes.length, total);
 });
+
+test("renaming an investigation normalizes the name and reaches the export", () => {
+  const model = new GraphModel();
+  assert.throws(() => model.rename("Anything"), /Import a collection/);
+  model.load(new SampleFactory().create(), "sample");
+  assert.equal(model.rename("  Unidas   frota  "), "Unidas frota");
+  assert.equal(model.document.target, "Unidas frota");
+  assert.equal(JSON.parse(model.exportJson()).target, "Unidas frota");
+  for (const empty of ["", "   ", "\n\t"])
+    assert.throws(() => model.rename(empty), /needs a name/);
+  assert.equal(model.document.target, "Unidas frota", "a rejected name changes nothing");
+  assert.equal(model.rename("x".repeat(400)).length, 120);
+  assert.equal(new DocumentValidator().validate(model.document), true);
+});

@@ -78,6 +78,14 @@ export class ExplorerController {
     for (const id of ["load-sample", "sample-button"])
       on(id, "click", () => this.sample());
     on("export-button", "click", () => this.export());
+    on("rename-button", "click", () =>
+      this.view.rename(true, this.model.document?.target ?? ""),
+    );
+    on("rename-cancel", "click", () => this.view.rename(false));
+    on("rename-form", "submit", (event) => {
+      event.preventDefault();
+      this.renameCollection(this.view.get("rename-input").value);
+    });
     on("clear-button", "click", () => this.clear());
     for (const id of ["reset-button", "no-results-reset"])
       on(id, "click", () => this.reset());
@@ -457,6 +465,22 @@ export class ExplorerController {
   clearTerms() {
     this.model.filters.terms = [];
     this.refresh();
+  }
+
+  /** Applies a new investigation name to the loaded collection. */
+  renameCollection(name) {
+    try {
+      const applied = this.model.rename(name);
+      this.view.rename(false);
+      this.view.summary(this.model);
+      this.inspector.overview(this.model);
+      this.refresh();
+      this.view.notice(
+        `The investigation is now named ${applied}. Export JSON to keep the new name.`,
+      );
+    } catch (error) {
+      this.view.notice(error.message, true);
+    }
   }
 
   toggleAllTypes() {

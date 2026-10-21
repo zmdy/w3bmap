@@ -213,6 +213,14 @@
       "icon": "bx:link",
       "sha256": "6f373104f5644be605525338389ccec4a4dd4a5511b7195039c1f485251a827f"
     },
+    "explorer/assets/icons/edit.svg": {
+      "icon": "bx:edit-alt",
+      "sha256": "fff0dfe3a1ee1a844e07d055944f48b41375e6075cd057c6d212ecacb8f76e6c"
+    },
+    "explorer/assets/icons/check.svg": {
+      "icon": "bx:check",
+      "sha256": "116ff77c65a5aa8c008768bc12d91142342a241c3c140f33fe3f27dec169452b"
+    },
     "extension/assets/ui-icons/network.svg": {
       "icon": "bx:network-chart",
       "sha256": "fcb16865d81d8cbf5357a8673d9371eac322d8fff80250b851b019467bbda0b1"
@@ -344,6 +352,14 @@
     "extension/assets/ui-icons/link.svg": {
       "icon": "bx:link",
       "sha256": "6f373104f5644be605525338389ccec4a4dd4a5511b7195039c1f485251a827f"
+    },
+    "extension/assets/ui-icons/edit.svg": {
+      "icon": "bx:edit-alt",
+      "sha256": "fff0dfe3a1ee1a844e07d055944f48b41375e6075cd057c6d212ecacb8f76e6c"
+    },
+    "extension/assets/ui-icons/check.svg": {
+      "icon": "bx:check",
+      "sha256": "116ff77c65a5aa8c008768bc12d91142342a241c3c140f33fe3f27dec169452b"
     },
     "explorer/assets/icons/graph-domain.svg": {
       "icon": "bx:globe",

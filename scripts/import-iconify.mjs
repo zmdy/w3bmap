@@ -17,7 +17,8 @@ class IconifyCatalogImporter {
       play: "play", external: "link-external", download: "download", upload: "upload", file: "file", globe: "globe", sitemap: "sitemap",
       refresh: "refresh", right: "chevron-right", up: "up-arrow-alt", down: "down-arrow-alt", search: "search", fit: "fullscreen",
       grid: "grid-alt", list: "list-ul", info: "info-circle", close: "x", shield: "check-shield", code: "code-alt", server: "server", plus: "plus", minus: "minus", extension: "extension", terminal: "terminal", branch: "git-branch",
-      folder: "bxs-folder", "folder-open": "bxs-folder-open", tree: "network-chart", link: "link" };
+      folder: "bxs-folder", "folder-open": "bxs-folder-open", tree: "network-chart", link: "link",
+      edit: "edit-alt", check: "check" };
     const selected = {};
     const resolve = (id) => {
       const [prefix, name] = id.split(":");

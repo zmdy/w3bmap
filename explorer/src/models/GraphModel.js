@@ -41,6 +41,15 @@ export class GraphModel {
     this.filters.reset();
   }
 
+  /** Renames the investigation. The name belongs to the document and is exported. */
+  rename(name) {
+    const value = String(name).trim().replace(/\s+/g, " ").slice(0, 120);
+    if (!this.#document) throw new Error("Import a collection before renaming it.");
+    if (!value) throw new Error("An investigation needs a name.");
+    this.#document.target = value;
+    return value;
+  }
+
   clear() {
     this.#document = null;
     this.name = "";

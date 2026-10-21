@@ -44,6 +44,13 @@ capabilities, authentication errors, and environment diagnostics are metadata;
 they cannot be imported as graph documents. Collections with `partial` or `failed`
 status are accepted so their available findings and module errors remain visible.
 
+The pencil next to the investigation name opens a field to rename it. The name is
+the collection's own target field, so it is stored in the document and included in
+**Export JSON**; it is normalized to a single line of at most 120 characters and
+cannot be left empty. Renaming a single-site collection away from its hostname
+drops the larger styling the graph gives that site's node, because the root is
+found by name.
+
 The initial **Sample data** collection is synthetic, uses documentation domains
 and IP ranges, and makes no network requests. Its deliberate example error shows
 how partial collections are presented. Use **Clear collection** to start empty.

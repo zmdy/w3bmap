@@ -289,10 +289,47 @@ button {
   object-fit: contain;
 }
 .collection-title {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
   font-size: 15px;
   letter-spacing: -0.3px;
   font-weight: 650;
   overflow-wrap: anywhere;
+}
+.collection-title .icon-button {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  color: #9aa6b0;
+}
+.collection-title .icon-button:hover {
+  color: #1d666c;
+}
+.collection-title .ui-icon {
+  width: 13px;
+  height: 13px;
+}
+.rename-form {
+  display: grid;
+  gap: 6px;
+  margin-top: 4px;
+}
+.rename-form input {
+  width: 100%;
+  border: 1px solid #d5dee3;
+  border-radius: 6px;
+  padding: 7px 9px;
+  font-size: 12px;
+}
+.rename-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.rename-actions .button {
+  padding: 5px 12px;
+  font-size: 11px;
 }
 .collection-filename {
   font-size: 10px;
