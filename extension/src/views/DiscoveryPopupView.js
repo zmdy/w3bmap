@@ -1,5 +1,7 @@
 import { EntityClusterModel } from "../../explorer/src/models/EntityClusterModel.js";
 import { GroupedListView } from "../../explorer/src/views/GroupedListView.js";
+import { TreeModel } from "../../explorer/src/models/TreeModel.js";
+import { PopupTreeView } from "./PopupTreeView.js";
 import { ConnectorReportView } from "./ConnectorReportView.js";
 import { CrawlOptionsView } from "./CrawlOptionsView.js";
 import { ProbeResultsView } from "./ProbeResultsView.js";
@@ -21,6 +23,68 @@ export class DiscoveryPopupView extends PopupView {
     this.entityClusters = new EntityClusterModel();
     this.relatedList = new GroupedListView(this.get("related-domains"), this.relatedClusters, (node) => this.clusterMember(node));
     this.entityList = new GroupedListView(this.get("site-entities"), this.entityClusters, (node) => this.clusterMember(node));
+    // Each panel keeps its own folder tree and view mode; both stay out of the collection.
+    this.panels = {
+      site: { mode: "groups", clusters: this.entityClusters, list: this.entityList,
+        container: this.get("site-entities"), tree: new TreeModel(), nodes: [] },
+      related: { mode: "groups", clusters: this.relatedClusters, list: this.relatedList,
+        container: this.get("related-domains"), tree: new TreeModel(), nodes: [] },
+    };
+    for (const [name, panel] of Object.entries(this.panels)) {
+      panel.view = new PopupTreeView(panel.container, panel.tree, (id) => {
+        panel.tree.toggle(id);
+        this.renderPanel(name);
+      });
+    }
+  }
+
+  /** Switches one panel between its folder tree and its similarity groups. */
+  setPanelMode(name, mode) {
+    this.panels[name].mode = mode;
+    this.renderPanel(name);
+  }
+
+  setPanelGroups(name, open) {
+    const panel = this.panels[name];
+    if (panel.mode === "tree") panel.tree.setAll(open);
+    else panel.clusters.setAll(open);
+    this.renderPanel(name);
+  }
+
+  togglePanelSites(name) {
+    const panel = this.panels[name];
+    if (panel.mode === "tree") panel.tree.setByHost(!panel.tree.byHost);
+    else panel.clusters.setByHost(!panel.clusters.byHost);
+    this.renderPanel(name);
+  }
+
+  renderPanel(name) {
+    const panel = this.panels[name];
+    const target = name === "site" ? "site" : "related";
+    const merged = panel.mode === "tree" ? !panel.tree.byHost : !panel.clusters.byHost;
+    this.get(`view-${target}-tree`).setAttribute("aria-pressed", String(panel.mode === "tree"));
+    this.get(`view-${target}-groups`).setAttribute(
+      "aria-pressed",
+      String(panel.mode === "groups"),
+    );
+    const merge = this.get(`merge-${target}-sites`);
+    merge.setAttribute("aria-pressed", String(merged));
+    merge.textContent = merged ? "Split by site" : "Merge sites";
+    if (panel.mode === "tree") {
+      panel.tree.build(panel.nodes, this.pageHost());
+      panel.view.render();
+      return;
+    }
+    panel.container.replaceChildren();
+    panel.list.render(panel.nodes);
+  }
+
+  pageHost() {
+    try {
+      return new URL(this.page).hostname;
+    } catch {
+      return "";
+    }
   }
 
   current(tab) {
@@ -50,7 +114,8 @@ export class DiscoveryPopupView extends PopupView {
     domains.replaceChildren();
     const related = (result.relatedDomains ?? []).map((domain) => ({ id: `domain:${domain}`, label: domain, type: "domain" }));
     this.relatedClusters.load(related);
-    this.relatedList.render(related);
+    this.panels.related.nodes = related;
+    this.renderPanel("related");
     this.renderEntities();
     if (!domains.childNodes.length) domains.textContent = "No external domains found in this snapshot.";
     this.get("site-overview").textContent = `${new URL(result.page).hostname} · ${result.technologies.length} technology indicators. ${result.runtimeAvailable ? "DOM and JavaScript signals inspected." : "DOM signals inspected; JavaScript inspection unavailable."}`;
@@ -61,6 +126,7 @@ export class DiscoveryPopupView extends PopupView {
     this.scan = null;
     this.updateMetrics();
     this.renderEntities();
+    this.panels.related.nodes = [];
     this.get("related-domains").replaceChildren();
   }
 
@@ -143,15 +209,15 @@ export class DiscoveryPopupView extends PopupView {
       this.entitySignature = signature;
       this.entityClusters.load(nodes);
     }
-    this.entityList.render(nodes);
+    this.panels.site.nodes = nodes;
+    this.renderPanel("site");
     this.get("site-entities-note").textContent = nodes.length
       ? "Similarity groups only. Expand a group to see its findings; use Site Explorer for evidence and relationships."
       : "Inspect or analyze this page to see grouped findings. IPs and certificates require PHP enrichment.";
   }
 
   setEntityGroups(open) {
-    this.entityClusters.setAll(open);
-    this.renderEntities();
+    this.setPanelGroups("site", open);
   }
 
   state(state) {

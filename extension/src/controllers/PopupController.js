@@ -12,8 +12,13 @@ export class PopupController {
 
   async start() {
     this.bindNavigation();
-    this.view.get("expand-site-groups").addEventListener("click", () => this.view.setEntityGroups(true));
-    this.view.get("collapse-site-groups").addEventListener("click", () => this.view.setEntityGroups(false));
+    for (const panel of ["site", "related"]) {
+      this.view.get(`expand-${panel}-groups`).addEventListener("click", () => this.view.setPanelGroups(panel, true));
+      this.view.get(`collapse-${panel}-groups`).addEventListener("click", () => this.view.setPanelGroups(panel, false));
+      this.view.get(`merge-${panel}-sites`).addEventListener("click", () => this.view.togglePanelSites(panel));
+      this.view.get(`view-${panel}-tree`).addEventListener("click", () => this.view.setPanelMode(panel, "tree"));
+      this.view.get(`view-${panel}-groups`).addEventListener("click", () => this.view.setPanelMode(panel, "groups"));
+    }
     this.view
       .get("analyze-button")
       .addEventListener("click", () => this.analyze());

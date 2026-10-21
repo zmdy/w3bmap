@@ -77,7 +77,11 @@ PHP enrichment supplies IPs and certificates when available. An existing saved
 collection is not replaced by a quick scan. Clearing it restores the quick findings.
 
 Related and Site groups start collapsed. Native disclosure controls support mouse,
-Enter and Space. Site also provides **Expand groups** and **Collapse groups**.
+Enter and Space. Both panels offer **Tree** and **Groups** views with **Merge
+sites**, **Expand all** and **Collapse all**, the same controls the Site Explorer
+uses. Tree presents the findings as folders built from URL paths; Groups keeps
+the similarity groups. A folder that holds more than 25 items points to the Site
+Explorer for the rest, because the popup is not a full workspace.
 Groups organize findings without asserting ownership or affiliation. Counts and
 exports keep individual records. See [Explorer grouping rules](explorer.md#collapsible-groups).
 The shared grouping service and public suffix data are packaged locally, with no

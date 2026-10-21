@@ -121,3 +121,107 @@
 .crawl-options input[type=number], .crawl-options select, .crawl-options textarea { width: 100%; margin-top: 5px; font: inherit; border: 1px solid #dfe7ed; border-radius: 5px; padding: 6px; box-sizing: border-box; }
 .crawl-options p { font-size: 10px; line-height: 1.5; color: #788492; }
 .crawl-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+
+.panel-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.view-switch {
+  display: inline-flex;
+  border: 1px solid #dde5ea;
+  border-radius: 7px;
+  overflow: hidden;
+}
+.switch-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border: 0;
+  background: white;
+  color: #6b7c8d;
+  font: inherit;
+  font-size: 11px;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+.switch-button[aria-pressed="true"] {
+  background: #e9f4f4;
+  color: #22707a;
+  font-weight: 600;
+}
+.switch-button .ui-icon {
+  width: 12px;
+  height: 12px;
+}
+.popup-tree {
+  display: grid;
+  gap: 1px;
+  font-size: 11px;
+}
+.popup-tree-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-left: calc(var(--tree-depth, 0) * 12px);
+  min-height: 24px;
+}
+.popup-tree-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  padding: 3px 4px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+.popup-tree-label:hover {
+  background: #f1f7f8;
+}
+.popup-tree-label .ui-icon[data-icon="folder"],
+.popup-tree-label .ui-icon[data-icon="folder-open"] {
+  color: #d9a33c;
+}
+.popup-tree-label .ui-icon {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
+}
+.popup-tree-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.popup-tree-leaf {
+  padding-left: calc(var(--tree-depth, 0) * 12px + 24px);
+  color: #58697a;
+}
+.popup-tree-tag {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #8b97a2;
+  background: #eef2f5;
+  border-radius: 999px;
+  padding: 1px 6px;
+  flex-shrink: 0;
+}
+.popup-tree-count {
+  font-family: ui-monospace, monospace;
+  font-size: 10px;
+  color: #94a0aa;
+}
+.popup-tree-more {
+  margin: 2px 0 2px calc(var(--tree-depth, 0) * 12px + 24px);
+  font-size: 10px;
+  color: #8b97a2;
+}
