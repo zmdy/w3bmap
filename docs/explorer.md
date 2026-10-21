@@ -96,8 +96,13 @@ investigation and **Merge reports** to extend the current one.
   filters and say so when a filter is narrowing them.
 - Select a graph edge or a relationship in the Inspector to inspect that edge's
   evidence and jump to either endpoint.
-- Search labels, IDs, and types using literal, case-insensitive text. Search narrows
-  the visible entities; only relationships between visible endpoints remain.
+- Search labels, IDs, and types using literal, case-insensitive text. Only
+  relationships between visible endpoints remain.
+- Press Enter or the **+** button to keep the typed text as a filter. Added
+  filters appear as chips above the workspace, each with the number of entities
+  it matches in its tooltip and a control to remove it. Filters are independent:
+  an entity stays visible when it matches any of them, including the text still
+  in the search box. A search can combine up to 25 filters.
 - Filter entity types, collection source, minimum confidence, and inferred edges.
   Type counts show the complete collection; the footer shows the visible subset.
 - The default **By category** layout places technologies, pages, domains, IPs,

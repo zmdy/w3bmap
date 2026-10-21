@@ -83,8 +83,20 @@ export class ExplorerController {
       on(id, "click", () => this.reset());
     on("search-input", "input", (event) => {
       this.model.filters.query = event.target.value;
+      this.view.get("add-term").disabled = !event.target.value.trim();
       clearTimeout(this.searchTimer);
       this.searchTimer = setTimeout(() => this.refresh(), 130);
+    });
+    on("search-input", "keydown", (event) => {
+      if (event.key !== "Enter") return;
+      event.preventDefault();
+      this.addTerm();
+    });
+    on("add-term", "click", () => this.addTerm());
+    on("filter-terms", "click", (event) => {
+      const remove = event.target.closest("button[data-term-index]");
+      if (remove) this.removeTerm(Number(remove.dataset.termIndex));
+      else if (event.target.closest("#clear-terms")) this.clearTerms();
     });
     on("type-filters", "change", (event) => {
       const type = event.target.dataset.filterType;
@@ -340,6 +352,7 @@ export class ExplorerController {
 
   refresh() {
     const visible = this.model.visible();
+    this.view.terms(this.model);
     this.graph.filter(visible);
     this.view.visible(
       visible,
@@ -414,6 +427,36 @@ export class ExplorerController {
         "The clipboard is not available in this browser context. Use Export JSON to save the complete collection.",
         true,
       );
+  }
+
+  /** Keeps the typed text as its own filter so several can apply at once. */
+  addTerm() {
+    const input = this.view.get("search-input");
+    const term = input.value.trim().toLowerCase();
+    const { terms } = this.model.filters;
+    if (!term || terms.includes(term)) return;
+    if (terms.length >= GraphFilters.MAX_TERMS) {
+      this.view.notice(
+        `A search can combine up to ${GraphFilters.MAX_TERMS} filters. Remove one before adding another.`,
+        true,
+      );
+      return;
+    }
+    terms.push(term);
+    input.value = "";
+    this.model.filters.query = "";
+    this.view.get("add-term").disabled = true;
+    this.refresh();
+  }
+
+  removeTerm(index) {
+    this.model.filters.terms.splice(index, 1);
+    this.refresh();
+  }
+
+  clearTerms() {
+    this.model.filters.terms = [];
+    this.refresh();
   }
 
   toggleAllTypes() {

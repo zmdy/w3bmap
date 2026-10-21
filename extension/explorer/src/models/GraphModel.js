@@ -1,4 +1,6 @@
 export class GraphFilters {
+  static MAX_TERMS = 25;
+
   static TYPES = [
     "domain",
     "ip",
@@ -15,6 +17,7 @@ export class GraphFilters {
 
   reset() {
     this.query = "";
+    this.terms = [];
     this.types = new Set(GraphFilters.TYPES);
     this.minConfidence = 0;
     this.showInferred = true;
@@ -58,18 +61,26 @@ export class GraphModel {
     );
   }
 
+  /** Added terms and the live query are independent filters; any match keeps a node. */
+  needles() {
+    const live = this.filters.query.trim().toLowerCase();
+    return [...this.filters.terms, ...(live ? [live] : [])];
+  }
+
   visible() {
-    const query = this.filters.query.trim().toLowerCase();
+    const needles = this.needles();
     const nodes = (this.#document?.nodes ?? []).filter(
       (node) =>
         this.filters.types.has(node.type) &&
         node.confidence >= this.filters.minConfidence &&
         (this.filters.source === "all" ||
           node.source === this.filters.source) &&
-        (!query ||
-          `${node.label} ${node.id} ${node.type}`
-            .toLowerCase()
-            .includes(query)),
+        (!needles.length ||
+          needles.some((needle) =>
+            `${node.label} ${node.id} ${node.type}`
+              .toLowerCase()
+              .includes(needle),
+          )),
     );
     const ids = new Set(nodes.map((node) => node.id));
     const edges = (this.#document?.edges ?? [])
@@ -84,6 +95,14 @@ export class GraphModel {
             edge.source_tool === this.filters.source),
       );
     return { nodes, edges };
+  }
+
+  /** How many entities of the whole collection a single term matches. */
+  matching(term) {
+    const needle = String(term).toLowerCase();
+    return (this.#document?.nodes ?? []).filter((node) =>
+      `${node.label} ${node.id} ${node.type}`.toLowerCase().includes(needle),
+    ).length;
   }
 
   exportJson() {

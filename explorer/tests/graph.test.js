@@ -212,3 +212,28 @@ test("recursive PHP collections preserve a valid graph and per-page traversal ev
   model.load(data, "recursive fixture");
   assert.equal(JSON.parse(model.exportJson()).results.crawl.visited_pages, data.results.crawl.visited_pages);
 });
+
+test("several search terms filter independently and report their own matches", () => {
+  const model = new GraphModel();
+  model.load(new SampleFactory().create(), "sample");
+  const total = model.document.nodes.length;
+  model.filters.terms = ["wordpress"];
+  const single = model.visible().nodes;
+  assert.equal(single.length, 1);
+  model.filters.terms = ["wordpress", "jquery"];
+  assert.deepEqual(
+    model.visible().nodes.map((node) => node.label).sort(),
+    ["WordPress", "jQuery"],
+  );
+  // The live query is one more independent filter, never a narrowing of the rest.
+  model.filters.query = "sitemap";
+  assert.equal(model.visible().nodes.length, 3);
+  assert.deepEqual(model.needles(), ["wordpress", "jquery", "sitemap"]);
+  assert.equal(model.matching("wordpress"), 1);
+  assert.equal(model.matching("example.com"), model.document.nodes.filter(
+    (node) => `${node.label} ${node.id} ${node.type}`.toLowerCase().includes("example.com"),
+  ).length);
+  model.filters.reset();
+  assert.deepEqual(model.filters.terms, []);
+  assert.equal(model.visible().nodes.length, total);
+});

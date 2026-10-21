@@ -83,6 +83,37 @@ export class WorkspaceView {
     notice.setAttribute("role", error ? "alert" : "status");
   }
 
+  /** Lists the added search terms with the number of entities each one matches. */
+  terms(model) {
+    const container = this.get("filter-terms");
+    const { terms } = model.filters;
+    container.replaceChildren();
+    container.hidden = !terms.length;
+    if (!terms.length) return;
+    container.append(
+      Dom.element("span", "filter-caption", "Showing entities matching any of"),
+    );
+    for (const [index, term] of terms.entries()) {
+      const matches = model.matching(term);
+      const chip = Dom.element("span", "filter-chip");
+      chip.title = `${matches.toLocaleString("en-US")} of ${model.document?.nodes.length.toLocaleString("en-US") ?? 0} entities contain "${term}" in their label, identifier, or type.`;
+      const remove = Dom.element("button", "filter-remove");
+      remove.dataset.termIndex = String(index);
+      remove.setAttribute("aria-label", `Remove the filter ${term}`);
+      remove.append(Dom.icon("close"));
+      chip.append(
+        Dom.element("strong", "", term),
+        Dom.element("span", "filter-count", String(matches)),
+        remove,
+      );
+      container.append(chip);
+    }
+    const clear = Dom.element("button", "text-button");
+    clear.id = "clear-terms";
+    clear.textContent = "Clear filters";
+    container.append(clear);
+  }
+
   /** Reflects the model's selected types and the all/none toggle label. */
   setTypeFilters(types) {
     this.typeCheckboxes.forEach((input, type) => {
@@ -94,6 +125,7 @@ export class WorkspaceView {
 
   resetFilters() {
     this.get("search-input").value = "";
+    this.get("add-term").disabled = true;
     this.get("confidence-filter").value = "0";
     this.get("confidence-value").textContent = "0%";
     this.get("inferred-filter").checked = true;

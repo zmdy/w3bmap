@@ -204,7 +204,16 @@
                   type="search"
                   placeholder="Search entities…"
                   aria-label="Search entities"
-              /></label>
+                /><button
+                  id="add-term"
+                  class="icon-button"
+                  type="button"
+                  aria-label="Add this text as a filter"
+                  title="Add this text as a filter"
+                  disabled
+                >
+                  <span class="ui-icon" data-icon="plus" aria-hidden="true"></span>
+                </button></label>
               <div id="copy-actions" class="tree-actions" hidden>
                 <button id="copy-entities" class="text-button">
                   <span class="ui-icon" data-icon="file" aria-hidden="true"></span>Copy list
@@ -222,6 +231,12 @@
                 <option value="grid">Grid</option>
               </select>
             </div>
+            <div
+              id="filter-terms"
+              class="filter-terms"
+              aria-label="Active search filters"
+              hidden
+            ></div>
             <div class="visualization-area" id="drop-zone">
               <div id="graph-panel" role="tabpanel" aria-labelledby="graph-tab">
                 <div
