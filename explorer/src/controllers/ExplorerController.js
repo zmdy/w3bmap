@@ -384,8 +384,7 @@ export class ExplorerController {
     split.hidden = !this.tree.multiSite;
     split.setAttribute("aria-pressed", String(this.tree.byHost));
     split.textContent = this.tree.byHost ? "Merge sites" : "Split by site";
-    this.view.get("entities-actions").hidden =
-      this.workspaceTab !== "entities" || !this.model.document;
+    this.view.get("copy-actions").hidden = !this.model.document;
     this.treeView.selection(
       this.folder?.id ??
         (this.selection?.kind === "node" ? this.selection.record.id : null),
@@ -395,14 +394,20 @@ export class ExplorerController {
   /** Copies the visible entity list, grouped exactly as the Entities tab shows it. */
   async copyEntities() {
     const visible = this.model.visible();
-    const text = this.report.text(this.clusters.visible(visible.nodes), {
+    const context = {
       target: this.model.document?.target ?? "",
       total: visible.nodes.length,
       filtered: visible.nodes.length !== (this.model.document?.nodes.length ?? 0),
-    });
+    };
+    // Each tab copies what it actually presents: a folder tree or a grouped list.
+    const text =
+      this.workspaceTab === "tree"
+        ? this.report.tree(this.tree.roots, context)
+        : this.report.text(this.clusters.visible(visible.nodes), context);
+    const shape = this.workspaceTab === "tree" ? "folder tree" : "grouped list";
     if (await this.clipboard.write(text))
       this.view.notice(
-        `${visible.nodes.length.toLocaleString("en-US")} visible entities copied as a grouped list.`,
+        `${visible.nodes.length.toLocaleString("en-US")} visible entities copied as a ${shape}.`,
       );
     else
       this.view.notice(
@@ -465,8 +470,6 @@ export class ExplorerController {
       Boolean(this.model.document),
       name === "graph",
     );
-    this.view.get("entities-actions").hidden =
-      name !== "entities" || !this.model.document;
     this.view.selection(
       this.selection?.kind === "node" ? this.selection.record.id : null,
     );

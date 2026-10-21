@@ -313,3 +313,32 @@ test("a single-site collection never gains a site folder level", () => {
   assert.equal(model.roots[0].splitHosts, false);
   assert.deepEqual(model.roots[0].folders.map((folder) => folder.label), ["docs"]);
 });
+
+test("the Tree view copy reports the folder tree with its indentation", () => {
+  const nodes = [
+    { id: "page:https://example.com/", type: "page", label: "/" },
+    { id: "page:https://example.com/docs/guide", type: "page", label: "/docs/guide" },
+    { id: "asset:https://example.com/docs/guide.pdf", type: "asset", label: "/docs/guide.pdf" },
+  ];
+  const model = new TreeModel();
+  model.build(nodes, "example.com");
+  assert.equal(
+    new EntityReportService().tree(model.roots, { target: "example.com", total: 3 }),
+    [
+      "w3bm@p · example.com",
+      "3 entities",
+      "",
+      "example.com/ (3)",
+      "  docs/ (2)",
+      "    guide/ (1)",
+      "      - https://example.com/docs/guide",
+      "    - https://example.com/docs/guide.pdf",
+      "  - https://example.com/",
+      "",
+    ].join("\n"),
+  );
+  assert.equal(
+    new EntityReportService().tree([], { target: "example.com", total: 0 }),
+    "w3bm@p · example.com\n0 entities\n\nNo entities match the current filters.\n",
+  );
+});

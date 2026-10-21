@@ -81,9 +81,10 @@ investigation and **Merge reports** to extend the current one.
   evidence, and visible relationships.
 - An entity with an address offers **Open resource**, which opens it in a new tab,
   and **Copy link**. The Explorer never requests the address itself.
-- **Copy list** in the Entities tab copies the visible entities as grouped plain
-  text, in the same order and grouping the tab shows, and says when filters are
-  narrowing the list. Use **Export JSON** for the complete collection.
+- **Copy list** copies what the open tab presents: Graph and Entities copy the
+  visible entities as a grouped list, and Tree view copies the folder tree with
+  its indentation. Both state when filters are narrowing the result. Use
+  **Export JSON** for the complete collection.
 - **Select all** and **Clear all** next to Entity types switch every type filter at
   once.
 - The investigation card shows the target site's favicon, under the same rule as
