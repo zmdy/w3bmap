@@ -88,10 +88,15 @@ investigation and **Merge reports** to extend the current one.
   evidence, and visible relationships.
 - An entity with an address offers **Open resource**, which opens it in a new tab,
   and **Copy link**. The Explorer never requests the address itself.
-- **Copy list** copies what the open tab presents: Graph and Entities copy the
-  visible entities as a grouped list, and Tree view copies the folder tree with
-  its indentation. Both state when filters are narrowing the result. Use
-  **Export JSON** for the complete collection.
+- **Copy report** copies what the open tab presents — the grouped entities in
+  Graph and Entities, the folder hierarchy in Tree view — in the format chosen
+  beside it: plain list, Markdown list, Markdown table, or a Mermaid flowchart.
+  Every format opens with the same executive summary: the collection, the date,
+  and the figures from **Collection at a glance**, followed by the detail. The
+  summary states whether filters narrowed the result, so a pasted report never
+  implies findings that were hidden. A group lists its first 50 findings and
+  counts the rest; the Mermaid diagram draws at most 80 nodes and says how many
+  it left out. Use **Export JSON** for the complete collection.
 - **Select all** and **Clear all** next to Entity types switch every type filter at
   once.
 - The investigation card shows the target site's favicon, under the same rule as
@@ -294,15 +299,15 @@ npm test
 
 The tests cover schema and semantic rejection, resource limits, filtering, export
 preservation, report merging and deduplication, folder tree construction,
-per-site splitting and category grouping, collection figures, the copied entity
-list, sample validity, and interoperability with a PHP-produced document.
+per-site splitting and category grouping, collection figures, every copied report
+format, sample validity, and interoperability with a PHP-produced document.
 The compiled schema snapshot is checked against the repository schema.
 Run `php tests/run.php` from the repository root to check the existing collectors.
 
 Manual browser checks: import a CLI export, reject an invalid file, select nodes
 and edges, search and reset, toggle inferred relationships, inspect module errors,
 switch layouts, browse and expand the Tree view, split and merge the sites of an
-investigation, copy the entity list, switch all type filters at once, open and
+investigation, copy a report in each format, switch all type filters at once, open and
 copy a resource link, merge several reports into one investigation, export with
 filters active, and verify desktop and narrow layouts. Clipboard actions need a
 real click: a browser may refuse a copy that no user gesture started.

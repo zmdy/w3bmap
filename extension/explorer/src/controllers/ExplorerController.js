@@ -7,6 +7,7 @@ import { CollectionMerger } from "../services/CollectionMerger.js";
 import { FileService } from "../services/FileService.js";
 import { IconService } from "../services/IconService.js";
 import { EntityReportService } from "../services/EntityReportService.js";
+import { ReportFormatter } from "../services/ReportFormatter.js";
 import { ClipboardService } from "../services/ClipboardService.js";
 import { GraphView } from "../views/GraphView.js";
 import { WorkspaceView } from "../views/WorkspaceView.js";
@@ -21,6 +22,7 @@ export class ExplorerController {
     this.files = new FileService();
     this.icons = new IconService();
     this.report = new EntityReportService();
+    this.formatter = new ReportFormatter();
     this.clipboard = new ClipboardService();
     this.clusters = new EntityClusterModel();
     this.tree = new TreeModel();
@@ -422,22 +424,28 @@ export class ExplorerController {
   }
 
   /** Copies the visible entity list, grouped exactly as the Entities tab shows it. */
-  async copyEntities() {
+  /** The report model for whatever the open tab presents. */
+  buildReport() {
     const visible = this.model.visible();
     const context = {
       target: this.model.document?.target ?? "",
       total: visible.nodes.length,
       filtered: visible.nodes.length !== (this.model.document?.nodes.length ?? 0),
+      overview: this.inspector.stats.overview(this.model.document, visible),
     };
-    // Each tab copies what it actually presents: a folder tree or a grouped list.
-    const text =
-      this.workspaceTab === "tree"
-        ? this.report.tree(this.tree.roots, context)
-        : this.report.text(this.clusters.visible(visible.nodes), context);
-    const shape = this.workspaceTab === "tree" ? "folder tree" : "grouped list";
-    if (await this.clipboard.write(text))
+    return this.workspaceTab === "tree"
+      ? this.report.fromTree(this.tree.roots, context)
+      : this.report.fromGroups(this.clusters.visible(visible.nodes), context);
+  }
+
+  async copyEntities() {
+    const format = this.view.get("copy-format").value;
+    const name =
+      ReportFormatter.FORMATS.find(([value]) => value === format)?.[1] ?? format;
+    const report = this.buildReport();
+    if (await this.clipboard.write(this.formatter.render(report, format)))
       this.view.notice(
-        `${visible.nodes.length.toLocaleString("en-US")} visible entities copied as a ${shape}.`,
+        `Report copied as ${name.toLowerCase()}: ${report.total.toLocaleString("en-US")} entities and their figures.`,
       );
     else
       this.view.notice(

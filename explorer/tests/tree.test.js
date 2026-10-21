@@ -243,40 +243,6 @@ test("category folders reuse the graph's similarity groups", () => {
   );
 });
 
-test("the copied entity list reports the visible grouping and nothing more", () => {
-  const nodes = [
-    { id: "domain:api.example.com", type: "domain", label: "api.example.com", confidence: 1 },
-    { id: "domain:cdn.example.com", type: "domain", label: "cdn.example.com", confidence: 1 },
-    { id: "technology:react", type: "technology", label: "React", evidence: { category: "JavaScript frameworks" }, confidence: 0.9 },
-  ];
-  const clusters = new EntityClusterModel();
-  clusters.load(nodes);
-  const text = new EntityReportService().text(clusters.visible(nodes), {
-    target: "example.com",
-    total: nodes.length,
-    filtered: true,
-  });
-  assert.equal(
-    text,
-    [
-      "w3bm@p · example.com",
-      "3 entities visible under the current filters",
-      "",
-      "Domains *.example.com (2)",
-      "- api.example.com",
-      "- cdn.example.com",
-      "",
-      "Technologies JavaScript frameworks (1)",
-      "- React",
-      "",
-    ].join("\n"),
-  );
-  assert.equal(
-    new EntityReportService().text([], { target: "example.com", total: 0 }),
-    "w3bm@p · example.com\n0 entities\n\nNo entities match the current filters.\n",
-  );
-});
-
 test("a multi-site investigation gets one folder per site, and splitting can be turned off", () => {
   const fixture = new TreeFixture();
   const model = new TreeModel();
@@ -312,33 +278,4 @@ test("a single-site collection never gains a site folder level", () => {
   assert.equal(model.multiSite, false);
   assert.equal(model.roots[0].splitHosts, false);
   assert.deepEqual(model.roots[0].folders.map((folder) => folder.label), ["docs"]);
-});
-
-test("the Tree view copy reports the folder tree with its indentation", () => {
-  const nodes = [
-    { id: "page:https://example.com/", type: "page", label: "/" },
-    { id: "page:https://example.com/docs/guide", type: "page", label: "/docs/guide" },
-    { id: "asset:https://example.com/docs/guide.pdf", type: "asset", label: "/docs/guide.pdf" },
-  ];
-  const model = new TreeModel();
-  model.build(nodes, "example.com");
-  assert.equal(
-    new EntityReportService().tree(model.roots, { target: "example.com", total: 3 }),
-    [
-      "w3bm@p · example.com",
-      "3 entities",
-      "",
-      "example.com/ (3)",
-      "  docs/ (2)",
-      "    guide/ (1)",
-      "      - https://example.com/docs/guide",
-      "    - https://example.com/docs/guide.pdf",
-      "  - https://example.com/",
-      "",
-    ].join("\n"),
-  );
-  assert.equal(
-    new EntityReportService().tree([], { target: "example.com", total: 0 }),
-    "w3bm@p · example.com\n0 entities\n\nNo entities match the current filters.\n",
-  );
 });

@@ -245,10 +245,16 @@
                 >
                   <span class="ui-icon" data-icon="plus" aria-hidden="true"></span>
                 </button></label>
-              <div id="copy-actions" class="tree-actions" hidden>
+              <div id="copy-actions" class="tree-actions copy-actions" hidden>
                 <button id="copy-entities" class="text-button">
-                  <span class="ui-icon" data-icon="file" aria-hidden="true"></span>Copy list
+                  <span class="ui-icon" data-icon="file" aria-hidden="true"></span>Copy report
                 </button>
+                <select id="copy-format" aria-label="Copied report format">
+                  <option value="text">Plain list</option>
+                  <option value="markdown">Markdown list</option>
+                  <option value="table">Markdown table</option>
+                  <option value="mermaid">Mermaid diagram</option>
+                </select>
               </div>
               <select
                 id="layout-select"
