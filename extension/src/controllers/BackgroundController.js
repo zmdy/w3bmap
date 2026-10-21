@@ -1,11 +1,17 @@
+import { CollectionSession } from "../models/CollectionSession.js";
+
 export class BackgroundController {
-  constructor(api, settings, connector, collections, analysis) {
-    Object.assign(this, { api, settings, connector, collections, analysis });
+  constructor(api, settings, connector, collections, analysis, sessions = null) {
+    Object.assign(this, { api, settings, connector, collections, analysis, sessions });
     api.tabs.onUpdated?.addListener((tabId, change) => {
       if (change.status === "loading" || change.url) {
         api.action?.setBadgeText({ tabId, text: "" }).catch(() => {});
       }
     });
+  }
+
+  async session() {
+    return (await this.sessions?.load()) ?? new CollectionSession();
   }
 
   async handle(message, sender) {
@@ -23,16 +29,38 @@ export class BackgroundController {
         return this.analysis.detect();
       case "state": {
         const settings = await this.settings.load();
+        const session = await this.session();
         return {
           running: this.analysis.running,
           progress: this.analysis.progress ?? null,
           connectorEnabled: settings.enabled,
           crawl: settings.crawl.publicValues(),
           latest: this.collections.summary(await this.collections.latest()),
+          session: session.values(),
         };
       }
-      case "analyze":
-        return this.analysis.analyze(message.crawl, message.append === true);
+      case "startCollection": {
+        if (this.analysis.running)
+          throw new Error("Wait for the running analysis before starting a collection.");
+        await this.collections.clear();
+        const session = CollectionSession.start(message.name);
+        await this.sessions?.save(session);
+        return session.values();
+      }
+      case "finishCollection": {
+        await this.sessions?.save(CollectionSession.finished());
+        return CollectionSession.finished().values();
+      }
+      case "analyze": {
+        // An open investigation keeps growing; a one-off analysis replaces it.
+        const session = await this.session();
+        const result = await this.analysis.analyze(
+          message.crawl,
+          message.append === true || session.active,
+        );
+        if (session.active) await this.sessions?.save(session.counted());
+        return result;
+      }
       case "collection":
         return (await this.collections.latest())?.document ?? null;
       case "merge": {

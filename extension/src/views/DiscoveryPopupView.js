@@ -38,6 +38,22 @@ export class DiscoveryPopupView extends PopupView {
     }
   }
 
+  /** Shows the open investigation and what analyzing a page will do with it. */
+  session(values) {
+    const active = values?.active === true;
+    const pages = values?.pages ?? 0;
+    this.get("session-pill").hidden = !active;
+    this.get("menu-finish-collection").hidden = !active;
+    this.get("menu-new-collection").textContent = active
+      ? "Start a different collection…"
+      : "Start a new collection…";
+    if (!active) return;
+    this.get("session-label").textContent =
+      `${values.name} · ${pages} ${pages === 1 ? "page" : "pages"}`;
+    this.get("session-pill").title =
+      "Analyzing a page adds it to this investigation instead of replacing the saved collection.";
+  }
+
   /** Switches one panel between its folder tree and its similarity groups. */
   setPanelMode(name, mode) {
     this.panels[name].mode = mode;
@@ -224,6 +240,7 @@ export class DiscoveryPopupView extends PopupView {
     this.crawlOptions.state(state.crawl);
     super.state(state);
     this.latest = state.latest;
+    this.session(state.session);
     this.connectorReport.render(state.progress?.connector ?? this.latest?.connector, state.progress);
     this.renderEntities();
     this.get("recent-empty").hidden = Boolean(state.latest);

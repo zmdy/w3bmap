@@ -302,6 +302,13 @@ entities/relationships retain probe attribution where they are the chosen findin
 Since 0.6.0 the saved collection can grow across runs instead of being replaced.
 The popup's options menu offers:
 
+- **Start a new collection…**, which names an investigation and opens it. While
+  one is open, a pill above **Analyze this page** names it and counts the pages
+  collected so far, every analysis is added to that investigation instead of
+  replacing it, and **Finish this collection** on the pill or in the menu closes
+  it. Starting a collection clears the previous saved one; finishing leaves the
+  investigation saved until it is cleared. The session is popup bookkeeping and
+  never enters the exported document.
 - **Append page to collection**, which analyzes the current page and merges its
   findings into the saved collection, available once a collection exists.
 - **Merge JSON reports…**, which adds one or more exported documents, from the CLI,

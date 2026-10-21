@@ -35,6 +35,9 @@ export class PopupController {
     this.view.get("rescan-button").addEventListener("click", () => this.detect());
     this.view.get("technology-search").addEventListener("input", (event) => this.view.filterTechnologies(event.target.value));
     this.view.get("menu-append-page")?.addEventListener("click", () => this.appendCurrent());
+    this.view.get("menu-new-collection")?.addEventListener("click", () => this.startCollection());
+    for (const id of ["menu-finish-collection", "finish-collection"])
+      this.view.get(id)?.addEventListener("click", () => this.finishCollection());
     this.view.get("menu-merge-reports")?.addEventListener("click", () => {
       this.view.menu(false);
       this.view.get("popup-merge-input")?.click();
@@ -127,6 +130,36 @@ export class PopupController {
         this.probeCollectionId = undefined;
         this.view.get("probe-context").textContent = `Could not load saved server probe results: ${error.message}`;
       }
+    }
+  }
+
+  /** Opens an investigation so every later analysis joins the same collection. */
+  async startCollection() {
+    this.view.menu(false);
+    const suggestion = this.view.pageHost() || "Investigation";
+    const name = globalThis.prompt("Name this collection", suggestion);
+    if (name === null) return;
+    try {
+      const session = await this.client.send("startCollection", { name });
+      await this.refresh();
+      this.view.notice(
+        `Collecting into ${session.name}. Every analysis is added to it until you finish the collection.`,
+      );
+    } catch (error) {
+      this.view.notice(error.message, true);
+    }
+  }
+
+  async finishCollection() {
+    this.view.menu(false);
+    try {
+      await this.client.send("finishCollection");
+      await this.refresh();
+      this.view.notice(
+        "Collection finished. The saved investigation stays available until you clear it.",
+      );
+    } catch (error) {
+      this.view.notice(error.message, true);
     }
   }
 

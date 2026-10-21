@@ -11,8 +11,9 @@ import { CollectionRepository } from "../src/services/CollectionRepository.js";
 import { ConnectorClient } from "../src/services/ConnectorClient.js";
 import { GraphMerger } from "../src/services/GraphMerger.js";
 import { ResourceClassifier } from "../src/services/ResourceClassifier.js";
-import { AnalysisService } from "../src/services/AnalysisService.js";
 import { BackgroundController } from "../src/controllers/BackgroundController.js";
+import { CollectionSession, CollectionSessionRepository } from "../src/models/CollectionSession.js";
+import { AnalysisService } from "../src/services/AnalysisService.js";
 import { OptionsController } from "../src/controllers/OptionsController.js";
 import { DocumentValidator } from "../explorer/src/services/DocumentValidator.js";
 import { ExtensionCollectionSource } from "../explorer/src/services/ExtensionCollectionSource.js";
@@ -682,4 +683,52 @@ test("resource classification prefers the request kind and falls back to the ext
   assert.equal(ResourceClassifier.classify("https://example.com/.well-known/x"), "page");
   assert.equal(ResourceClassifier.classify("not a url", "script"), "asset");
   assert.equal(ResourceClassifier.classify("not a url"), "page");
+});
+
+test("an open collection keeps analyses in one investigation and reports its progress", async () => {
+  const storage = { data: {}, async get(key) { return key in this.data ? { [key]: this.data[key] } : {}; },
+    async set(values) { Object.assign(this.data, values); }, async remove(key) { delete this.data[key]; } };
+  const api = { storage: { session: storage }, runtime: { id: "test", getURL: () => "chrome-extension://test/" } };
+  const sessions = new CollectionSessionRepository(api);
+  const analysed = [];
+  const analysis = { running: false, progress: null, analyze: async (crawl, append) => { analysed.push(append); return { status: "complete" }; } };
+  const collections = { cleared: 0, summary: () => null, latest: async () => null, clear() { this.cleared++; } };
+  const settings = { load: async () => ({ enabled: false, crawl: { publicValues: () => ({}) } }) };
+  const controller = new BackgroundController({ ...api, tabs: { onUpdated: { addListener() {} } } }, settings, {}, collections, analysis, sessions);
+  const sender = { id: "test", url: "chrome-extension://test/popup/index.html" };
+  const send = (message) => controller.handle(message, sender);
+
+  await send({ action: "analyze" });
+  assert.deepEqual(analysed, [false], "without a session an analysis replaces the collection");
+
+  const started = await send({ action: "startCollection", name: "  Unidas   frota  " });
+  assert.equal(started.name, "Unidas frota");
+  assert.equal(collections.cleared, 1, "a new collection starts empty");
+  await send({ action: "analyze" });
+  await send({ action: "analyze" });
+  assert.deepEqual(analysed, [false, true, true], "an open session appends every page");
+  assert.equal((await send({ action: "state" })).session.pages, 2);
+
+  await send({ action: "finishCollection" });
+  const after = await send({ action: "state" });
+  assert.equal(after.session.active, false);
+  assert.equal(after.session.pages, 0);
+  await send({ action: "analyze" });
+  assert.deepEqual(analysed, [false, true, true, false]);
+
+  analysis.running = true;
+  await assert.rejects(() => send({ action: "startCollection", name: "x" }), /Wait for the running analysis/);
+});
+
+test("a collection session names itself and never reaches the exported document", () => {
+  const session = CollectionSession.start("x".repeat(400), new Date("2026-10-21T10:00:00Z"));
+  assert.equal(session.name.length, CollectionSession.MAX_NAME);
+  assert.equal(CollectionSession.start("   ").name, "Investigation");
+  assert.equal(session.counted().pages, 1);
+  assert.equal(session.pages, 0, "counting returns a new session instead of mutating");
+  assert.equal(CollectionSession.start("Site").label, "Site · 0 pages");
+  assert.equal(CollectionSession.start("Site").counted().label, "Site · 1 page");
+  assert.equal(CollectionSession.finished().label, "");
+  const graph = new GraphBuilder().build(fixture.snapshot(), []);
+  assert.ok(!JSON.stringify(graph).includes("investigation"));
 });

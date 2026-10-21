@@ -3,6 +3,7 @@ import { ConnectorClient } from "./src/services/ConnectorClient.js";
 import { CollectionRepository } from "./src/services/CollectionRepository.js";
 import { AnalysisService } from "./src/services/AnalysisService.js";
 import { BackgroundController } from "./src/controllers/BackgroundController.js";
+import { CollectionSessionRepository } from "./src/models/CollectionSession.js";
 import { DocumentValidator } from "./explorer/src/services/DocumentValidator.js";
 
 class BackgroundApplication {
@@ -43,6 +44,7 @@ class BackgroundApplication {
       connector,
       collections,
       analysis,
+      new CollectionSessionRepository(this.api),
     );
   }
 }
