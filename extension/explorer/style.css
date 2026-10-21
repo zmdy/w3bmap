@@ -1051,6 +1051,32 @@ h1 {
   width: 15px;
   height: 15px;
 }
+.graph-legend {
+  position: absolute;
+  top: 14px;
+  left: 20px;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  max-width: calc(100% - 40px);
+  padding: 8px 12px;
+  border: 1px solid #e6ecef;
+  border-radius: 8px;
+  background: #ffffffd9;
+  backdrop-filter: blur(3px);
+}
+.legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  color: #6b7c8d;
+}
+.legend-count {
+  font-family: ui-monospace, monospace;
+  color: #9aa6b0;
+}
 .canvas-caption {
   position: absolute;
   bottom: 31px;

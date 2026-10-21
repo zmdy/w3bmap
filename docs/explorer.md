@@ -117,6 +117,13 @@ investigation and **Merge reports** to extend the current one.
   it does not recursively highlight every reachable node in the collection.
 - Choose category, force-directed, concentric, circle, or grid layout. Use the zoom and fit
   controls, scroll to zoom, and drag nodes or the background to arrange the view.
+- A legend names the colour of every entity type in view with its visible count.
+- A node's diameter follows how many visible relationships it has, within fixed
+  bounds. It is a reading aid for the current view, not a measure of importance,
+  and it changes with the filters. Labels fade below 45% zoom, where they would
+  overlap into noise, and return as you zoom in.
+- Returning to the Graph tab refits the view, because a hidden canvas measures as
+  empty and would otherwise leave the entities outside the viewport.
 - Open **Collection** to inspect collection status, module errors, and raw module
   results. Large evidence/result previews are truncated; the full data stays in
   the export.

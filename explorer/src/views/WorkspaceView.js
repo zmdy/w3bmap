@@ -160,6 +160,29 @@ export class WorkspaceView {
     this.get("error-count").hidden = !data?.errors.length;
   }
 
+  /** Names the colours on the canvas and how many entities each one covers. */
+  legend(visible, show) {
+    const container = this.get("graph-legend");
+    const counts = new Map();
+    for (const node of visible.nodes)
+      counts.set(node.type, (counts.get(node.type) ?? 0) + 1);
+    container.hidden = !show || !counts.size;
+    if (container.hidden) return;
+    container.replaceChildren(
+      ...[...counts]
+        .sort((first, second) => second[1] - first[1])
+        .map(([type, count]) => {
+          const item = Dom.element("span", "legend-item");
+          item.append(
+            Dom.dot(type),
+            Dom.element("span", "", WorkspaceView.TYPE_LABELS[type] ?? type),
+            Dom.element("span", "legend-count", count.toLocaleString("en-US")),
+          );
+          return item;
+        }),
+    );
+  }
+
   visible(visible, hasDocument, isGraph) {
     this.get("visible-count").textContent =
       `${visible.nodes.length.toLocaleString("en-US")} entities · ${visible.edges.length.toLocaleString("en-US")} relationships`;
@@ -168,6 +191,7 @@ export class WorkspaceView {
       !hasDocument || !isGraph || !visible.nodes.length;
     this.get("canvas-caption").hidden =
       !hasDocument || !isGraph || !visible.nodes.length;
+    this.legend(visible, Boolean(hasDocument) && isGraph && visible.nodes.length > 0);
     this.groupedList.render(visible.nodes);
   }
 

@@ -101,3 +101,29 @@ test("edge and collapsed aggregate focus highlight endpoints without flooding th
   assert.ok(group.hasClass("related"));
   collapsed.cy.destroy();
 });
+
+test("node size reflects visible degree within bounds and labels fade when zoomed out", () => {
+  assert.equal(GraphView.size(0), 34);
+  assert.ok(GraphView.size(1) > GraphView.size(0));
+  assert.ok(GraphView.size(12) > GraphView.size(3));
+  // The scale is bounded so a hub never swallows the canvas.
+  assert.equal(GraphView.size(400), 66);
+  assert.equal(GraphView.size(10000), 66);
+  for (const degree of [0, 1, 5, 50, 500])
+    assert.ok(Number.isInteger(GraphView.size(degree)));
+  assert.ok(GraphView.LABEL_ZOOM > 0 && GraphView.LABEL_ZOOM < 1);
+});
+
+test("returning to the graph refits the viewport after the container was hidden", () => {
+  const fixture = new PresentationFixture();
+  const view = fixture.view();
+  let fitted = 0;
+  view.fit = () => {
+    fitted++;
+  };
+  view.resize();
+  assert.equal(fitted, 1, "a populated graph is refitted");
+  view.cy.elements().remove();
+  view.resize();
+  assert.equal(fitted, 1, "an empty graph is left alone");
+});

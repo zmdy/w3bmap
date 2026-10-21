@@ -21,6 +21,13 @@ export class GraphView {
     sitemap: "#faf0f5",
   };
 
+  static LABEL_ZOOM = 0.45;
+
+  /** Maps a node's visible degree onto a bounded diameter. */
+  static size(degree) {
+    return Math.round(Math.min(34 + Math.sqrt(degree) * 9, 66));
+  }
+
   constructor(container, onSelect, onZoom, clusters) {
     this.clusters = clusters;
     this.layoutName = "categories";
@@ -36,8 +43,9 @@ export class GraphView {
         {
           selector: "node",
           style: {
-            width: 40,
-            height: 40,
+            // Size reflects the number of visible relationships, nothing else.
+            width: (node) => GraphView.size(node.degree(false)),
+            height: (node) => GraphView.size(node.degree(false)),
             "background-color": (node) => GraphView.FILLS[node.data("type")],
             "border-color": (node) => GraphView.COLORS[node.data("type")],
             "border-width": 1.3,
@@ -49,6 +57,8 @@ export class GraphView {
             "text-margin-y": 9,
             "text-wrap": "ellipsis",
             "text-max-width": 105,
+            // Labels would overlap into noise before the nodes themselves do.
+            "text-opacity": () => (this.cy.zoom() < GraphView.LABEL_ZOOM ? 0 : 1),
             "text-outline-color": "#fbfcfd",
             "text-outline-width": 3,
             "background-image": (node) => this.icon(node.data("type")),
@@ -148,7 +158,15 @@ export class GraphView {
       if (data.aggregate) onSelect("aggregate", data);
       else onSelect("edge", { ...this.records.get(event.target.id()), index: data.index });
     });
-    this.cy.on("zoom", () => onZoom(Math.round(this.cy.zoom() * 100)));
+    this.cy.on("zoom", () => {
+      onZoom(Math.round(this.cy.zoom() * 100));
+      // Re-evaluates the zoom-dependent label style without a full restyle.
+      const hidden = this.cy.zoom() < GraphView.LABEL_ZOOM;
+      if (hidden !== this.labelsHidden) {
+        this.labelsHidden = hidden;
+        this.cy.style().update();
+      }
+    });
     this.cy.on("tap", (event) => { if (event.target === this.cy) onSelect("clear", null); });
     this.resizeObserver = new ResizeObserver(() => this.cy.resize());
     this.resizeObserver.observe(container);
@@ -262,7 +280,9 @@ export class GraphView {
     this.cy.elements().removeClass("muted related");
   }
 
+  /** A hidden container measures as empty, so the viewport is restored on return. */
   resize() {
     this.cy.resize();
+    if (this.cy.elements().nonempty()) this.fit();
   }
 }
