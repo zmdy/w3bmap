@@ -17,6 +17,7 @@ use W3bmap\NetworkPolicy;
 use W3bmap\ProbeController;
 use W3bmap\ProbeRequest;
 use W3bmap\ResourceType;
+use W3bmap\StatusCollector;
 use W3bmap\Resolver;
 use W3bmap\Url;
 use W3bmap\WebCollector;
@@ -48,11 +49,22 @@ final class FixtureHttpClient implements HttpClient
 {
     public string $sitemap = '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>https://example.com/about</loc></url></urlset>';
     public bool $fail = false;
+    /** Status answers keyed by URL, for the HTTP status module. */
+    public array $statuses = [];
+    public array $requested = [];
 
     public function get(string $url, bool $service = false): HttpResponse
     {
         if ($this->fail) {
             throw new AppException('Fixture upstream failure.', 502, 'upstream_error');
+        }
+        $this->requested[] = $url;
+        if (isset($this->statuses[$url])) {
+            $status = $this->statuses[$url];
+            if ($status === 0) {
+                throw new AppException('Fixture connection failure.', 502, 'upstream_error');
+            }
+            return new HttpResponse($url, $status, $status === 301 ? ['location' => ['https://example.com/moved']] : [], '');
         }
         if ($service) {
             return new HttpResponse($url, 200, [], '{"objectClassName":"domain","ldhName":"EXAMPLE.COM"}');
@@ -197,6 +209,48 @@ final class TestSuite
         $this->check($result['status'] === 'complete', 'Authenticated public domain query failed.');
     }
 
+    private function httpStatusModule(): void
+    {
+        $this->check(StatusCollector::classify(404) === 'missing', '404 must be reported as missing.');
+        $this->check(StatusCollector::classify(403) === 'forbidden', '403 must be reported as forbidden.');
+        $this->check(StatusCollector::classify(503) === 'server_error', '5xx must be reported as a server error.');
+        $this->check(StatusCollector::classify(301) === 'redirect', '3xx must be reported as a redirect.');
+        $this->check(StatusCollector::classify(200) === 'ok', '2xx must be reported as ok.');
+        $this->check(!StatusCollector::inScope('https://external.example/path', 'example.com'), 'Out-of-scope URLs must not be requested.');
+        $this->check(StatusCollector::inScope('https://api.example.com/x', 'example.com'), 'Subdomains must stay in scope.');
+
+        $resolver = new FixtureResolver();
+        $http = new FixtureHttpClient();
+        $http->statuses = [
+            'https://example.com/about' => 404,
+            'https://example.com/files/report.pdf' => 403,
+            'https://example.com/assets/theme.css' => 0,
+        ];
+        $service = new CollectionService(new NetworkPolicy($resolver), $resolver, $http);
+        // Status is requested first but must still run after the module that discovers URLs.
+        $result = $service->analyze('example.com', ['status', 'links'], 'cli');
+        $data = json_decode((new JsonView())->encode($result), true, 128, JSON_THROW_ON_ERROR);
+        $checks = [];
+        foreach ($data['results']['status']['checks'] as $check) {
+            $checks[$check['url']] = $check;
+        }
+        $this->check($data['results']['status']['failing'] === 3, 'Failing pages were not counted.');
+        $this->check($checks['https://example.com/about']['result'] === 'missing', 'A 404 page was not reported.');
+        $this->check($checks['https://example.com/files/report.pdf']['result'] === 'forbidden', 'A 403 asset was not reported.');
+        $this->check($checks['https://example.com/assets/theme.css']['result'] === 'unreachable', 'A failed request was not reported.');
+        $this->check(!isset($checks['https://external.example/path']), 'An external URL must not be requested.');
+        $types = array_column($data['nodes'], 'evidence', 'id');
+        $this->check(($types['page:https://example.com/about']['http_status'] ?? null) === 404, 'The status must be kept as evidence.');
+        $errors = array_filter($data['edges'], fn ($edge) => $edge['type'] === 'reports_error');
+        $this->check(count($errors) === 3, 'Failing entities must be reachable through the graph.');
+        foreach ($data['edges'] as $edge) {
+            $this->check(in_array($edge['source'], array_column($data['nodes'], 'id'), true), 'Dangling error edge found.');
+        }
+        $empty = (new CollectionService(new NetworkPolicy($resolver), $resolver, new FixtureHttpClient()))
+            ->analyze('example.com', ['status'], 'cli');
+        $this->check($empty['errors'][0]['code'] === 'no_result', 'Status checks without discovered URLs must report no_result.');
+    }
+
     private function collectionAndGraph(): void
     {
         $resolver = new FixtureResolver();
@@ -240,6 +294,7 @@ final class TestSuite
         $failed = $service->analyze('example.com', ['headers'], 'cli');
         $this->check($failed['status'] === 'failed', 'Complete collection failure was hidden.');
         $this->check(str_contains((new JsonView())->encode($failed), '"results": {}'), 'Empty results must serialize as an object.');
+        $this->httpStatusModule();
     }
 
     private function rateLimitAndCli(): void

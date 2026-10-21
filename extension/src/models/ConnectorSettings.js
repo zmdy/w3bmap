@@ -10,6 +10,7 @@ export class ConnectorSettings {
     "robots",
     "sitemap",
     "links",
+    "status",
   ];
 
   constructor(values = {}) {

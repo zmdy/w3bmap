@@ -131,6 +131,7 @@ The action is selected using a query parameter on the installed PHP file.
 | `GET ?action=robots&domain=example.com` | Public robots.txt content |
 | `GET ?action=sitemap&domain=example.com` | Up to 250 entries from sitemap.xml |
 | `GET ?action=links&domain=example.com` | Up to 250 unique links from the homepage |
+| `GET ?action=status&domain=example.com` | HTTP status of up to 20 discovered pages and assets |
 | `GET ?action=environment` | Optional local PHP diagnostics; disabled by default |
 | `POST ?action=analyze` | Run selected modules and return one graph document |
 
@@ -147,6 +148,26 @@ If omitted, `modules` defaults to the four modules above. Targets must be DNS
 hostnames in ASCII/punycode, without a scheme, path, or port. Web modules start
 with HTTPS on port 443; redirects may use standard HTTP/HTTPS ports, and HTTPS
 downgrades are rejected.
+
+### HTTP status checks
+
+The `status` module requests the pages and assets the other modules discovered
+and records the status each one answers with, so broken links, forbidden paths
+and failing endpoints become findings instead of silent entries. Results are
+classified as `ok`, `redirect`, `missing` (404/410), `forbidden` (401/403),
+`client_error`, `server_error`, or `unreachable` when the request itself failed.
+
+Each checked entity keeps `http_status` and `http_result` in its evidence, and
+anything that is neither `ok` nor `redirect` also gets a `reports_error`
+relationship from the domain, so failures are visible in the graph. The module
+result lists every check with its status and any `Location` header.
+
+It requests at most 20 URLs, only ones already present in the collection and
+only on the analyzed domain or its subdomains, so the connector never becomes an
+arbitrary fetcher. It runs after the other modules whatever order they were
+requested in; without `links` or `sitemap` there is nothing to check and the
+module reports `no_result`. Every request still goes through the public-address
+policy, the redirect limit and the collection time budget.
 
 Collection responses follow [the shared graph schema](../shared/schema.json).
 They include `status`, `nodes`, `edges`, per-module `results`, and `errors`.

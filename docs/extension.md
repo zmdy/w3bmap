@@ -139,8 +139,9 @@ Open **Settings** in the extension:
 
 1. Enter the final PHP file URL, such as `https://your-host.example/w3bmap.php`.
 2. Enter the server's bearer token, using 32–256 visible ASCII characters.
-3. Select enrichment modules. New settings select all eight modules: DNS, RDAP,
-   HTTP headers, TLS, technologies, robots, sitemap, and links. Existing module
+3. Select enrichment modules. New settings select all nine modules: DNS, RDAP,
+   HTTP headers, TLS, technologies, robots, sitemap, links, and HTTP status
+   checks. Existing module
    selections are preserved.
 4. Click **Save & test connection**. Chrome asks for access to the connector host;
    grant it to enable authenticated capability discovery.

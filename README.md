@@ -200,7 +200,8 @@ POST /w3bmap.php?action=analyze
 ```
 
 Modules cover DNS, RDAP, certificates, HTTP headers, technology indicators,
-robots.txt, sitemaps, and links. Optional PHP environment diagnostics are disabled
+robots.txt, sitemaps, links, and HTTP status checks that surface broken,
+forbidden and failing pages. Optional PHP environment diagnostics are disabled
 by default. Local directory inspection is not implemented. Bounded recursive HTML analysis is available in the extension and CLI.
 See [the connector protocol and limits](docs/connector.md) for request bodies,
 deployment settings, security boundaries, and partial-result behavior.

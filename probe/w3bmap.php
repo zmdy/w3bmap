@@ -590,6 +590,12 @@ final class GraphDocument
             'verification' => $confidence === 1.0 ? 'observed' : 'inferred'];
     }
 
+    /** Entities already collected, so a later module can act on what was found. */
+    public function entities(array $types): array
+    {
+        return array_values(array_filter($this->nodes, fn ($node) => in_array($node['type'], $types, true)));
+    }
+
     public function result(string $module, array $data): void
     {
         $this->results[$module] = $data;
@@ -848,6 +854,95 @@ final class WebCollector implements Collector
     }
 }
 
+/**
+ * Requests the pages and assets other modules discovered and records the HTTP
+ * status each one answers with, so broken links, forbidden paths and failing
+ * endpoints become visible findings instead of silent entries.
+ *
+ * It only requests URLs on the analyzed domain or its subdomains, and only ones
+ * already present in the collection, so it never becomes an arbitrary fetcher.
+ */
+final class StatusCollector implements Collector
+{
+    public const LIMIT = 20;
+
+    public function __construct(private HttpClient $http)
+    {
+    }
+
+    public static function classify(int $status): string
+    {
+        if ($status >= 500) {
+            return 'server_error';
+        }
+        if ($status === 401 || $status === 403) {
+            return 'forbidden';
+        }
+        if ($status === 404 || $status === 410) {
+            return 'missing';
+        }
+        if ($status >= 400) {
+            return 'client_error';
+        }
+        if ($status >= 300) {
+            return 'redirect';
+        }
+        return $status >= 200 ? 'ok' : 'unexpected';
+    }
+
+    public static function inScope(string $url, string $domain): bool
+    {
+        $host = strtolower((string) parse_url($url, PHP_URL_HOST));
+        return $host === $domain || str_ends_with($host, '.' . $domain);
+    }
+
+    public function collect(string $module, string $domain, GraphDocument $graph): void
+    {
+        $targets = [];
+        foreach ($graph->entities(['page', 'asset']) as $node) {
+            $url = (string) ($node['evidence']['url'] ?? substr($node['id'], (int) strpos($node['id'], ':') + 1));
+            if (!str_starts_with($url, 'http') || !self::inScope($url, $domain) || isset($targets[$url])) {
+                continue;
+            }
+            $targets[$url] = $node['id'];
+            if (count($targets) >= self::LIMIT) {
+                break;
+            }
+        }
+        if ($targets === []) {
+            throw new AppException('No pages or assets were available to check. Select the links or sitemap module as well.', 400, 'no_result');
+        }
+        $checks = [];
+        $failures = 0;
+        foreach ($targets as $url => $id) {
+            try {
+                $response = $this->http->get($url);
+                $class = self::classify($response->status);
+                $check = ['url' => $url, 'status' => $response->status, 'result' => $class];
+                $location = $response->headers['location'][0] ?? null;
+                if ($location !== null) {
+                    $check['location'] = $location;
+                }
+            } catch (AppException $error) {
+                $class = 'unreachable';
+                $check = ['url' => $url, 'status' => null, 'result' => $class, 'message' => $error->getMessage()];
+            }
+            if ($class !== 'ok') {
+                $failures++;
+            }
+            $graph->node($id, str_starts_with($id, 'asset:') ? 'asset' : 'page', $url,
+                ['url' => $url, 'http_status' => $check['status'], 'http_result' => $class]);
+            if ($class !== 'ok' && $class !== 'redirect') {
+                $graph->edge('domain:' . $domain, $id, 'reports_error',
+                    ['http_status' => $check['status'], 'http_result' => $class]);
+            }
+            $checks[] = $check;
+        }
+        $graph->result('status', ['checked' => count($checks), 'limit' => self::LIMIT,
+            'failing' => $failures, 'scope' => $domain, 'checks' => $checks]);
+    }
+}
+
 final class RdapCollector implements Collector
 {
     public function __construct(private HttpClient $http)
@@ -881,7 +976,7 @@ final class CollectionService
         $web = new WebCollector($http);
         $this->collectors = ['dns' => new DnsCollector($resolver), 'rdap' => new RdapCollector($http),
             'headers' => $web, 'ssl' => $web, 'technologies' => $web, 'robots' => $web,
-            'sitemap' => $web, 'links' => $web];
+            'sitemap' => $web, 'links' => $web, 'status' => new StatusCollector($http)];
     }
 
     public function available(): array
@@ -898,6 +993,7 @@ final class CollectionService
             if (extension_loaded('dom')) {
                 $modules[] = 'links';
             }
+            $modules[] = 'status';
         }
         return $modules;
     }
@@ -906,7 +1002,7 @@ final class CollectionService
     {
         $domain = $this->policy->authorize($domain);
         if ($modules === [] || count($modules) > count($this->collectors)) {
-            throw new AppException('Select between one and eight collection modules.');
+            throw new AppException('Select between one and nine collection modules.');
         }
         foreach ($modules as $module) {
             if (!is_string($module) || !isset($this->collectors[$module])) {
@@ -915,7 +1011,10 @@ final class CollectionService
         }
         $this->policy->resolvePublic($domain);
         $graph = new GraphDocument($domain, $source);
-        foreach (array_unique($modules) as $module) {
+        // Status checks act on what the other modules discovered, so they run last.
+        $ordered = array_unique($modules);
+        usort($ordered, fn ($first, $second) => ($first === 'status' ? 1 : 0) <=> ($second === 'status' ? 1 : 0));
+        foreach ($ordered as $module) {
             try {
                 if (!in_array($module, $this->available(), true)) {
                     throw new AppException('The requested module is unavailable on this PHP installation.', 503, 'module_unavailable');

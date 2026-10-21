@@ -1,6 +1,7 @@
 export class ConnectorReportView {
   static MODULES = { dns: "DNS", rdap: "Registration (RDAP)", headers: "HTTP headers", ssl: "TLS certificate",
-    technologies: "Technologies", robots: "robots.txt", sitemap: "Sitemap", links: "Page links" };
+    technologies: "Technologies", robots: "robots.txt", sitemap: "Sitemap", links: "Page links",
+    status: "HTTP status checks" };
   static STATUS = { pending: "Waiting", running: "Running", complete: "Complete", failed: "Failed",
     partial: "Partial", unavailable: "Unavailable", no_result: "No result", not_configured: "Not configured" };
 
