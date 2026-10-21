@@ -80,13 +80,13 @@ export class PopupController {
       });
     }
     this.view.get("view-technologies").addEventListener("click", () => this.view.toggleTechnologies());
-    for (const id of ["header-menu", "scan-options", "more-options"]) {
+    for (const id of ["header-menu", "scan-options"]) {
       this.view.get(id).addEventListener("click", () => this.view.menu(this.view.get("more-menu").hidden));
     }
     for (const id of ["footer-settings", "menu-settings"]) this.view.get(id).addEventListener("click", () => this.api.runtime.openOptionsPage());
     this.view.get("menu-rescan").addEventListener("click", () => { this.view.menu(false); this.view.selectTab("page"); this.detect(); });
     document.addEventListener("keydown", (event) => { if (event.key === "Escape") this.view.menu(false); });
-    document.addEventListener("click", (event) => { if (!event.target.closest("#more-menu,#header-menu,#scan-options,#more-options")) this.view.menu(false); });
+    document.addEventListener("click", (event) => { if (!event.target.closest("#more-menu,#header-menu,#scan-options")) this.view.menu(false); });
   }
 
   async detect() {

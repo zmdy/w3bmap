@@ -47,6 +47,11 @@ export class DiscoveryPopupView extends PopupView {
     this.get("menu-new-collection").textContent = active
       ? "Start a different collection…"
       : "Start a new collection…";
+    const save = this.get("export-label");
+    save.textContent = active ? "Save investigation" : "Save collection";
+    this.get("export-json").title = active
+      ? "Download the open investigation as JSON. Session storage is cleared when the browser session ends."
+      : "Download the saved collection as JSON. Session storage is cleared when the browser session ends.";
     if (!active) return;
     this.get("session-label").textContent =
       `${values.name} · ${pages} ${pages === 1 ? "page" : "pages"}`;
@@ -298,6 +303,6 @@ export class DiscoveryPopupView extends PopupView {
 
   menu(open) {
     this.get("more-menu").hidden = !open;
-    for (const id of ["more-options", "header-menu", "scan-options"]) this.get(id).setAttribute("aria-expanded", String(open));
+    for (const id of ["header-menu", "scan-options"]) this.get(id).setAttribute("aria-expanded", String(open));
   }
 }

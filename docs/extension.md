@@ -17,8 +17,10 @@ repository. It already includes its runtime, icons, fingerprints, and Explorer.
 5. Open a normal HTTP or HTTPS page and click the extension.
 
 Technology detection starts automatically when you open the popup. Use **Analyze
-current page** to save a full collection, then **Open graph** to inspect findings
-or **Export JSON** to save the complete shared-schema document. The **Last
+current page** to save a full collection, then **Open in Site Explorer** to
+inspect findings or **Save collection** to download the complete shared-schema
+document. A collection lives in session storage, which Chrome clears when the
+browser session ends, so saving the JSON is what keeps it. The **Last
 collection** panel always identifies the result's hostname and page; it may refer
 to a different tab analyzed earlier.
 
@@ -34,8 +36,9 @@ technology list and discovery counters; **Site** explains current-site findings;
 the connection report; **Recent** shows the latest saved
 session collection. Recent is not a browsing-history archive. Graph/export actions
 always use the saved collection; when it belongs to another page, the graph button
-explicitly says **Open last saved graph**. **More options** provides rescan,
-connector settings, and collection clearing. Tabs support arrow, Home, and End keys.
+explicitly says **Open last saved graph**. The three-dot menu in the popup header
+provides rescan, collection controls, connector settings, and collection
+clearing; the action row keeps only opening and saving. Tabs support arrow, Home, and End keys.
 
 The layout stays within Chrome's 600px popup height with a scrolling content area
 and fixed graph/export actions. The favicon uses Chrome's extension-origin
