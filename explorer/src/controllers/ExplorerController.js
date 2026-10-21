@@ -35,7 +35,7 @@ export class ExplorerController {
       this.icons,
     );
     this.treeView = new TreeView(
-      this.view.get("tree-panel"),
+      this.view.get("tree-content"),
       this.tree,
       this.icons,
       (kind, id) => this.selectTree(kind, id),
@@ -379,8 +379,7 @@ export class ExplorerController {
   renderTree(visible) {
     this.tree.build(visible.nodes, this.model.document?.target ?? "");
     this.treeView.render();
-    this.view.get("tree-actions").hidden =
-      this.workspaceTab !== "tree" || !this.model.document;
+    this.view.get("tree-actions").hidden = !this.model.document;
     const split = this.view.get("split-hosts");
     split.hidden = !this.tree.multiSite;
     split.setAttribute("aria-pressed", String(this.tree.byHost));
@@ -466,8 +465,6 @@ export class ExplorerController {
       Boolean(this.model.document),
       name === "graph",
     );
-    this.view.get("tree-actions").hidden =
-      name !== "tree" || !this.model.document;
     this.view.get("entities-actions").hidden =
       name !== "entities" || !this.model.document;
     this.view.selection(

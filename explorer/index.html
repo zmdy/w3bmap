@@ -210,14 +210,6 @@
                   <span class="ui-icon" data-icon="file" aria-hidden="true"></span>Copy list
                 </button>
               </div>
-              <div id="tree-actions" class="tree-actions" hidden>
-                <button id="split-hosts" class="text-button" aria-pressed="true">
-                  Split by site</button
-                ><button id="expand-tree" class="text-button">Expand all</button
-                ><button id="collapse-tree" class="text-button">
-                  Collapse all
-                </button>
-              </div>
               <select
                 id="layout-select"
                 class="layout-select"
@@ -244,7 +236,17 @@
                 role="tabpanel"
                 aria-labelledby="tree-tab"
                 hidden
-              ></div>
+              >
+                <div id="tree-actions" class="tree-actions" hidden>
+                  <button id="split-hosts" class="text-button" aria-pressed="true">
+                    Split by site</button
+                  ><button id="expand-tree" class="text-button">Expand all</button
+                  ><button id="collapse-tree" class="text-button">
+                    Collapse all
+                  </button>
+                </div>
+                <div id="tree-content"></div>
+              </div>
               <div
                 id="entities-panel"
                 role="tabpanel"
