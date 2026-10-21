@@ -119,7 +119,7 @@ A separate native PowerShell collector is not implemented in this first version.
 All launchers use the same PHP OOP recursive engine. `--url`, `--depth`,
 `--recursive`, or any crawl selection option enables the `crawl` action. A domain
 without a URL starts at its HTTPS homepage. Quote wildcard patterns so the shell
-does not expand them. Version **0.7.0**.
+does not expand them. Version **0.8.0**.
 
 ```sh
 sh cli/w3bmap.sh --url https://example.com/docs/ --depth 2 --scope host --max-pages 10 --modules dns,rdap,technologies,links --include 'https://example.com/docs/*' --exclude '*/logout*' --output exports/crawl.json

@@ -1,6 +1,6 @@
 {
   "name": "w3bmap-explorer",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "private": true,
   "type": "module",
   "description": "Local-first graph explorer for w3bm@p collection documents.",

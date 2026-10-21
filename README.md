@@ -293,7 +293,7 @@ The architecture illustration uses BoxIcons v2 icons by Aniket Suvarna, obtained
 through [Iconify](https://icon-sets.iconify.design/bx/). See the
 [asset credits and license notices](docs/assets/README.md).
 
-Recursive analysis (version 0.7.0) supports depth, page/host limits, hostname scope,
+Recursive analysis (version 0.8.0) supports depth, page/host limits, hostname scope,
 URL include/exclude patterns, and explicit first-hop URLs. Enable it in the popup
 or run `sh cli/w3bmap.sh --url https://example.com/ --depth 2 --scope host` (Windows:
 `cli\w3bmap.cmd` or `.bat`). See the [recursive CLI guide](docs/cli.md#recursive-analysis)
@@ -301,6 +301,14 @@ and [extension controls](docs/extension.md#recursive-analysis). Browser technolo
 detection stays a flat list; entity clusters remain available in Site and Explorer.
 The Explorer defaults to a category layout and highlights directly related findings
 when an entity or relationship is selected. Click the canvas background to clear focus.
+
+Version 0.8.0 renames the workspace to **Site Explorer** and turns **Copy report**
+into an executive report: the collection's figures followed by the open tab's
+detail, as a plain list, a Markdown list, a Markdown table, or a Mermaid
+flowchart. Hostnames inside a platform's published namespace group under that
+platform, every view carries Merge sites with Expand and Collapse all, and the
+popup browses its findings as a tree, collects several pages into one open
+investigation, and saves it explicitly.
 
 Version 0.7.0 checks the HTTP status of discovered pages and assets through the
 connector's **status** module, so broken, forbidden and failing URLs become
