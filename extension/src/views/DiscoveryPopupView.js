@@ -145,7 +145,7 @@ export class DiscoveryPopupView extends PopupView {
     }
     this.entityList.render(nodes);
     this.get("site-entities-note").textContent = nodes.length
-      ? "Similarity groups only. Expand a group to see its findings; use Graph Explorer for evidence and relationships."
+      ? "Similarity groups only. Expand a group to see its findings; use Site Explorer for evidence and relationships."
       : "Inspect or analyze this page to see grouped findings. IPs and certificates require PHP enrichment.";
   }
 
@@ -171,7 +171,7 @@ export class DiscoveryPopupView extends PopupView {
     }
     this.get("connector-state").textContent = state.connectorEnabled ? "Analyze includes server checks" : "Browser collection only";
     this.get("connector-dot").classList.toggle("enabled", state.connectorEnabled);
-    this.get("graph-label").textContent = state.latest && state.latest.page !== this.page ? "Open last saved graph" : "Open in Graph Explorer";
+    this.get("graph-label").textContent = state.latest && state.latest.page !== this.page ? "Open last saved graph" : "Open in Site Explorer";
     this.get("open-graph").title = state.latest ? `Saved collection: ${state.latest.target}` : "";
     this.updateMetrics();
   }

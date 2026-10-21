@@ -2,7 +2,7 @@
 
 The Manifest V3 extension detects technologies when its popup opens, analyzes the
 current page on request, optionally enriches the result with a self-hosted PHP
-connector, and opens a packaged Graph Explorer. It runs without a central backend,
+connector, and opens a packaged Site Explorer. It runs without a central backend,
 account, or CDN.
 
 ## Installation
@@ -62,7 +62,7 @@ list with local technology logos, category chips, and versions; it does not grou
 technologies into category sections. Search filters by name, category, or version.
 **View all technologies** / **Show fewer technologies** control the compact list.
 Each finding still expands to show its evidence and confidence. Entity grouping
-in Site, Related, and the Graph Explorer is unchanged.
+in Site, Related, and the Site Explorer is unchanged.
 **Version unknown** means no usable version was observed; the detector never
 guesses a version from a technology name. **Detect again** reruns inspection,
 which is useful after lazy loading or a client-side route change.
@@ -185,7 +185,7 @@ per-module status, including errors. While Analyze runs, background-state pollin
 its current phase. Close and reopen the popup to see progress or the saved report.
 The saved report is included under `results.browser.connector` without credentials
 or the connector URL. Module results, evidence, and relationships are available in
-the Graph Explorer and JSON export. A successful capability check is distinct from
+the Site Explorer and JSON export. A successful capability check is distinct from
 a successful collection; individual modules can fail after authentication succeeds.
 Existing collections without a report remain readable.
 

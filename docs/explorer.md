@@ -1,4 +1,4 @@
-# Graph Explorer
+# Site Explorer
 
 The Explorer is a local-first static browser application. It imports JSON exports
 from the CLI or PHP connector, validates them against the shared schema, and
@@ -187,15 +187,29 @@ the entity's type dot.
 
 The Graph and Entities views share expansion state. Click a collapsed graph group
 to expand it; click the expanded group's boundary or heading to collapse it.
-In Entities, use each disclosure heading (Enter or Space also works). The sidebar
-provides **Expand groups** and **Collapse groups** for the entire collection.
+In Entities, use each disclosure heading (Enter or Space also works). Every view
+carries its own **Merge sites**, **Expand all** and **Collapse all** controls.
 Groups with one member keep their normal individual graph node.
+
+**Merge sites** buckets pages and assets by their site instead of by their exact
+hostname in Graph and Entities, and collapses the per-site folders into a single
+path tree in Tree view. **Split by site** restores the hostname detail.
+
+Hostnames inside a platform's published namespace are grouped under that platform,
+so `ad.doubleclick.net`, `ajax.googleapis.com` and `fonts.gstatic.com` read as one
+Google finding, and bucket hosts such as `name.s3.sa-east-1.amazonaws.com` or
+`name.blob.core.windows.net` join Amazon Web Services and Microsoft. The catalog
+lives in `explorer/src/services/ProviderCatalog.js` and covers public naming
+conventions only: it says a hostname sits in a platform's namespace, never who
+operates a site, who owns the content, or that the analyzed target is related to
+the platform.
 
 | Entity | Grouping rule |
 | --- | --- |
+| Platforms | Hostnames inside a known platform namespace, such as Google, Amazon Web Services, Microsoft, Cloudflare or Meta |
 | Domains | Registrable-domain boundary, then the longest suffix shared by the discovered hosts |
-| Pages | Exact hostname of the page URL |
-| Assets | Exact hostname of the asset URL |
+| Pages | Exact hostname of the page URL, or its site with **Merge sites** |
+| Assets | Exact hostname of the asset URL, or its site with **Merge sites** |
 | Technologies | Observed category; missing categories use Other technologies |
 | IP addresses | IPv4 /24 or IPv6 /48 prefix |
 | Certificates | Issuer organization or common name, when recorded |

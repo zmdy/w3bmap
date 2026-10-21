@@ -157,8 +157,12 @@ export class ExplorerController {
     this.bindTabKeyboard(["details", "collection"], (name) =>
       this.view.tab("inspector", name),
     );
-    on("expand-clusters", "click", () => this.setAllClusters(true));
-    on("collapse-clusters", "click", () => this.setAllClusters(false));
+    for (const id of ["expand-clusters", "expand-entity-clusters"])
+      on(id, "click", () => this.setAllClusters(true));
+    for (const id of ["collapse-clusters", "collapse-entity-clusters"])
+      on(id, "click", () => this.setAllClusters(false));
+    for (const id of ["merge-graph-sites", "merge-entity-sites"])
+      on(id, "click", () => this.toggleClusterSites());
     this.bindDrop();
   }
 
@@ -401,6 +405,11 @@ export class ExplorerController {
     this.tree.build(visible.nodes, this.model.document?.target ?? "");
     this.treeView.render();
     this.view.get("tree-actions").hidden = !this.model.document;
+    for (const id of ["merge-graph-sites", "merge-entity-sites"]) {
+      const button = this.view.get(id);
+      button.setAttribute("aria-pressed", String(!this.clusters.byHost));
+      button.textContent = this.clusters.byHost ? "Merge sites" : "Split by site";
+    }
     const split = this.view.get("split-hosts");
     split.hidden = !this.tree.multiSite;
     split.setAttribute("aria-pressed", String(this.tree.byHost));
@@ -487,6 +496,14 @@ export class ExplorerController {
     const select = this.model.filters.types.size < GraphFilters.TYPES.length;
     this.model.filters.types = new Set(select ? GraphFilters.TYPES : []);
     this.view.setTypeFilters(this.model.filters.types);
+    this.refresh();
+  }
+
+  /** Buckets pages and assets by site instead of by exact hostname, and back. */
+  toggleClusterSites() {
+    this.clusters.setByHost(!this.clusters.byHost);
+    this.selection = null;
+    this.inspector.empty();
     this.refresh();
   }
 

@@ -16,11 +16,43 @@ class GroupingFixture {
 const fixture = new GroupingFixture();
 const grouping = new EntityGroupingService();
 
-test("shared suffix groups match the supplied NIC and gstatic example and deduplicate records", () => {
+test("shared suffix groups match the supplied NIC example and deduplicate records", () => {
   const nodes = fixture.domains();
   const groups = grouping.groups([...nodes, nodes[1]]);
-  assert.deepEqual(groups.map((group) => [group.label, group.members.length]), [["*.gstatic.com", 2], ["*.simet.nic.br", 5]]);
+  // gstatic.com is a Google namespace, so its hosts join that platform group.
+  assert.deepEqual(groups.map((group) => [group.label, group.members.length]), [["*.simet.nic.br", 5], ["Google", 2]]);
   assert.equal(groups.flatMap((group) => group.members).length, nodes.length);
+});
+
+test("hosts inside a platform namespace group together across its many domains", () => {
+  const hosts = ["ad.doubleclick.net", "stats.g.doubleclick.net", "ajax.googleapis.com",
+    "fonts.gstatic.com", "unidas-livre-cms-files-prd.s3.sa-east-1.amazonaws.com",
+    "novaunidasprdrac.blob.core.windows.net", "unidashmlrac.blob.core.windows.net",
+    "www.facebook.com", "snap.licdn.com", "cdnjs.cloudflare.com", "www.unidas.com.br"];
+  const groups = grouping.groups(hosts.map((host) => fixture.node("domain", host)));
+  const byLabel = Object.fromEntries(groups.map((group) => [group.label, group.members.length]));
+  assert.equal(byLabel.Google, 4);
+  assert.equal(byLabel["Amazon Web Services"], 1);
+  assert.equal(byLabel.Microsoft, 2);
+  assert.equal(byLabel.Meta, 1);
+  assert.equal(byLabel.LinkedIn, 1);
+  assert.equal(byLabel.Cloudflare, 1);
+  // A site that is not a known platform keeps its own suffix group.
+  assert.equal(byLabel["www.unidas.com.br"], 1);
+  assert.equal(groups.flatMap((group) => group.members).length, hosts.length);
+});
+
+test("platform grouping also covers pages and assets served from those hosts", () => {
+  const nodes = [
+    { id: "asset:https://ajax.googleapis.com/jquery.js", type: "asset", label: "/jquery.js", evidence: {} },
+    { id: "asset:https://fonts.gstatic.com/font.woff2", type: "asset", label: "/font.woff2", evidence: {} },
+    { id: "asset:https://cdn.example.com/app.js", type: "asset", label: "/app.js", evidence: {} },
+  ];
+  const groups = grouping.groups(nodes);
+  assert.deepEqual(
+    groups.map((group) => [group.label, group.members.length]).sort(),
+    [["Google", 2], ["cdn.example.com", 1]],
+  );
 });
 
 test("public and private suffix boundaries keep unrelated tenants and registrants separate", () => {
@@ -97,4 +129,29 @@ test("expansion and clustering do not enter exported collections", () => {
   clusters.setAll(false);
   clusters.project(graph.visible());
   assert.equal(graph.exportJson(), before);
+});
+
+test("merging sites buckets pages and assets by site without touching the records", () => {
+  const nodes = [
+    { id: "asset:https://assets.example.com/a.js", type: "asset", label: "/a.js", evidence: {} },
+    { id: "asset:https://cdn.example.com/b.js", type: "asset", label: "/b.js", evidence: {} },
+    { id: "page:https://www.example.com/", type: "page", label: "/", evidence: {} },
+    { id: "asset:https://ajax.googleapis.com/c.js", type: "asset", label: "/c.js", evidence: {} },
+  ];
+  const snapshot = JSON.stringify(nodes);
+  const clusters = new EntityClusterModel();
+  clusters.load(nodes);
+  assert.deepEqual(
+    clusters.groups.filter((group) => group.type === "asset").map((group) => group.label).sort(),
+    ["Google", "assets.example.com", "cdn.example.com"],
+  );
+  clusters.setByHost(false);
+  assert.deepEqual(
+    clusters.groups.filter((group) => group.type === "asset").map((group) => group.label).sort(),
+    ["Google", "example.com"],
+  );
+  assert.equal(clusters.groups.find((group) => group.label === "example.com").members.length, 2);
+  clusters.setByHost(true);
+  assert.equal(clusters.groups.filter((group) => group.type === "asset").length, 3);
+  assert.equal(JSON.stringify(nodes), snapshot, "grouping never rewrites the collection");
 });

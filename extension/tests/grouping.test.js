@@ -21,9 +21,10 @@ test("the packaged grouping model collapses the supplied external domain familie
   const nodes = ["api.simet.nic.br", "ipv4-api.simet.nic.br", "ipv6-api.simet.nic.br", "fonts.gstatic.com", "www.gstatic.com"]
     .map((host) => ({ id: `domain:${host}`, label: host, type: "domain" }));
   model.load(nodes);
-  assert.deepEqual(model.groups.map((group) => group.label), ["*.gstatic.com", "*.simet.nic.br"]);
-  model.setOpen(model.groups[1].id, true);
+  // gstatic.com sits in Google's namespace, so its hosts group under that platform.
+  assert.deepEqual(model.groups.map((group) => group.label), ["*.simet.nic.br", "Google"]);
+  model.setOpen(model.groups[0].id, true);
   const projection = model.project({ nodes, edges: [] });
   assert.equal(projection.nodes.filter((node) => node.record).length, 3);
-  assert.equal(model.isOpen(model.groups[0].id), false);
+  assert.equal(model.isOpen(model.groups[1].id), false);
 });

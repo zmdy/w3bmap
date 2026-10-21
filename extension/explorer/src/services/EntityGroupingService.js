@@ -1,9 +1,22 @@
 import { parse } from "../../vendor/domain-parser.js";
+import { ProviderCatalog } from "./ProviderCatalog.js";
 
 /** Presentation-only similarity groups. Never establishes ownership or evidence. */
 export class EntityGroupingService {
   static LABELS = { domain: "Domains", page: "Pages", asset: "Assets", technology: "Technologies",
     ip: "IP addresses", certificate: "Certificates", sitemap: "Sitemaps" };
+
+  constructor(providers = new ProviderCatalog(), byHost = true) {
+    this.providers = providers;
+    // byHost keeps one bucket per exact hostname; merged keeps one per site.
+    this.byHost = byHost;
+  }
+
+  /** The registrable domain of a host, or the host itself when it has none. */
+  site(host) {
+    if (!host) return null;
+    return parse(host, { allowPrivateDomains: true })?.domain ?? host;
+  }
 
   hostname(value) {
     try {
@@ -16,14 +29,24 @@ export class EntityGroupingService {
 
   domainGroups(nodes) {
     const buckets = new Map();
+    const platforms = new Map();
     for (const node of nodes) {
       const host = this.hostname(node.id?.replace(/^domain:/, "") || node.label);
+      // Hosts inside a platform's published namespace read as one finding.
+      const provider = this.providers.find(host);
+      if (provider) {
+        if (!platforms.has(provider)) platforms.set(provider, []);
+        platforms.get(provider).push(node);
+        continue;
+      }
       const result = host ? parse(host, { allowPrivateDomains: true }) : null;
       const base = result?.domain || host || node.label;
       if (!buckets.has(base)) buckets.set(base, []);
       buckets.get(base).push({ node, host });
     }
-    return [...buckets].map(([base, entries]) => {
+    const groups = [...platforms].map(([provider, members]) =>
+      this.group("domain", `provider:${provider}`, provider, members));
+    return groups.concat([...buckets].map(([base, entries]) => {
       let suffix = entries[0].host?.split(".") ?? [];
       for (const { host } of entries) {
         const labels = host?.split(".") ?? [];
@@ -36,7 +59,7 @@ export class EntityGroupingService {
       // A single hostname is not a wildcard. An apex may also be a group member.
       const label = entries.some(({ host }) => host !== shared) ? `*.${shared}` : shared;
       return this.group("domain", base, label, entries.map(({ node }) => node));
-    });
+    }));
   }
 
   ipPrefix(value) {
@@ -65,9 +88,14 @@ export class EntityGroupingService {
     for (const node of unique.filter((node) => node.type !== "domain")) {
       let label;
       switch (node.type) {
-        case "page": case "asset": case "sitemap":
-          label = this.hostname(node.evidence?.url || node.id.replace(/^(page|asset|sitemap):/, "")) || "Other sites";
+        case "page": case "asset": case "sitemap": {
+          const host = this.hostname(node.evidence?.url || node.id.replace(/^(page|asset|sitemap):/, ""));
+          label =
+            this.providers.find(host) ??
+            (this.byHost ? host : this.site(host)) ??
+            "Other sites";
           break;
+        }
         case "technology": label = node.evidence?.category || "Other technologies"; break;
         case "ip": label = this.ipPrefix(node.id.replace(/^ip:/, "")); break;
         case "certificate": {

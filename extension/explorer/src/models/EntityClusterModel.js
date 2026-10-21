@@ -2,10 +2,22 @@ import { EntityGroupingService } from "../services/EntityGroupingService.js";
 
 /** Keeps expansion state outside the collection and the export contract. */
 export class EntityClusterModel {
-  constructor() { this.load([]); }
+  constructor() {
+    this.byHost = true;
+    this.nodes = [];
+    this.load([]);
+  }
+
+  /** Merged mode buckets pages and assets by site instead of by exact hostname. */
+  setByHost(value) {
+    this.byHost = value;
+    this.load(this.nodes);
+  }
 
   load(nodes) {
-    this.groups = new EntityGroupingService().groups(nodes).map((group) => ({ ...group, clustered: group.members.length > 1 }));
+    this.nodes = nodes;
+    this.groups = new EntityGroupingService(undefined, this.byHost).groups(nodes)
+      .map((group) => ({ ...group, clustered: group.members.length > 1 }));
     this.expanded = new Set();
     this.membership = new Map(this.groups.flatMap((group) => group.members.map((node) => [node.id, group.id])));
   }

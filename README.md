@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/assets/architecture.svg" width="880" alt="w3bm@p — Discover · Analyze · Connect · Visualize. Extension, CLI, and an optional self-hosted Probe API feed a Unified Data Schema and the Graph Explorer.">
+  <img src="docs/assets/architecture.svg" width="880" alt="w3bm@p — Discover · Analyze · Connect · Visualize. Extension, CLI, and an optional self-hosted Probe API feed a Unified Data Schema and the Site Explorer.">
 </p>
 
 # w3bm@p
@@ -16,14 +16,14 @@ while keeping control of your data and collection infrastructure.
 
 w3bm@p follows a local-first architecture with no required account, database, or
 central backend. Independent collectors produce a shared JSON format that can be
-imported and visualized in the Graph Explorer.
+imported and visualized in the Site Explorer.
 
 | Component | Responsibility | Technologies and status |
 | --- | --- | --- |
 | Extension | Analyze the current page, discover technology indicators, optionally query the user's connector, and open the packaged graph | JavaScript, Chrome Manifest V3 — unpacked version implemented |
 | PHP Connector / Probe API | Enrich discoveries with DNS, RDAP, certificates, HTTP, and other public sources | PHP 8.1+, cURL, OpenSSL — implemented |
 | CLI | Collect data from the terminal and export JSON in standalone or connected mode | SH/BAT launchers with PHP classes — implemented; native PowerShell planned |
-| Graph Explorer | Import, filter, inspect, visualize, and export entities, relationships, and evidence | JavaScript SPA, Cytoscape.js — implemented; cross-run correlation planned |
+| Site Explorer | Import, filter, inspect, visualize, and export entities, relationships, and evidence | JavaScript SPA, Cytoscape.js — implemented; cross-run correlation planned |
 | Shared | Define the JSON graph contract and browser technology indicators | JSON Schema and browser fingerprint catalog — implemented |
 
 ## Quick start
@@ -225,10 +225,10 @@ Queries and diagnostics must remain within the scope authorized by the operator.
 - [x] Define the shared JSON graph schema.
 - [x] Implement standalone and connected PHP CLI with SH/BAT launchers.
 - [x] Implement the authenticated self-hosted PHP connector.
-- [x] Build the Graph Explorer with import, validation, filtering, and export.
+- [x] Build the Site Explorer with import, validation, filtering, and export.
 - [x] Implement the Chrome extension with current-page collection and technology indicators.
 - [ ] Add a native PowerShell collector.
-- [x] Integrate the optional connector and packaged Graph Explorer into the Chrome extension.
+- [x] Integrate the optional connector and packaged Site Explorer into the Chrome extension.
 - [ ] Complete manual native Chrome installation and permission-prompt acceptance checks.
 - [ ] Correlate entities and evidence from multiple sources.
 

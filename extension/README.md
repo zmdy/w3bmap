@@ -1,7 +1,7 @@
 # w3bm@p Chrome extension
 
 This directory is a ready-to-load, unpacked Manifest V3 extension. It contains a
-local copy of the Graph Explorer and has no CDN or central backend dependency.
+local copy of the Site Explorer and has no CDN or central backend dependency.
 
 ## Install
 
